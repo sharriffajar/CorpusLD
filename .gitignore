@@ -1,0 +1,47 @@
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Database & Local Vector Storage
+qdrant_db/
+*.qdrant
+*.db
+*.sqlite3
+
+# Uploaded Files & Temporary Storage
+uploads/*
+!uploads/.gitkeep
+
+# Local Model Weights & Cache
+models/
+models/*
+.cache/
+huggingface/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

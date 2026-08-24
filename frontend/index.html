@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CorpusLD: Linked Data &amp; Neural RAG Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- APP CONTAINER -->
+  <div class="app-layout">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="app-header">
+      <div class="header-left">
+        <button id="btn-mobile-sidebar" class="btn-icon-nav mobile-only" aria-label="Open document navigation" title="Document Navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="brand-logo">
+          <div class="brand-mark">🧬</div>
+          <div class="brand-text">
+            <div class="brand-title">Corpus<span class="brand-accent">LD</span></div>
+            <div class="brand-subtitle">Linked Data &amp; Neural RAG Studio</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div id="privacy-badge" class="privacy-pill privacy-local" title="Data processed 100% locally on this device">
+          <span class="status-indicator"></span>
+          <span id="privacy-badge-text">100% Local Offline Mode</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div id="model-status-pill" class="status-badge badge-success">
+          <span class="badge-dot"></span>
+          <span id="model-status-text">Model: Ready (qwen2.5:3b)</span>
+        </div>
+        <div id="db-status-pill" class="status-badge badge-warning">
+          <span class="badge-dot"></span>
+          <span id="db-status-text">Vector DB: Needs Sync</span>
+        </div>
+        <button id="btn-open-settings" class="btn btn-secondary btn-compact" title="Engine Configuration & BYOK">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Engine Settings</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN BODY GRID -->
+    <div class="app-body">
+
+      <!-- SIDEBAR: SOURCE & KNOWLEDGE BASE -->
+      <aside class="sidebar" id="app-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title-group">
+            <h3>Document Workspace</h3>
+            <span id="doc-count-badge" class="count-badge">0</span>
+          </div>
+          <button id="btn-close-sidebar" class="btn-icon-close mobile-only" aria-label="Close document panel">&times;</button>
+        </div>
+
+        <!-- UPLOAD DROPZONE -->
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload PDF files">
+          <input type="file" id="file-input" multiple accept=".pdf" class="file-input-hidden">
+          <div class="dropzone-content">
+            <div class="dropzone-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <p class="dropzone-title">Drag &amp; drop PDF files here</p>
+            <p class="dropzone-sub">or <span class="browse-link">browse from device</span></p>
+          </div>
+        </div>
+
+        <!-- DOCUMENT LIST -->
+        <div class="sources-container">
+          <div class="sources-header">
+            <span>Active Documents</span>
+          </div>
+          <div class="sources-list" id="sources-list">
+            <div class="empty-sources">No documents yet. Upload a PDF to start semantic analysis.</div>
+          </div>
+        </div>
+
+        <!-- SYNC ACTION BAR -->
+        <div class="sidebar-footer">
+          <button id="btn-sync-kb" class="btn btn-primary btn-block" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Sync Knowledge Base</span>
+          </button>
+          <div id="sync-spinner" class="sync-status hidden">
+            <div class="spinner"></div>
+            <span id="sync-status-text">Processing...</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- SIDEBAR BACKDROP FOR MOBILE -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop hidden"></div>
+
+      <!-- MAIN CONTENT VIEW -->
+      <main class="main-content">
+        
+        <!-- PRIMARY TABS NAVIGATION -->
+        <nav class="tabs-nav" aria-label="Studio View Navigation">
+          <button class="tab-btn active" data-tab="tab-chat" id="tab-nav-chat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Neural Chat Studio</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-jsonld" id="tab-nav-jsonld">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Universal JSON-LD Explorer</span>
+          </button>
+        </nav>
+
+        <!-- TAB 1: NEURAL CHAT STUDIO (RAG) -->
+        <div id="tab-chat" class="tab-panel active">
+          <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+              <div class="chat-welcome-card">
+                <div class="welcome-header">
+                  <div class="welcome-badge">Semantic Neural Workbench</div>
+                  <h2>CorpusLD Studio</h2>
+                  <p class="welcome-desc">Structured <strong>Schema.org JSON-LD</strong> knowledge graph extraction and semantic vector retrieval from technical documents, regulations, and scientific papers.</p>
+                </div>
+                
+                <div class="welcome-workflow-grid">
+                  <div class="workflow-step">
+                    <div class="step-num">01</div>
+                    <div class="step-content">
+                      <h4>Ingest PDF Corpus</h4>
+                      <p>Upload documents in the left sidebar and sync them into Local Vector Storage (Qdrant).</p>
+                    </div>
+                  </div>
+                  <div class="workflow-step">
+                    <div class="step-num">02</div>
+                    <div class="step-content">
+                      <h4>Explore Neural RAG</h4>
+                      <p>Ask about quantitative metrics, tables, or concept definitions with chapter &amp; page citations.</p>
+                    </div>
+                  </div>
+                  <div class="workflow-step">
+                    <div class="step-num">03</div>
+                    <div class="step-content">
+                      <h4>Extract Schema.org</h4>
+                      <p>Open JSON-LD Explorer to extract verified entities, universal tables, and validated citations.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CHAT INPUT BAR -->
+            <div class="chat-input-wrapper">
+              <form id="chat-form" class="chat-form">
+                <input type="text" id="chat-input" placeholder="Ask about facts, metrics, tables, or concepts in the corpus..." autocomplete="off" disabled>
+                <button type="submit" id="btn-send-chat" class="btn btn-primary btn-send" disabled aria-label="Send Query">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: UNIVERSAL JSON-LD EXPLORER -->
+        <div id="tab-jsonld" class="tab-panel">
+          <div class="jsonld-workspace">
+            
+            <!-- CONTROLS BAR -->
+            <div class="jsonld-controls-bar">
+              <div class="control-group">
+                <label for="select-jsonld-doc">Select Source Document:</label>
+                <select id="select-jsonld-doc" class="select-dropdown">
+                  <option value="">Select registered document...</option>
+                </select>
+              </div>
+              <div class="control-actions">
+                <button id="btn-run-extraction" class="btn btn-accent" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                  <span>Extract JSON-LD (Agentic RAG)</span>
+                </button>
+                <button id="btn-cancel-extraction" class="btn btn-danger hidden">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                  <span>Cancel</span>
+                </button>
+                <button id="btn-download-jsonld" class="btn btn-secondary" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  <span>Download .jsonld</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- AGENTIC MULTI-STEP PROGRESS STEPPER -->
+            <div id="agent-stepper" class="agent-stepper hidden">
+              <div class="stepper-header">
+                <div class="stepper-title-wrap">
+                  <span class="stepper-indicator"></span>
+                  <span class="stepper-title">Agentic Multi-Step Extraction Pipeline</span>
+                </div>
+                <span id="stepper-timer" class="stepper-timer">00:00</span>
+              </div>
+              <div class="stepper-track">
+                <div class="step-card" id="step-1">
+                  <div class="step-icon">1</div>
+                  <div class="step-info">
+                    <span class="step-name">Cover &amp; Metadata</span>
+                    <span class="step-status" id="step-status-1">Pending</span>
+                  </div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-card" id="step-2">
+                  <div class="step-icon">2</div>
+                  <div class="step-info">
+                    <span class="step-name">Section Outline</span>
+                    <span class="step-status" id="step-status-2">Pending</span>
+                  </div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-card" id="step-3">
+                  <div class="step-icon">3</div>
+                  <div class="step-info">
+                    <span class="step-name">Precision Metrics</span>
+                    <span class="step-status" id="step-status-3">Pending</span>
+                  </div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-card" id="step-4">
+                  <div class="step-icon">4</div>
+                  <div class="step-info">
+                    <span class="step-name">Tables &amp; Data</span>
+                    <span class="step-status" id="step-status-4">Pending</span>
+                  </div>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-card" id="step-5">
+                  <div class="step-icon">5</div>
+                  <div class="step-info">
+                    <span class="step-name">Bibliography</span>
+                    <span class="step-status" id="step-status-5">Pending</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LIVE TERMINAL LOG STREAM -->
+            <div id="terminal-container" class="terminal-card hidden">
+              <div class="terminal-header">
+                <div class="terminal-title">
+                  <span id="terminal-pulse" class="terminal-pulse"></span>
+                  <span id="terminal-status-text">Agentic Execution Live Stream</span>
+                </div>
+                <button id="btn-clear-terminal" class="btn-clear">Clear Terminal</button>
+              </div>
+              <div id="terminal-logs" class="terminal-body"></div>
+            </div>
+
+            <!-- JSON-LD RESULTS CONTAINER -->
+            <div id="jsonld-results-container" class="jsonld-results-wrapper hidden">
+              
+              <!-- RICH SNIPPETS VALIDATION CARD -->
+              <div class="validator-banner">
+                <div class="validator-left">
+                  <div class="score-box">
+                    <span id="rich-score-val" class="score-number">100</span>
+                    <span class="score-total">/ 100</span>
+                  </div>
+                  <div class="validator-badge-info">
+                    <span id="rich-badge" class="badge-tag badge-ready">Google Rich Result Ready</span>
+                    <h3 id="doc-hero-title">Document Title</h3>
+                    <p id="doc-hero-desc">Document description...</p>
+                  </div>
+                </div>
+                <div class="validator-checks-grid" id="validator-checks"></div>
+              </div>
+
+              <!-- 8 SUB-TABS NAVIGATION -->
+              <div class="subtabs-nav" role="tablist">
+                <button class="subtab-btn active" data-subtab="sub-author">Author &amp; Metadata</button>
+                <button class="subtab-btn" data-subtab="sub-entities">Entities</button>
+                <button class="subtab-btn" data-subtab="sub-metrics">Quantitative Metrics</button>
+                <button class="subtab-btn" data-subtab="sub-sections">Sections</button>
+                <button class="subtab-btn" data-subtab="sub-tables">Tables</button>
+                <button class="subtab-btn" data-subtab="sub-refs">References</button>
+                <button class="subtab-btn" data-subtab="sub-logs">Telemetry Logs</button>
+                <button class="subtab-btn" data-subtab="sub-raw">Raw JSON-LD</button>
+              </div>
+
+              <!-- SUBTAB PANELS -->
+              <div class="subtabs-content">
+                <div id="sub-author" class="subtab-panel active">
+                  <div id="author-content"></div>
+                </div>
+                <div id="sub-entities" class="subtab-panel">
+                  <div id="entities-content"></div>
+                </div>
+                <div id="sub-metrics" class="subtab-panel">
+                  <div id="metrics-content"></div>
+                </div>
+                <div id="sub-sections" class="subtab-panel">
+                  <div id="sections-content"></div>
+                </div>
+                <div id="sub-tables" class="subtab-panel">
+                  <div id="tables-content"></div>
+                </div>
+                <div id="sub-refs" class="subtab-panel">
+                  <div id="refs-content"></div>
+                </div>
+                <div id="sub-logs" class="subtab-panel">
+                  <div id="logs-content"></div>
+                </div>
+                <div id="sub-raw" class="subtab-panel">
+                  <div class="code-block-wrapper">
+                    <button id="btn-copy-raw" class="btn-copy">Copy JSON-LD</button>
+                    <pre><code id="raw-jsonld-code"></code></pre>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL (BYOK & ENGINE CONFIG) -->
+  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-heading">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <h3 id="settings-modal-heading">Engine Configuration &amp; BYOK</h3>
+        </div>
+        <button id="btn-close-settings" class="btn-close" aria-label="Close Settings">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- PRIVACY NOTICE BANNER -->
+        <div class="privacy-notice">
+          <div class="notice-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <div class="notice-text">
+            <strong>API Key Privacy:</strong> API keys are stored exclusively in your local browser memory (localStorage) and are never sent to third-party databases.
+          </div>
+        </div>
+
+        <!-- SECTION 1: LLM ENGINE -->
+        <div class="settings-section">
+          <h4>LLM Inference Engine</h4>
+          
+          <div class="form-group">
+            <label for="setting-provider">Select Provider:</label>
+            <select id="setting-provider" class="form-control">
+              <option value="ollama">Local Ollama (100% Offline Local)</option>
+              <option value="gemini">Google Gemini (BYOK Cloud)</option>
+              <option value="groq">Groq High-Speed (BYOK Cloud)</option>
+              <option value="openai">OpenAI Official (BYOK Cloud)</option>
+              <option value="custom">Custom OpenAI-Compatible / OpenRouter / LM Studio</option>
+            </select>
+          </div>
+
+          <!-- DYNAMIC LOCAL OLLAMA MODELS -->
+          <div id="group-ollama-model" class="form-group">
+            <label for="setting-ollama-model">Detected Local Ollama Models:</label>
+            <select id="setting-ollama-model" class="form-control">
+              <option value="qwen2.5:3b">qwen2.5:3b (Recommended Default)</option>
+            </select>
+          </div>
+
+          <!-- CUSTOM BASE URL (FOR OPENROUTER / LM STUDIO / VLLM) -->
+          <div id="group-base-url" class="form-group hidden">
+            <label for="setting-base-url">Custom Base URL / API Endpoint:</label>
+            <input type="text" id="setting-base-url" class="form-control" placeholder="https://openrouter.ai/api/v1 or http://localhost:1234/v1">
+          </div>
+
+          <!-- CLOUD / CUSTOM MODEL NAME -->
+          <div id="group-cloud-model" class="form-group hidden">
+            <label for="setting-cloud-model">Model Name (Model ID):</label>
+            <input type="text" id="setting-cloud-model" class="form-control" placeholder="gemini-3.5-flash / deepseek-chat / meta-llama/llama-3.3-70b-instruct">
+          </div>
+
+          <div id="group-api-key" class="form-group hidden">
+            <label for="setting-api-key">API Key (Optional for local servers like LM Studio):</label>
+            <input type="password" id="setting-api-key" class="form-control" placeholder="sk-... / gsk_... / key">
+          </div>
+        </div>
+
+        <!-- SECTION 2: PARSER ENGINE -->
+        <div class="settings-section">
+          <h4>PDF Parser Strategy</h4>
+          
+          <div class="form-group">
+            <label for="setting-parser">Parser Selection:</label>
+            <select id="setting-parser" class="form-control">
+              <option value="pypdf">PyPDF Local (100% Offline, Standard)</option>
+              <option value="llamaparse">LlamaParse API (Vision Layout Markdown)</option>
+              <option value="unstructured">Unstructured API (Structured JSON)</option>
+            </select>
+          </div>
+
+          <div id="group-llamaparse-key" class="form-group hidden">
+            <label for="setting-llamaparse-key">LlamaParse API Key:</label>
+            <input type="password" id="setting-llamaparse-key" class="form-control" placeholder="llx-...">
+          </div>
+
+          <div id="group-unstructured-key" class="form-group hidden">
+            <label for="setting-unstructured-key">Unstructured API Key:</label>
+            <input type="password" id="setting-unstructured-key" class="form-control" placeholder="API Key...">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-reset-settings" class="btn btn-secondary">Reset to Default</button>
+        <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
