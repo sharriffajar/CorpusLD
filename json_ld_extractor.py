@@ -374,6 +374,111 @@ def resolve_section_pages(sections: List[Dict[str, Any]], heading_candidates: Li
                 sec["page_end"] = sec["page_start"]
     return sections
 
+MONTH_MAP_BILINGUAL = {
+    # Indonesian full & abbreviations
+    "januari": "01", "january": "01", "jan": "01",
+    "februari": "02", "february": "02", "pebruari": "02", "peb": "02", "feb": "02",
+    "maret": "03", "march": "03", "mar": "03",
+    "april": "04", "apr": "04",
+    "mei": "05", "may": "05",
+    "juni": "06", "june": "06", "jun": "06",
+    "juli": "07", "july": "07", "jul": "07",
+    "agustus": "08", "august": "08", "agu": "08", "ags": "08", "aug": "08",
+    "september": "09", "sep": "09", "sept": "09",
+    "oktober": "10", "october": "10", "okt": "10", "oct": "10",
+    "november": "11", "nopember": "11", "nov": "11", "nop": "11",
+    "desember": "12", "december": "12", "des": "12", "dec": "12",
+}
+
+def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: str = "") -> Optional[str]:
+    """
+    Normalisasi tanggal publikasi dari berbagai format teks alfabet bilingual (Indonesian/English)
+    atau numerik ke format standar resmi ISO-8601 (YYYY-MM-DD) yang valid untuk Schema.org & Google Rich Results.
+    """
+    candidate_texts = []
+    if raw_input and str(raw_input).strip():
+        candidate_texts.append(str(raw_input).strip())
+    if fallback_text and fallback_text.strip():
+        candidate_texts.append(fallback_text.strip())
+
+    month_names_regex = "|".join(sorted(MONTH_MAP_BILINGUAL.keys(), key=len, reverse=True))
+
+    for text in candidate_texts:
+        # 1. Format ISO lengkap: YYYY-MM-DD
+        m_iso = re.search(r'\b(19\d{2}|20[0-2]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', text)
+        if m_iso:
+            return m_iso.group(0)
+
+        # 2. Tanggal Bulan Tahun Alfabet (misal: '24 Agustus 2026', '15th March 2024', '5-Mei-2023')
+        m_dmy = re.search(
+            rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(?:of\s+)?({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-2]\d)\b',
+            text,
+            re.IGNORECASE
+        )
+        if m_dmy:
+            d = f"{int(m_dmy.group(1)):02d}"
+            m = MONTH_MAP_BILINGUAL[m_dmy.group(2).lower()]
+            y = m_dmy.group(3)
+            return f"{y}-{m}-{d}"
+
+        # 3. Bulan Tanggal, Tahun (misal: 'August 24, 2026', 'March 15th, 2024')
+        m_mdy = re.search(
+            rf'\b({month_names_regex})[\s\-\/\,]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(19\d{2}|20[0-2]\d)\b',
+            text,
+            re.IGNORECASE
+        )
+        if m_mdy:
+            m = MONTH_MAP_BILINGUAL[m_mdy.group(1).lower()]
+            d = f"{int(m_mdy.group(2)):02d}"
+            y = m_mdy.group(3)
+            return f"{y}-{m}-{d}"
+
+        # 4. Bulan Tahun (misal: 'Agustus 2026', 'August 2026', 'Okt 2024', 'September 2024')
+        m_my = re.search(
+            rf'\b({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-2]\d)\b',
+            text,
+            re.IGNORECASE
+        )
+        if m_my:
+            m = MONTH_MAP_BILINGUAL[m_my.group(1).lower()]
+            y = m_my.group(2)
+            return f"{y}-{m}-01"
+
+        # 5. Tahun Bulan (misal: '2026 Agustus', '2024 March')
+        m_ym = re.search(
+            rf'\b(19\d{2}|20[0-2]\d)[\s\-\/\,]+({month_names_regex})\b',
+            text,
+            re.IGNORECASE
+        )
+        if m_ym:
+            y = m_ym.group(1)
+            m = MONTH_MAP_BILINGUAL[m_ym.group(2).lower()]
+            return f"{y}-{m}-01"
+
+        # 6. Format numerik DD/MM/YYYY atau DD-MM-YYYY
+        m_num_dmy = re.search(r'\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](19\d{2}|20[0-2]\d)\b', text)
+        if m_num_dmy:
+            d = f"{int(m_num_dmy.group(1)):02d}"
+            m = f"{int(m_num_dmy.group(2)):02d}"
+            y = m_num_dmy.group(3)
+            return f"{y}-{m}-{d}"
+
+        # 7. Format ISO YYYY-MM
+        m_ym_iso = re.search(r'\b(19\d{2}|20[0-2]\d)-(0[1-9]|1[0-2])\b', text)
+        if m_ym_iso:
+            return f"{m_ym_iso.group(1)}-{m_ym_iso.group(2)}-01"
+
+        # 8. Tahun saja: YYYY
+        m_year = re.search(r'\b(19\d{2}|20[0-2]\d)\b', text)
+        if m_year:
+            return f"{m_year.group(1)}-01-01"
+
+    return None
+
+def extract_accurate_date(text: str) -> Optional[str]:
+    """Alias kompatibilitas untuk deteksi tanggal akurat."""
+    return normalize_publication_date(None, fallback_text=text)
+
 def extract_domain_keywords_fallback(text: str, file_name: str) -> List[str]:
     """Ekstrak kata kunci domain teknis secara agnostik dari abstrak/teks jika LLM kosong/generic."""
     acronyms = re.findall(r'\b[A-Za-z0-9\-]{3,18}\b', text)
@@ -905,9 +1010,9 @@ Jawab HANYA dalam JSON valid."""
         if step1_res.get("alternateName"):
             step1_res["alternateName"] = strip_markdown_formatting(step1_res["alternateName"])
 
-        # Presisi Tanggal Publikasi (Deterministic Date Scanner)
+        # Presisi Tanggal Publikasi (Bilingual Deterministic Date Scanner)
         all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
-        exact_date = extract_accurate_date(ctx_1 + " " + all_doc_text)
+        exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1 + " " + all_doc_text)
         if exact_date:
             step1_res["datePublished"] = exact_date
 
@@ -1247,16 +1352,7 @@ Jawab HANYA dalam JSON valid."""
 
     # Normalisasi format tanggal publikasi ke ISO-8601 (YYYY-MM-DD)
     raw_date = step1_res.get("datePublished")
-    normalized_date = None
-    if raw_date:
-        if re.match(r'^\d{4}-\d{2}-\d{2}$', str(raw_date)):
-            normalized_date = str(raw_date)
-        elif re.match(r'^\d{4}-\d{2}$', str(raw_date)):
-            normalized_date = f"{raw_date}-01"
-        elif re.match(r'^\d{4}$', str(raw_date)):
-            normalized_date = f"{raw_date}-01-01"
-        else:
-            normalized_date = str(raw_date)
+    normalized_date = normalize_publication_date(raw_date, fallback_text=ctx_1)
 
     # 4. Pure 100% Valid Schema.org Document JSON-LD (Optimal untuk Google Rich Results Test & Schema.org)
     raw_schema_json_ld = {
