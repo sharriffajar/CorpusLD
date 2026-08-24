@@ -216,11 +216,26 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
             start_page = table_pages_buffer[0]
             page_span = sorted(list(set(table_pages_buffer)))
             
-            caption_hint = f"Tabel #{table_count}"
-            for l in table_lines_buffer[:3]:
-                if any(kw in l.lower() for kw in ["tabel", "table", "matriks", "spesifikasi", "arsitektur", "biaya", "komparasi"]):
-                    caption_hint = l.strip("#*| ")
+            caption_hint = None
+            for l in table_lines_buffer[:4]:
+                l_clean = l.strip("#* ").strip()
+                if re.match(r'^(?:Tabel|Table)\s+\d+[\.\:\s\-]+[^\n\|]+', l_clean, re.IGNORECASE) and "|" not in l_clean:
+                    caption_hint = l_clean
                     break
+                elif re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE) and "|" not in l_clean:
+                    caption_hint = l_clean
+                    break
+
+            if not caption_hint:
+                for l in table_lines_buffer:
+                    if "|" in l:
+                        cols = [c.strip() for c in l.strip("|").split("|") if c.strip() and not re.match(r'^[\-\:\s]+$', c)]
+                        if len(cols) >= 2:
+                            caption_hint = f"Tabel {' - '.join(cols[:2])} (Halaman {start_page})"
+                            break
+
+            if not caption_hint:
+                caption_hint = f"Tabel Data (Halaman {start_page})"
 
             chunks.append({
                 "text": f"DATA TABEL / METRIK SPESIFIK:\n{combined_table}",

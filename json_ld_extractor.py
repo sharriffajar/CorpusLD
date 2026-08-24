@@ -205,12 +205,15 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1) -> Option
     """Parse Markdown table into UniversalTable deterministically in 0.001s."""
     raw_lines = [l.strip() for l in table_text.split("\n") if l.strip()]
     
-    # 1. Cari caption jika ada di baris pertama
-    caption = f"Tabel Data (Halaman {page_number})"
-    for l in raw_lines[:3]:
-        m_cap = re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-]+([^\n\|]+)', l, re.IGNORECASE)
-        if m_cap:
-            caption = l.strip()
+    # 1. Cari caption jika ada di baris pertama (tanpa pipe |)
+    caption = None
+    for l in raw_lines[:4]:
+        l_clean = l.strip("#* ").strip()
+        if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-]+[^\n\|]+', l_clean, re.IGNORECASE) and "|" not in l_clean:
+            caption = l_clean
+            break
+        elif re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE) and "|" not in l_clean:
+            caption = l_clean
             break
             
     table_lines = [l for l in raw_lines if "|" in l]
@@ -233,6 +236,13 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1) -> Option
             if any(row_cols):
                 rows.append(row_cols)
                 
+    if not caption:
+        valid_cols = [h for h in headers if h and not re.match(r'^[\-\:\s]+$', h)]
+        if valid_cols:
+            caption = f"Tabel {' - '.join(valid_cols[:2])} (Halaman {page_number})"
+        else:
+            caption = f"Tabel Data (Halaman {page_number})"
+
     if headers and rows:
         return {
             "caption": caption,
@@ -1143,7 +1153,7 @@ Jawab HANYA dalam JSON valid."""
     for i, tc in enumerate(table_chunks):
         m = tc.get("metadata", {})
         p_num = m.get("page_number") or m.get("pdf_page_index", 1)
-        cap_hint = m.get("caption_hint") or f"Tabel {i+1} (Halaman {p_num})"
+        cap_hint = m.get("caption_hint")
         t_text = tc.get("text", "")
         dt = parse_markdown_table_direct(t_text, page_number=p_num)
         
@@ -1158,16 +1168,23 @@ Jawab HANYA dalam JSON valid."""
                 if len(cols) >= 2:
                     data_lines.append(cols)
             if len(data_lines) >= 2:
+                # Synthesize caption from headers if cap_hint is invalid or raw pipe
+                fallback_cap = cap_hint if (cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint) else f"Tabel {' - '.join(data_lines[0][:2])} (Halaman {p_num})"
                 dt = {
-                    "caption": cap_hint,
+                    "caption": fallback_cap,
                     "page_number": p_num,
                     "headers": data_lines[0],
                     "rows": data_lines[1:]
                 }
                 
         if dt:
-            if cap_hint and "Tabel Data" in dt.get("caption", ""):
+            curr_cap = dt.get("caption", "")
+            if cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and ("Tabel Data" in curr_cap or "|" in curr_cap):
                 dt["caption"] = cap_hint
+            elif "|" in curr_cap or "Tabel #" in curr_cap:
+                valid_h = [h for h in dt.get("headers", []) if h and not re.match(r'^[\-\:\s]+$', h)]
+                if valid_h:
+                    dt["caption"] = f"Tabel {' - '.join(valid_h[:2])} (Halaman {p_num})"
             cap_key = dt.get("caption", "").strip().lower()
             if cap_key not in seen_table_captions:
                 seen_table_captions.add(cap_key)
