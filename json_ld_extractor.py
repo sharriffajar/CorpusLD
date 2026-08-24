@@ -775,8 +775,7 @@ def run_agentic_step(
                     {"role": "user", "content": user_text}
                 ],
                 format=pydantic_schema.model_json_schema(),
-                options={"temperature": 0.1, "num_ctx": num_ctx},
-                keep_alive=-1
+                options={"temperature": 0.1, "num_ctx": num_ctx}
             )
             content = response["message"]["content"]
         except Exception as e:

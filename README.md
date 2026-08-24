@@ -71,8 +71,8 @@
 - Semantic vector retrieval backed by Qdrant Vector Engine + IBM Granite Multilingual Embedding (`granite-embedding-107m-multilingual`).
 - Responses cite source evidence: `📄 Document_Name.pdf (Page X)` and `📊 Table: Document_Name.pdf (Page Y)`.
 
-### 7. ⚡ Zero Cold-Start Ollama Daemon & Flexible BYOK Support
-- **Auto-Daemon Ollama**: Detects local Ollama services, injects model weights from `./models`, and keeps models resident in VRAM/RAM with `keep_alive=-1`.
+### 7. ⚡ Lightweight On-Demand Local Ollama & Flexible BYOK Support
+- **RAM-Efficient On-Demand Inference**: Runs local Ollama models on-demand without memory hogging, releasing RAM automatically when idle.
 - **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
 - **Privacy First**: API keys reside solely in your browser's local memory (`localStorage`).
 

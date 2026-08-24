@@ -110,47 +110,15 @@ def ensure_ollama_running() -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Background Auto-Warmup Task
-    async def warmup_pipeline():
-        global MODEL_WARMED_UP
-        print("\n" + "="*60)
-        print("🚀 [CorpusLD Auto-Warmup] Memulai preloading model ke RAM/VRAM...")
-        print("="*60)
-        
-        # 1. Pastikan Ollama service berjalan
-        ollama_ok = ensure_ollama_running()
-
-        # 2. Preload Embedding Model & Vector DB
+    # Lightweight Startup Initialization (On-Demand Loading to conserve RAM)
+    async def init_pipeline():
         try:
-            print("🧠 [Preload] Memuat model embedding lokal (Granite Multilingual)...")
             get_embedder()
             get_qdrant()
-            print("✅ [Preload] Embedding & Qdrant Vector Engine Siap.")
         except Exception as e:
-            print(f"⚠️ [Preload] Notice embedder: {e}")
+            print(f"⚠️ [Startup Notice] Vector engine: {e}")
 
-        # 3. Preload & Warmup Ollama LLM (keep_alive=-1 agar tidak pernah di-unload)
-        if ollama_ok:
-            try:
-                model_name = Config.OLLAMA_MODEL_NAME
-                print(f"🤖 [Preload] Memuat model Ollama '{model_name}' dengan keep_alive=-1...")
-                await asyncio.to_thread(
-                    ollama.generate,
-                    model=model_name,
-                    prompt="",
-                    keep_alive=-1
-                )
-                MODEL_WARMED_UP = True
-                print(f"✅ [Preload] Model '{model_name}' BERHASIL dimuat ke memori (Zero Cold Start)!")
-            except Exception as e:
-                print(f"⚠️ [Preload] Notice Ollama preload: {e}")
-        else:
-            print("💡 [Preload] Ollama belum aktif di background. Anda dapat membuka Ollama atau menggunakan Cloud BYOK (Gemini/Groq).")
-        
-        print("="*60 + "\n")
-
-    # Jalankan background warmup tanpa memblokir startup FastAPI
-    asyncio.create_task(warmup_pipeline())
+    asyncio.create_task(init_pipeline())
     yield
 
 # ---------------------------------------------------------
@@ -663,8 +631,7 @@ Jawaban Profesional, Terstruktur & Kaya Fakta:"""
                 res = ollama.generate(
                     model=model_to_use,
                     prompt=prompt,
-                    options={"temperature": 0.2, "num_ctx": 4096, "num_predict": 512},
-                    keep_alive=-1
+                    options={"temperature": 0.2, "num_ctx": 4096, "num_predict": 512}
                 )
                 return res["response"]
             except Exception as e:
