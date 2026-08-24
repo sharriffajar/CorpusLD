@@ -82,11 +82,11 @@ class UniversalJSONLD(BaseModel):
 
 class Step1Overview(BaseModel):
     type: str = Field(default="DigitalDocument", alias="@type", description="ScholarlyArticle, TechArticle, Report, atau DigitalDocument")
-    name: str = Field(description="Judul lengkap resmi dokumen (DILARANG menggunakan nama file PDF)")
+    name: str = Field(default="", description="Judul lengkap resmi dokumen (DILARANG menggunakan nama file PDF)")
     alternateName: Optional[str] = Field(None, description="Judul alternatif / sub-judul / event jika ada")
     inLanguage: Optional[str] = Field(default="id", description="Kode bahasa dokumen (misal: 'id', 'en')")
     datePublished: Optional[str] = Field(None, description="Bulan/tahun penerbitan (misal: '2026-08') jika ada")
-    description: str = Field(description="Ringkasan eksekutif singkat dokumen dari Abstrak (2-3 kalimat)")
+    description: Optional[str] = Field(default=None, description="Ringkasan eksekutif singkat dokumen dari Abstrak (2-3 kalimat)")
     keywords: List[str] = Field(default_factory=list, description="Kata kunci utama terpenting (Minimal 5-8 kata kunci)")
     author: List[Author] = Field(default_factory=list, description="Penulis/pengarang dokumen beserta NIM/NIP dan afiliasinya jika ada")
     entities_involved: List[UniversalEntity] = Field(default_factory=list, description="Entitas ASLI dari dokumen (DILARANG placeholder generic)")
@@ -708,6 +708,27 @@ def run_agentic_step(
             
     # 4. Auto-map sinonim key dari berbagai model LLM
     if isinstance(raw_json, dict):
+        if "title" in raw_json and "name" not in raw_json:
+            raw_json["name"] = raw_json.pop("title")
+        elif "headline" in raw_json and "name" not in raw_json:
+            raw_json["name"] = raw_json.pop("headline")
+            
+        if "abstract" in raw_json and not raw_json.get("description"):
+            raw_json["description"] = raw_json.pop("abstract")
+        elif "summary" in raw_json and not raw_json.get("description"):
+            raw_json["description"] = raw_json.pop("summary")
+        elif "overview" in raw_json and not raw_json.get("description"):
+            raw_json["description"] = raw_json.pop("overview")
+        elif "desc" in raw_json and not raw_json.get("description"):
+            raw_json["description"] = raw_json.pop("desc")
+            
+        if "authors" in raw_json and "author" not in raw_json:
+            raw_json["author"] = raw_json.pop("authors")
+        if "entities" in raw_json and "entities_involved" not in raw_json:
+            raw_json["entities_involved"] = raw_json.pop("entities")
+        if "tags" in raw_json and "keywords" not in raw_json:
+            raw_json["keywords"] = raw_json.pop("tags")
+
         if "metrics" in raw_json and "properties_and_metrics" not in raw_json:
             raw_json["properties_and_metrics"] = raw_json.pop("metrics")
         elif "properties" in raw_json and "properties_and_metrics" not in raw_json:
