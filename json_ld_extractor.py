@@ -1257,7 +1257,9 @@ Jawab HANYA dalam JSON valid."""
                 "@type": "SoftwareApplication",
                 "name": "CorpusLD",
                 "url": "https://github.com/sharriffajar/CorpusLD",
-                "softwareVersion": "2.0"
+                "softwareVersion": "2.0",
+                "applicationCategory": "UtilitiesApplication",
+                "operatingSystem": "Desktop"
             },
             "object": {
                 "@type": "MediaObject",
