@@ -1,4 +1,4 @@
-# 🧬 CorpusLD
+# 🧬 CorpusLD — Your Knowledge Partner for Academic Discovery
 
 ```text
 ====================================================================
@@ -8,7 +8,7 @@
  ██║     ██║   ██║██╔══██╗██╔═══╝ ██║   ██║╚════██║██║     ██║  ██║
  ╚██████╗╚██████╔╝██║  ██║██║     ╚██████╔╝███████║███████╗██████╔╝
   ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝      ╚═════╝ ╚══════╝╚══════╝╚═════╝ 
-                 Linked Data & Neural RAG Studio v2.0
+                 Your Academic Knowledge Partner v2.0
 ====================================================================
 ```
 
@@ -16,10 +16,24 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-2.0-009688.svg?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Schema.org](https://img.shields.io/badge/Schema.org-100%25%20Compliant-success.svg?style=flat-square&logo=w3c)](https://schema.org/)
 [![Google Rich Results](https://img.shields.io/badge/Google%20Rich%20Results-Ready-orange.svg?style=flat-square&logo=google)](https://search.google.com/test/rich-results)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat-square)](LICENSE)
 [![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-red.svg?style=flat-square&logo=qdrant)](https://qdrant.tech/)
 [![Ollama](https://img.shields.io/badge/SLM%20Inference-Ollama%20Offline-black.svg?style=flat-square&logo=ollama)](https://ollama.com/)
 
-**CorpusLD** (Corpus + Linked Data) is an enterprise-grade platform for **Multi-Agent Semantic Ingestion**, **Schema.org JSON-LD Knowledge Extraction**, **Adversarial Knowledge Graph Reasoning**, and **Neural Vector RAG Search**. It transforms unstructured PDF documents (scientific papers, technical reports, academic publications, regulatory briefs) into linked data graphs that achieve 100% compliance on [validator.schema.org](https://validator.schema.org) and pass the [Google Rich Results Test](https://search.google.com/test/rich-results), complete with interactive, page-grounded neural retrieval.
+> **"Don't just extract knowledge. Partner with it."**
+
+**CorpusLD** (Corpus + Linked Data) is your dedicated **Academic Knowledge Partner** designed for **Multi-Agent Semantic Ingestion**, **Schema.org JSON-LD Knowledge Extraction**, **Adversarial Knowledge Graph Reasoning**, and **Grounded Neural Vector RAG Search**. It transforms complex, unstructured PDF documents (scientific papers, technical reports, academic publications, regulatory briefs) into rich, verifiable linked data graphs that achieve 100% compliance on [validator.schema.org](https://validator.schema.org) and pass the [Google Rich Results Test](https://search.google.com/test/rich-results).
+
+---
+
+## 🤝 The Knowledge Partner Philosophy
+
+| Traditional Tools | The CorpusLD Knowledge Partner |
+| :--- | :--- |
+| **Generic PDF Parser** | **Context-Aware Semantic Ingestion**: Understands document anatomy from cover to bibliography. |
+| **Passive Data Extractor** | **End-to-End Collaboration**: Accompanies researchers from upload and layout stitching to publishing. |
+| **Hallucination-Prone Chatbot** | **Evidence-Grounded Neural Studio**: Every answer binds to verifiable source page citations. |
+| **Blind Acceptance** | **Adversarial Audit Engine**: Actively stress-tests data for antonym conflicts and numerical boundaries. |
 
 ---
 

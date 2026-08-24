@@ -1389,7 +1389,7 @@ Jawab HANYA dalam JSON valid."""
             "name": "CorpusLD",
             "applicationCategory": "UtilitiesApplication",
             "operatingSystem": "Desktop",
-            "description": "PDF to JSON-LD Semantic Extractor",
+            "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
             "url": "https://github.com/sharriffajar/CorpusLD",
             "softwareVersion": "2.0"
         }
