@@ -193,6 +193,10 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   <span>Download .jsonld</span>
                 </button>
+                <button id="btn-copy-scholar-tags" class="btn btn-secondary" disabled title="Copy Google Scholar & Highwire Press HTML Meta Tags">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  <span>Copy Scholar Tags</span>
+                </button>
               </div>
             </div>
 
@@ -279,7 +283,7 @@
                 <div class="validator-checks-grid" id="validator-checks"></div>
               </div>
 
-              <!-- 8 SUB-TABS NAVIGATION -->
+              <!-- 9 SUB-TABS NAVIGATION -->
               <div class="subtabs-nav" role="tablist">
                 <button class="subtab-btn active" data-subtab="sub-author">Author &amp; Metadata</button>
                 <button class="subtab-btn" data-subtab="sub-entities">Entities</button>
@@ -287,8 +291,9 @@
                 <button class="subtab-btn" data-subtab="sub-sections">Sections</button>
                 <button class="subtab-btn" data-subtab="sub-tables">Tables</button>
                 <button class="subtab-btn" data-subtab="sub-refs">References</button>
-                <button class="subtab-btn" data-subtab="sub-logs">Telemetry Logs</button>
+                <button class="subtab-btn" data-subtab="sub-scholar">Scholar Meta Tags</button>
                 <button class="subtab-btn" data-subtab="sub-raw">Raw JSON-LD</button>
+                <button class="subtab-btn" data-subtab="sub-logs">Telemetry Logs</button>
               </div>
 
               <!-- SUBTAB PANELS -->
@@ -310,6 +315,12 @@
                 </div>
                 <div id="sub-refs" class="subtab-panel">
                   <div id="refs-content"></div>
+                </div>
+                <div id="sub-scholar" class="subtab-panel">
+                  <div class="code-block-wrapper">
+                    <button id="btn-copy-scholar" class="btn-copy">Copy HTML Meta Tags</button>
+                    <pre><code id="scholar-meta-code" class="language-html"></code></pre>
+                  </div>
                 </div>
                 <div id="sub-logs" class="subtab-panel">
                   <div id="logs-content"></div>

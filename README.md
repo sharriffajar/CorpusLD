@@ -53,21 +53,25 @@
 - **Agent 5 (Universal Scientific Citation Extractor)**: Deterministic state-machine reference parser supporting IEEE `[1]`, Numbered `1.`, and Harvard/APA/Chicago `Author-Year` formats in **0.004s** without narrative citation pollution.
 
 ### 3. 🌐 100% Schema.org & Google Rich Results Standard
-- Built on standard Schema.org vocabulary (`@type: ["Article", "ScholarlyArticle"]`, `hasPart`, `additionalProperty`, `PropertyValue`, `citation`, `author`).
+- Built on standard Schema.org vocabulary (`@type: ["Article", "ScholarlyArticle"]`, `hasPart`, `additionalProperty`, `PropertyValue`, `citation`, `author`, `sdPublisher`).
 - **Recursive Dynamic Pruning**: Automatically purges empty arrays, null values, and empty keys (`mentions: []`, `pagination: ""`) for schema purity.
 - Verified **0 Errors & 0 Warnings** on [validator.schema.org](https://validator.schema.org) and identified as an **Article Rich Result** on [Google Rich Results Test](https://search.google.com/test/rich-results).
 
-### 4. 🛡️ Adversarial Knowledge Graph Reasoning Engine
+### 4. 🎓 Google Scholar & Academic Discoverability Meta Tags
+- **Dual-Engine Academic Publishing**: Generates standard Highwire Press HTML `<meta>` tags (`citation_title`, `citation_author`, `citation_publication_date`, `citation_keywords`, `citation_abstract`, `citation_reference`).
+- **1-Click Ready for Institutional Web**: Empowers researchers to publish academic pages directly indexable by **Google Scholar, Semantic Scholar, Zotero, and Mendeley**.
+
+### 5. 🛡️ Adversarial Knowledge Graph Reasoning Engine
 - **Antonym Semantic Conflict**: Detects opposing claims across document sections (e.g. growth vs decline).
 - **Negation Conflict**: Audits negation assertions against affirmative claims.
 - **Numerical & Range Consistency**: Validates reasonable percentage boundaries and unit calibrations.
 - **Source Grounding**: Guarantees all sections and citations bind to original document page numbers.
 
-### 5. 💬 Neural Chat Studio (Precision RAG with Evidence)
+### 6. 💬 Neural Chat Studio (Precision RAG with Evidence)
 - Semantic vector retrieval backed by Qdrant Vector Engine + IBM Granite Multilingual Embedding (`granite-embedding-107m-multilingual`).
 - Responses cite source evidence: `📄 Document_Name.pdf (Page X)` and `📊 Table: Document_Name.pdf (Page Y)`.
 
-### 6. ⚡ Zero Cold-Start Ollama Daemon & Flexible BYOK Support
+### 7. ⚡ Zero Cold-Start Ollama Daemon & Flexible BYOK Support
 - **Auto-Daemon Ollama**: Detects local Ollama services, injects model weights from `./models`, and keeps models resident in VRAM/RAM with `keep_alive=-1`.
 - **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
 - **Privacy First**: API keys reside solely in your browser's local memory (`localStorage`).
