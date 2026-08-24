@@ -1262,7 +1262,7 @@ Jawab HANYA dalam JSON valid."""
     raw_schema_json_ld = {
         "@context": "https://schema.org",
         "@type": ["Article", "ScholarlyArticle"],
-        "headline": (step1_res.get("name") or file_name)[:110],
+        "headline": step1_res.get("name") or file_name,
         "name": step1_res.get("name") or file_name,
         "description": step1_res.get("description") or f"Dokumen {file_name}",
         "inLanguage": step1_res.get("inLanguage", "id"),
