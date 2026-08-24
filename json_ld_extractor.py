@@ -1250,26 +1250,14 @@ Jawab HANYA dalam JSON valid."""
         "hasPart": schema_parts,
         "additionalProperty": schema_additional_props,
         "citation": refs_out,
-        "action": {
-            "@type": "CreateAction",
-            "name": "PDF to JSON-LD Semantic Extraction",
-            "instrument": {
-                "@type": "SoftwareApplication",
-                "name": "CorpusLD",
-                "url": "https://github.com/sharriffajar/CorpusLD",
-                "softwareVersion": "2.0",
-                "applicationCategory": "UtilitiesApplication",
-                "operatingSystem": "Desktop"
-            },
-            "object": {
-                "@type": "MediaObject",
-                "encodingFormat": "application/pdf",
-                "name": file_name
-            },
-            "result": {
-                "@type": "ScholarlyArticle",
-                "@id": "#this"
-            }
+        "sdPublisher": {
+            "@type": "SoftwareApplication",
+            "name": "CorpusLD",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Desktop",
+            "description": "PDF to JSON-LD Semantic Extractor",
+            "url": "https://github.com/sharriffajar/CorpusLD",
+            "softwareVersion": "2.0"
         }
     }
 
@@ -1311,7 +1299,7 @@ def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
     allowed_keys = {
         "@context", "@type", "@id", "name", "headline", "alternateName",
         "description", "inLanguage", "datePublished", "dateModified",
-        "keywords", "author", "creator", "publisher", "about", "hasPart",
+        "keywords", "author", "creator", "publisher", "sdPublisher", "about", "hasPart",
         "additionalProperty", "citation", "action", "potentialAction",
         "mainEntity", "encodingFormat", "url"
     }
@@ -1616,10 +1604,10 @@ def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
     if entities and keywords:
         score += 20
         checks.append({"status": "PASS", "title": "Knowledge Graph Entities & Keywords", "desc": f"Teridentifikasi {len(entities)} entitas asli dan {len(keywords)} kata kunci topik."})
-    elif entities or keywords or data.get("action"):
+    elif entities or keywords or data.get("sdPublisher") or data.get("action"):
         score += 20
-        desc_kw = f"Ditemukan {len(entities)} entitas dan {len(keywords)} kata kunci (Provenance action active)."
-        checks.append({"status": "PASS", "title": "Knowledge Graph Metadata & Action", "desc": desc_kw})
+        desc_kw = f"Ditemukan {len(entities)} entitas dan {len(keywords)} kata kunci (sdPublisher provenance active)."
+        checks.append({"status": "PASS", "title": "Knowledge Graph Metadata & sdPublisher", "desc": desc_kw})
     else:
         checks.append({"status": "WARN", "title": "Entitas & Keywords Kosong", "desc": "Belum ada entitas atau kata kunci yang terindeks."})
 
