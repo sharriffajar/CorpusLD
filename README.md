@@ -142,4 +142,4 @@ Open your browser and navigate to **`http://localhost:8000`**.
 ---
 
 ## 📄 License
-Distributed under the MIT License. See `LICENSE` for details.
+Distributed under the Apache License, Version 2.0. See `LICENSE` for details.

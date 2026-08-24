@@ -1249,7 +1249,26 @@ Jawab HANYA dalam JSON valid."""
         "author": schema_authors,
         "hasPart": schema_parts,
         "additionalProperty": schema_additional_props,
-        "citation": refs_out
+        "citation": refs_out,
+        "action": {
+            "@type": "CreateAction",
+            "name": "PDF to JSON-LD Semantic Extraction",
+            "instrument": {
+                "@type": "SoftwareApplication",
+                "name": "CorpusLD",
+                "url": "https://github.com/sharriffajar/CorpusLD",
+                "softwareVersion": "2.0"
+            },
+            "object": {
+                "@type": "MediaObject",
+                "encodingFormat": "application/pdf",
+                "name": file_name
+            },
+            "result": {
+                "@type": "ScholarlyArticle",
+                "@id": "#this"
+            }
+        }
     }
 
     if normalized_date:
@@ -1290,9 +1309,9 @@ def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
     allowed_keys = {
         "@context", "@type", "@id", "name", "headline", "alternateName",
         "description", "inLanguage", "datePublished", "dateModified",
-        "keywords", "author", "publisher", "about", "hasPart",
-        "additionalProperty", "citation", "mainEntity",
-        "encodingFormat", "url"
+        "keywords", "author", "creator", "publisher", "about", "hasPart",
+        "additionalProperty", "citation", "action", "potentialAction",
+        "mainEntity", "encodingFormat", "url"
     }
     
     def _prune(val: Any) -> Any:

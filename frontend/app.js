@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const allowedKeys = [
       "@context", "@type", "@id", "name", "headline", "alternateName",
       "description", "inLanguage", "datePublished", "keywords", "author",
-      "hasPart", "additionalProperty", "citation"
+      "hasPart", "additionalProperty", "citation", "action"
     ];
     const cleanObj = {};
     allowedKeys.forEach(k => {
