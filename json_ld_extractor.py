@@ -109,7 +109,7 @@ class Step1Overview(BaseModel):
     alternateName: Optional[str] = Field(None, description="Judul alternatif / sub-judul / event jika ada")
     inLanguage: Optional[str] = Field(default="id", description="Kode bahasa dokumen (misal: 'id', 'en')")
     datePublished: Optional[str] = Field(None, description="Bulan/tahun penerbitan (misal: '2026-08') jika ada")
-    description: Optional[str] = Field(default=None, description="Ringkasan eksekutif singkat dokumen dari Abstrak (2-3 kalimat)")
+    description: Optional[str] = Field(default=None, description="The complete, unabridged official Abstract of the document verbatim (do NOT summarize or truncate)")
     keywords: List[str] = Field(default_factory=list, description="Kata kunci utama terpenting (Minimal 5-8 kata kunci)")
     author: List[Author] = Field(default_factory=list, description="Penulis/pengarang dokumen beserta NIM/NIP dan afiliasinya jika ada")
     entities_involved: List[UniversalEntity] = Field(default_factory=list, description="Entitas ASLI dari dokumen (DILARANG placeholder generic)")
@@ -586,32 +586,37 @@ def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) ->
     return clean_name if clean_name else file_name
 
 def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str) -> str:
-    """Ekstrak teks abstrak asli dari Halaman 1 & 2 dokumen."""
+    """Ekstrak teks abstrak lengkap asli dari Halaman 1 & 2 dokumen tanpa pemotongan buatan."""
     head_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]]
     full_head = "\n".join([c.get("text", "") for c in head_chunks])
     
-    # 1. Cari explicit keyword Abstract / Abstrak
+    # 1. Cari explicit keyword Abstract / Abstrak sampai batas seksi 1 / keywords
     m_abs = re.search(r'(?:Abstract|Abstrak|Ringkasan\s+Eksekutif)[\s\:\.\-]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
     if m_abs:
         abs_clean = " ".join([l.strip() for l in m_abs.group(1).split("\n") if l.strip()])
         if len(abs_clean) > 40:
-            return abs_clean[:1200]
+            return abs_clean[:4000]
             
-    # 2. Cari paragraf isi utama halaman 1 setelah baris afiliasi & email
+    # 2. Cari paragraf isi utama halaman 1 setelah baris afiliasi & email sampai sebelum Introduction
     p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
     p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
     
     body_start = 0
-    for i, l in enumerate(raw_lines[:10]):
-        if '@' in l or any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'agroparistech', 'sayfood']):
+    for i, l in enumerate(raw_lines[:15]):
+        if '@' in l or any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'agroparistech', 'sayfood', 'email:']):
             body_start = i + 1
             
     if body_start > 0 and body_start < len(raw_lines):
-        abstract_lines = raw_lines[body_start:body_start+10]
-        abs_clean = " ".join([l for l in abstract_lines if not re.match(r'^(?:arxiv|doi|https?://|table|tabel|figure|gambar)', l, re.I)])
+        abstract_lines = []
+        for l in raw_lines[body_start:]:
+            if re.match(r'^(?:1\.\s+|I\.\s+|Introduction|Pendahuluan|Keywords?|Kata\s+Kunci|\d+\.\s+[A-Z])', l, re.I):
+                break
+            if not re.match(r'^(?:arxiv|doi|https?://|table|tabel|figure|gambar)', l, re.I):
+                abstract_lines.append(l)
+        abs_clean = " ".join(abstract_lines)
         if len(abs_clean) > 50:
-            return abs_clean[:1200]
+            return abs_clean[:4000]
 
     return f"Dokumen ilmiah {file_name}"
 
@@ -1192,10 +1197,11 @@ def extract_json_ld_agentic_rag(
 RULES:
 1. Document Title ('name'): Extract the official substantive title prominent on the cover page. DO NOT use the filename or .pdf extension.
 2. Alternate Title ('alternateName'): Subtitle, event name, or secondary title if present.
-3. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY'). Extract ONLY the official explicit publication date/year printed on the document cover/header. If no explicit publication date exists in the document, set 'datePublished' to null. DO NOT guess the date from references, citations, or filenames.
-4. Authors ('author'): Extract real author names, IDs/NIM, and affiliations. Leave empty [] if no author exists.
-5. Keywords ('keywords'): Extract 6-10 domain technical keywords. DO NOT use generic phrases.
-6. Entities ('entities_involved'): Extract real organizations, software, hardware, or institutions mentioned.
+3. Document Abstract / Description ('description'): Extract the ENTIRE FULL OFFICIAL ABSTRACT verbatim from the document. DO NOT shorten, truncate, or summarize into 2-3 sentences. Google Scholar and Schema.org require the complete unabridged abstract.
+4. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY'). Extract ONLY the official explicit publication date/year printed on the document cover/header. If no explicit publication date exists in the document, set 'datePublished' to null. DO NOT guess the date from references, citations, or filenames.
+5. Authors ('author'): Extract real author names, IDs/NIM, and affiliations. Leave empty [] if no author exists.
+6. Keywords ('keywords'): Extract 6-10 domain technical keywords. DO NOT use generic phrases.
+7. Entities ('entities_involved'): Extract real organizations, software, hardware, or institutions mentioned.
 Respond ONLY in valid JSON."""
     
     log(f"🧠 Sending {len(cover_abstract_chunks)} cover/abstract chunks to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
