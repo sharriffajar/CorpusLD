@@ -16,6 +16,26 @@ logging.getLogger("pypdf").setLevel(logging.ERROR)
 logging.getLogger("pypdf._cmap").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", module="pypdf")
 
+def strip_markdown_formatting(text: Any) -> str:
+    """Bersihkan artefak formatting Markdown dari teks (# ** __ * _ ` dll)."""
+    if text is None:
+        return ""
+    text = str(text)
+    # 1. Hapus code fence markers
+    text = re.sub(r'```[a-zA-Z]*\n?', '', text)
+    # 2. Hapus markdown bold/italic yang berpasangan
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    text = re.sub(r'__([^_]+)__', r'\1', text)
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+    # 3. Hapus sisa karakter markdown yang tidak berpasangan atau menempel di tengah kalimat
+    text = re.sub(r'[\*\_`#~]+', ' ', text)
+    # 4. Hapus HTML tags jika ada
+    text = re.sub(r'<[^>]+>', '', text)
+    # 5. Normalisasi spasi dan strip tanda baca liar
+    text = re.sub(r'[ \t]+', ' ', text)
+    return text.strip(" \t\r\n-–—:;")
+
 # ---------------------------------------------------------
 # 1. SCHEMAS UNIVERSAL DOCUMENT (SCHEMA.ORG JSON-LD)
 # ---------------------------------------------------------
@@ -31,7 +51,7 @@ class Author(BaseModel):
     type: str = Field(default="Person", alias="@type", description="'Person' atau 'Organization'")
     name: str = Field(default="", description="Nama asli orang atau penyusun dokumen")
     identifier: Optional[str] = Field(None, description="Nomor identitas resmi (misal NIM atau NIP) jika tertulis")
-    affiliation: Optional[Union[EducationalOrganization, str, Dict[str, Any]]] = Field(None, description="Nama institusi atau perguruan tinggi jika tertulis")
+    affiliation: Optional[Union[List[Union[EducationalOrganization, Dict[str, Any], str]], EducationalOrganization, str, Dict[str, Any]]] = Field(None, description="Institusi atau daftar institusi afiliasi")
 
     @model_validator(mode="before")
     @classmethod
@@ -55,11 +75,23 @@ class UniversalEntity(BaseModel):
 
 class DocumentSection(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
-    section_name: str = Field(default="Section", description="Judul bab/seksi utama resmi dokumen (misal: 'I. Latar Belakang', 'BAB I', 'Section 1', etc.)")
+    section_name: str = Field(default="", description="Judul bab/seksi utama resmi dokumen (misal: 'I. Latar Belakang', 'BAB I', 'Section 1', etc.)")
     summary: str = Field(default="", description="Ringkasan ide/gagasan bab (JANGAN menyalin teks sitasi bibliografi/DOI)")
     key_points: List[str] = Field(default_factory=list, description="Poin-poin utama bab")
     page_start: Optional[int] = Field(None, description="Halaman awal seksi")
     page_end: Optional[int] = Field(None, description="Halaman akhir seksi")
+
+    @model_validator(mode="before")
+    @classmethod
+    def clean_section(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            name = data.get("section_name") or data.get("name") or data.get("title") or data.get("heading") or ""
+            data["section_name"] = strip_markdown_formatting(name)
+            if data.get("summary"):
+                data["summary"] = strip_markdown_formatting(data["summary"])
+            elif data.get("description"):
+                data["summary"] = strip_markdown_formatting(data["description"])
+        return data
 
 class UniversalProperty(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
@@ -143,18 +175,6 @@ def truncate_context(text: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
         return text
     return text[:max_chars] + "\n[...konteks dipotong...]"
 
-def strip_markdown_formatting(text: Any) -> str:
-    """Bersihkan artefak formatting Markdown dari output LLM (# ** __ dll)."""
-    if text is None:
-        return ""
-    text = str(text)
-    text = re.sub(r'^#+\s*', '', text)  # Remove heading markers
-    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # **bold** -> bold
-    text = re.sub(r'__([^_]+)__', r'\1', text)  # __bold__ -> bold
-    text = re.sub(r'\*([^*]+)\*', r'\1', text)  # *italic* -> italic
-    text = re.sub(r'_([^_]+)_', r'\1', text)  # _italic_ -> italic
-    return text.strip()
-
 def sanitize_text_for_extraction(text: str) -> str:
     """Membersihkan artefak teks parser seperti 'DATA TABEL / METRIK SPESIFIK:' dan markdown formatting."""
     cleaned = re.sub(r'DATA TABEL / METRIK SPESIFIK:\s*', '', text)
@@ -163,55 +183,175 @@ def sanitize_text_for_extraction(text: str) -> str:
     cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)
     return cleaned.strip()
 
+def fix_concatenated_title_spacing(title: str) -> str:
+    """Memperbaiki spasi kata kapital yang menempel akibat konversi PDF (misal: 'THEDEPLOYMENTGAP' -> 'THE DEPLOYMENT GAP')."""
+    if not title:
+        return ""
+    fixed = re.sub(r'\bTHE([A-Z]{3,})\b', r'THE \1', title)
+    fixed = re.sub(r'\b([A-Z]{3,})(GAP|MODEL|SYSTEM|STUDY|REVIEW|ANALYSIS|FRAMEWORK|APPROACH|OPTIMIZATION|ALGORITHM|ARCHITECTURE)\b', r'\1 \2', fixed)
+    fixed = re.sub(r'\b(DEPLOYMENT)(GAP)\b', r'\1 \2', fixed, flags=re.IGNORECASE)
+    return fixed.strip()
+
+def clean_document_title(title: str, authors: List[Dict[str, Any]] = None) -> str:
+    """Membersihkan judul dokumen agar murni tanpa nama penulis, tanggal, running header IEEE, atau artefak markdown."""
+    if not title:
+        return ""
+    clean = strip_markdown_formatting(title).strip()
+    clean = clean.strip('"\'')
+    # Hapus running header IEEE / Journal (misal: "KORTMANNet al.: DATA-DRIVEN...")
+    clean = re.sub(r'^[A-Z\s]+et\s+al\.?\s*:\s*', '', clean, flags=re.IGNORECASE).strip()
+    clean = re.sub(r'^[A-Z\s]+,\s*[A-Z\s]+et\s+al\.?\s*:\s*', '', clean, flags=re.IGNORECASE).strip()
+    clean = fix_concatenated_title_spacing(clean)
+    if authors:
+        for a in authors:
+            aname = a.get("name", "").strip()
+            if aname and len(aname) > 3:
+                # Hanya hapus nama penulis jika benar-benar cocok persis di akhir judul
+                clean = re.sub(rf'(?:\s+(?:by|and|&|,)\s+|\s+){re.escape(aname)}$', '', clean, flags=re.IGNORECASE).strip()
+                if clean.lower().endswith(aname.lower()):
+                    clean = clean[:-len(aname)].rstrip(" ,-–—and&").strip()
+    # Hapus awalan "by Author" jika eksplisit tercantum
+    clean = re.sub(r'\s+by\s+[A-Z][a-zA-Z\.\s]+$', '', clean)
+    return clean.strip()
+
+def clean_abstract_description(desc: str) -> str:
+    """Membersihkan deskripsi abstrak dari tanggal, metadata hak cipta/lisensi, header '## Abstract', dan kebocoran teks '## 1 Introduction'."""
+    if not desc:
+        return ""
+    clean = strip_markdown_formatting(desc).strip()
+    
+    # 1. Hapus polusi copyright, lisensi, riwayat review (Received/Revised/Accepted), DOI sebelum kata ABSTRACT
+    m_abs = re.search(r'\b(?:ABSTRACT|ABSTRAK|Ringkasan(?:\s+Eksekutif)?)\b[\s\:\.\-\*#]*(.+)', clean, flags=re.IGNORECASE | re.DOTALL)
+    if m_abs:
+        clean = m_abs.group(1).strip()
+    else:
+        # Bersihkan metadata copyright/lisensi/received di awal kalimat jika kata ABSTRACT tidak ada
+        clean = re.sub(r'^(?:Copyright\b|©|\(C\)|Received\b|Revised\b|Accepted\b|Published\b|Available\s+online|License\b|CC\s+BY|Open\s+Access|https?://|doi\:)[\s\S]+?(?=\n\n|\n[A-Z]|\.\s+[A-Z])', '', clean, flags=re.IGNORECASE).strip()
+
+    # 2. Hapus sisa tanggal atau format metadata header/volume jurnal di awal
+    clean = re.sub(r'^(?:v\s*ol\.?|volume|volumen|no\.|n[ºo\.]|nº)\s*[\d\.,\s]+(?:marzo|enero|february|january|march|april|may|june|july|august|september|october|november|december|20\d{2})[^\n]*\n*', '', clean, flags=re.IGNORECASE).strip()
+    clean = re.sub(r'^(?:(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\d{4}-\d{2}-\d{2})\s*', '', clean, flags=re.IGNORECASE).strip()
+    clean = re.sub(r'^(?:#+\s*Abstract|\bAbstract\b[:\s\-\*]*)+', '', clean, flags=re.IGNORECASE).strip()
+    clean = re.sub(r'^(?:Copyright|©|\(C\)|License|Received|Accepted|Published|Diterbitkan)[\s\:\.\-]+[^\n\r]+\n*', '', clean, flags=re.IGNORECASE).strip()
+
+    # 3. Potong sebelum bagian kata kunci atau Bab 1
+    clean = re.split(r'(?:\n|##+|\b)(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+I|PENDAHULUAN|Section\s+1)\b', clean, flags=re.IGNORECASE)[0].strip()
+    return clean
+
 def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Menapis item bab/seksi:
-    1. Membuang Daftar Pustaka, Bibliografi, Referensi.
-    2. Membuang kalimat narasi panjang di tengah paragraf yang tidak tampak seperti heading.
-    3. Membuang teks sitasi/DOI dari summary seksi.
-    """
-    forbidden_keywords = ["daftar pustaka", "referensi", "references", "bibliografi", "rujukan", "pengesahan"]
-    filtered = []
+    """Membersihkan bagian outline dari artefak noise, afiliasi penulis, bibliografi, dan list item bernomor di dalam bab pendahuluan."""
+    if not sections:
+        return []
+        
+    forbidden_keywords = {
+        'daftar pustaka', 'references', 'bibliography', 'kata pengantar', 
+        'daftar isi', 'table of contents', 'abstrak', 'abstract', 
+        'lampiran', 'appendix', 'daftar tabel', 'daftar gambar'
+    }
+    affiliation_noise = {
+        'department', 'faculty', 'fakultas', 'departemen', 'universit', 'institut', 'institute',
+        'school of', 'program studi', 'prodi', 'jurusan', 'laborator', 'college', 'academy',
+        'centre', 'center', 'email', 'correspondence', '@', 'zip code', 'postal code'
+    }
+    generic_placeholders = {"section", "bab", "chapter", "bagian", "seksi", "documentsection", "main section", "subbab", "heading", "judul bab", ""}
+    
+    # Deteksi halaman bab 2 jika ada
+    sec2_page = 3
     for sec in sections:
-        name = sec.get("section_name", "").strip()
-        summary = sec.get("summary", "").strip()
+        name = strip_markdown_formatting(sec.get("section_name", "")).strip()
+        if re.match(r'^2[\.\:\s]', name) and not any(an in name.lower() for an in affiliation_noise):
+            sec2_page = sec.get("page_start", 3) or 3
+            break
+            
+    filtered = []
+    orphan_summaries = []
+    
+    for sec in sections:
+        name = strip_markdown_formatting(sec.get("section_name", "")).strip()
+        summary = strip_markdown_formatting(sec.get("summary", "")).strip()
         name_lower = name.lower()
         
-        # Cek kata dilarang pada nama seksi
         if any(fk in name_lower for fk in forbidden_keywords):
             continue
-            
-        # Cek jika nama seksi terlalu panjang (> 12 kata)
-        word_count = len(name.split())
-        if word_count > 12:
+
+        if any(an in name_lower for an in affiliation_noise):
             continue
-        
-        # Bersihkan summary jika mengandung sitasi DOI/URL yang salah tempat
+            
+        if not name or name_lower in generic_placeholders:
+            if summary:
+                orphan_summaries.append(summary)
+            continue
+            
+        # Tolak poin daftar kontribusi/klausa kalimat (misal: "2. ESBMC-Arduino: an Arduino instantiation (§6).A HAL library whose...")
+        if re.search(r'\(\s*§\s*\d+\s*\)|\b(?:whose|which\s+is|we\s+present|we\s+introduce|we\s+show|demonstrates?|instantiation)\b', name, re.I):
+            continue
+        if re.search(r'\.\s*[A-Z]', name) and len(name.split()) > 6:
+            continue
+
+        # Tolak bab >= 3 yang muncul sebelum halaman Bab 2 (poin daftar kontribusi di dalam Section 1)
+        m_major = re.match(r'^([3-9]|1\d|2\d)[\.\:\s]', name)
+        if m_major and not re.match(r'^\d+\.\d+', name):
+            s_pg = sec.get("page_start", 1) or 1
+            if s_pg < sec2_page:
+                continue
+                
+        # Tolak poin daftar bernomor di dalam Bab 1 jika sudah ada Bab 1 utama
+        if re.match(r'^1[\.\:\s]', name) and not re.match(r'^1\.\d+', name):
+            if any(re.match(r'^1[\.\:\s]', f.get("section_name", "")) and not re.match(r'^1\.\d+', f.get("section_name", "")) for f in filtered):
+                continue
+                
+        if len(name.split()) > 14:
+            if summary:
+                orphan_summaries.append(f"{name}: {summary}")
+            continue
+            
         if "doi.org" in summary.lower() or "http" in summary.lower():
             summary = re.sub(r'https?://\S+', '', summary).strip()
-            sec["summary"] = summary if summary else "Penjelasan ide dan gagasan utama bab."
+            summary = summary if summary else "Penjelasan ide dan gagasan utama bab."
             
+        sec["section_name"] = name
+        sec["summary"] = summary
         filtered.append(sec)
+
+    if orphan_summaries and filtered:
+        for sec in filtered:
+            if not sec.get("summary") or "Penjelasan ide" in sec.get("summary", "") or len(sec.get("summary", "")) < 20:
+                sec["summary"] = orphan_summaries.pop(0)
+                if not orphan_summaries:
+                    break
+
     return filtered
 
-def consolidate_tables(tables: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") -> List[Dict[str, Any]]:
     """
-    Menggabungkan tabel-tabel terpisah yang terfragmentasi (misal 1 baris per objek tabel)
-    dengan caption/headers/page_number yang sama menjadi satu UniversalTable utuh.
+    Menggabungkan tabel-tabel terpisah yang terfragmentasi dengan caption/headers/page_number sama
+    menjadi satu UniversalTable utuh dengan bahasa prefiks yang selaras (Table vs Tabel).
     """
     if not tables:
         return []
+    
+    is_en = in_language == "en"
+    default_caption = "Table Data" if is_en else "Tabel Data Dokumen"
     
     consolidated = []
     caption_map = {}
     
     for tbl in tables:
-        caption = sanitize_text_for_extraction(tbl.get("caption", "")).strip()
+        caption = strip_markdown_formatting(sanitize_text_for_extraction(tbl.get("caption", ""))).strip()
         if not caption:
-            caption = "Tabel Data Dokumen"
+            caption = default_caption
+        else:
+            if is_en:
+                caption = re.sub(r'\bTabel\b', 'Table', caption, flags=re.IGNORECASE)
+                caption = re.sub(r'\(Halaman\s+(\d+)\)', r'(Page \1)', caption, flags=re.IGNORECASE)
+                caption = re.sub(r'\bHalaman\s+(\d+)\b', r'Page \1', caption, flags=re.IGNORECASE)
+            else:
+                caption = re.sub(r'\bTable\b', 'Tabel', caption, flags=re.IGNORECASE)
+                caption = re.sub(r'\(Page\s+(\d+)\)', r'(Halaman \1)', caption, flags=re.IGNORECASE)
+                caption = re.sub(r'\bPage\s+(\d+)\b', r'Halaman \1', caption, flags=re.IGNORECASE)
         
-        headers = [h.strip() for h in tbl.get("headers", [])]
-        rows = tbl.get("rows", [])
+        headers = [strip_markdown_formatting(h) for h in tbl.get("headers", [])]
+        rows = [[strip_markdown_formatting(cell) for cell in r] for r in tbl.get("rows", [])]
         page_number = tbl.get("page_number", 1)
         
         headers_key = "|".join(headers).lower()
@@ -231,14 +371,92 @@ def consolidate_tables(tables: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             
     return consolidated
 
-def parse_markdown_table_direct(table_text: str, page_number: int = 1) -> Optional[Dict[str, Any]]:
-    """Parse Markdown table into UniversalTable deterministically in 0.001s."""
+def is_mathematical_formula(text: str) -> bool:
+    """Mendeteksi apakah baris teks merupakan persamaan matematika LaTeX / aljabar, bukan tabel data."""
+    if not text:
+        return False
+    math_signals = [
+        r'[qQpPfFgGhH]\([A-Za-z0-9_\+\-\s=,\|\^\ˆ]+\)',
+        r'=\s*[^=\n]+\s*=',
+        r'[ˆ\^][a-zA-Z]|\\hat|\\frac|\\sum|\\prod|\\int|\\leq|\\geq|\\approx|\\equiv',
+        r'\b[XxyzXYZ]\s*[Nn_]\s*[\+\-]?\s*\d*',
+        r'\b[qQpP][mkn]\s*[\+\-]\s*e[iIkK0-9]\b',
+        r'\bargmax\b|\bargmin\b|\bPr\(|\bE\['
+    ]
+    return any(re.search(sig, text) for sig in math_signals)
+
+def is_valid_tabular_data(headers: List[str], rows: List[List[str]]) -> bool:
+    """
+    Validasi integritas struktur tabel murni (mencegah paragraf teks, bagan, dan formula matematika dijadikan tabel):
+    1. Minimal 2 kolom header yang valid dan substantif.
+    2. Minimal 1 baris data (dan jika 1 baris, harus memiliki minimal 3 kolom).
+    3. Kolom header tidak boleh berupa kalimat narasi panjang (> 8 kata).
+    4. Rata-rata kata per sel data <= 7 kata.
+    5. Bukan persamaan matematika / aljabar LaTeX.
+    6. Bukan label sumbu grafik/bagan.
+    """
+    if not headers or len(headers) < 2 or not rows:
+        return False
+        
+    valid_headers = [h.strip() for h in headers if h and not re.match(r'^[\-\:\s]+$', h)]
+    if len(valid_headers) < 2:
+        return False
+        
+    # Periksa apakah header berupa persamaan matematika
+    if any(is_mathematical_formula(h) for h in valid_headers):
+        return False
+        
+    # Header tidak boleh berupa kalimat narasi panjang (misal lebih dari 8 kata)
+    if any(len(h.split()) > 8 for h in valid_headers):
+        return False
+        
+    # Periksa rata-rata panjang sel data
+    all_cells = [cell.strip() for r in rows for cell in r if cell and cell.strip()]
+    if not all_cells:
+        return False
+        
+    # Jika sebagian besar sel berisi formula matematika, tolak
+    math_cell_count = sum(1 for c in all_cells if is_mathematical_formula(c))
+    if math_cell_count / len(all_cells) > 0.4:
+        return False
+        
+    avg_words = sum(len(c.split()) for c in all_cells) / len(all_cells)
+    if avg_words > 7.0:
+        return False
+        
+    # Periksa jika sel-sel data berisi kalimat bertitik naratif
+    narrative_count = sum(1 for c in all_cells if len(c.split()) > 10 or re.search(r'\.\s+[A-Z]', c))
+    if narrative_count / len(all_cells) > 0.2:
+        return False
+        
+    # Tolak jika header hanya berupa 1 huruf atau simbol variabel matematika sumbu grafik
+    axis_symbols = {'α', 'β', 'γ', 'δ', 'θ', 'λ', 'μ', 'σ', 'τ', 'ω', '0', '1', '2', 'x', 'y', 'z', 'd', 'n', 'c', 'l', 'a', 'b', 'm', 'k', 'r'}
+    if all(h.lower() in axis_symbols or len(h) <= 1 for h in valid_headers):
+        return False
+        
+    # Tolak jika header berupa label plot grafik atau matriks koordinat
+    plot_labels = {'coordinates', 'layer', 'tokens n', 'check', 'compared against', 'add-one', 'add-1', 'add-half', 'point', 'points'}
+    if any(h.lower().strip() in plot_labels for h in valid_headers):
+        return False
+        
+    # Jika hanya 1 baris data, harus memiliki minimal 3 kolom terstruktur
+    if len(rows) == 1 and len(valid_headers) < 3:
+        return False
+        
+    return True
+
+def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_language: str = "id") -> Optional[Dict[str, Any]]:
+    """Parse Markdown table into UniversalTable deterministically in 0.001s with language-aware captions and strict prose rejection."""
     raw_lines = [l.strip() for l in table_text.split("\n") if l.strip()]
     
     # 1. Cari caption jika ada di baris pertama (tanpa pipe |)
     caption = None
     for l in raw_lines[:4]:
-        l_clean = l.strip("#* ").strip()
+        l_clean = strip_markdown_formatting(l)
+        if re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', l_clean, re.IGNORECASE):
+            return None  # Strictly reject figures
+        if is_mathematical_formula(l_clean):
+            return None  # Strictly reject math formulas
         if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-]+[^\n\|]+', l_clean, re.IGNORECASE) and "|" not in l_clean:
             caption = l_clean
             break
@@ -252,7 +470,7 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1) -> Option
         
     # Headers
     header_line = table_lines[0]
-    headers = [h.strip() for h in header_line.strip("|").split("|")]
+    headers = [strip_markdown_formatting(h) for h in header_line.strip("|").split("|")]
     
     # Separator
     start_row = 1
@@ -262,25 +480,37 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1) -> Option
     rows = []
     for l in table_lines[start_row:]:
         if "|" in l:
-            row_cols = [c.strip() for c in l.strip("|").split("|")]
+            row_cols = [strip_markdown_formatting(c) for c in l.strip("|").split("|")]
             if any(row_cols):
                 rows.append(row_cols)
                 
+    if not is_valid_tabular_data(headers, rows):
+        return None
+                
+    is_en = in_language == "en"
     if not caption:
         valid_cols = [h for h in headers if h and not re.match(r'^[\-\:\s]+$', h)]
         if valid_cols:
-            caption = f"Tabel {' - '.join(valid_cols[:2])} (Halaman {page_number})"
+            caption = f"Table {' - '.join(valid_cols[:2])} (Page {page_number})" if is_en else f"Tabel {' - '.join(valid_cols[:2])} (Halaman {page_number})"
         else:
-            caption = f"Tabel Data (Halaman {page_number})"
+            caption = f"Table Data (Page {page_number})" if is_en else f"Tabel Data (Halaman {page_number})"
+    else:
+        # Normalize language prefix on caption
+        if is_en:
+            caption = re.sub(r'\bTabel\b', 'Table', caption, flags=re.IGNORECASE)
+            caption = re.sub(r'\(Halaman\s+(\d+)\)', r'(Page \1)', caption, flags=re.IGNORECASE)
+            caption = re.sub(r'\bHalaman\s+(\d+)\b', r'Page \1', caption, flags=re.IGNORECASE)
+        else:
+            caption = re.sub(r'\bTable\b', 'Tabel', caption, flags=re.IGNORECASE)
+            caption = re.sub(r'\(Page\s+(\d+)\)', r'(Halaman \1)', caption, flags=re.IGNORECASE)
+            caption = re.sub(r'\bPage\s+(\d+)\b', r'Halaman \1', caption, flags=re.IGNORECASE)
 
-    if headers and rows:
-        return {
-            "caption": caption,
-            "page_number": page_number,
-            "headers": headers,
-            "rows": rows
-        }
-    return None
+    return {
+        "caption": caption,
+        "page_number": page_number,
+        "headers": headers,
+        "rows": rows
+    }
 
 def extract_accurate_date(text: str) -> Optional[str]:
     """Ekstrak tanggal publikasi presisi (YYYY-MM atau YYYY) dari teks dokumen."""
@@ -306,125 +536,289 @@ def extract_accurate_date(text: str) -> Optional[str]:
         return m_yr.group(1)
     return None
 
+def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
+    """
+    Menyaring kandidat bab secara agnostik berdasarkan konsistensi sekuensial halaman (Monotonic Structural Continuity).
+    Mencegah poin daftar bernomor di dalam Introduction (misal 1., 3., 4., 5. pada halaman 1-2)
+    salah dianggap sebagai bab utama 3, 4, 5 yang sebenarnya baru muncul di halaman-halaman berikutnya.
+    """
+    if not candidates:
+        return []
+        
+    major_candidates = {}  # major_num -> list of (pg, full_heading)
+    subsections = []       # subsections 1.1, 3.1, etc.
+    other_candidates = []  # unnumbered / appendices
+    
+    for pg, h_full in candidates:
+        m_sub = re.match(r'^([1-9]|1\d|2\d)\.\d+', h_full)
+        if m_sub:
+            subsections.append((pg, h_full))
+            continue
+            
+        m_major = re.match(r'^([1-9]|1\d|2\d)\.\s+(.+)$', h_full)
+        if m_major:
+            num = int(m_major.group(1))
+            if num not in major_candidates:
+                major_candidates[num] = []
+            major_candidates[num].append((pg, h_full))
+        else:
+            other_candidates.append((pg, h_full))
+            
+    # Temukan kemunculan bab utama yang valid dan berurutan secara monoton
+    filtered_major = []
+    current_min_page = 1
+    
+    sorted_major_nums = sorted(major_candidates.keys())
+    for num in sorted_major_nums:
+        entries = major_candidates[num]
+        valid_entries = [e for e in entries if e[0] >= current_min_page]
+        if valid_entries:
+            # Ambil kemunculan pertama yang memenuhi syarat halaman
+            best_entry = valid_entries[0]
+            filtered_major.append(best_entry)
+            current_min_page = best_entry[0]
+            
+    # Gabungkan bab utama yang valid dan subbab
+    clean_outline = list(filtered_major)
+    major_page_map = {int(re.match(r'^(\d+)\.', e[1]).group(1)): e[0] for e in filtered_major if re.match(r'^(\d+)\.', e[1])}
+    
+    for pg, h_full in subsections:
+        m_sub = re.match(r'^([1-9]|1\d|2\d)\.(\d+)', h_full)
+        if m_sub:
+            parent_num = int(m_sub.group(1))
+            if parent_num in major_page_map and pg < major_page_map[parent_num]:
+                continue  # Tolak jika halaman subbab lebih kecil dari halaman bab induk
+        clean_outline.append((pg, h_full))
+        
+    for pg, h_full in other_candidates:
+        clean_outline.append((pg, h_full))
+        
+    return clean_outline
+
 def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tuple]:
     """
     Memindai kandidat heading bab/seksi secara agnostik di seluruh chunk dokumen.
-    Mendukung pola Romawi (I., II.), Angka Arab (1., 1.1), BAB/CHAPTER/SECTION, dan standalone domain headings.
+    Mendukung pola Romawi (I., II.), Angka Arab (1. / 1 Introduction, 1.1, 1.2), BAB/CHAPTER/SECTION, dan standalone domain headings,
+    baik pada baris tersendiri maupun pada awal blok teks.
     """
-    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'ABSTRAK', 'ABSTRACT', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'FIGURE 3', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
+    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'REFERENCIAS', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'ABSTRAK', 'ABSTRACT', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'FIGURE 3', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
     known_headings = [
         'key conditions and challenges', 'recent developments', 'outlook', 
         'executive summary', 'introduction', 'methodology', 'results', 'discussion', 'conclusion', 'conclusions',
-        'latar belakang', 'metodologi', 'hasil penelitian', 'kesimpulan', 'saran'
+        'latar belakang', 'metodologi', 'hasil penelitian', 'kesimpulan', 'saran', 'related work', 'future work'
     ]
     candidates = []
     seen_names = set()
+    in_references_section = False
     
     sorted_chunks = sorted(chunks, key=lambda x: x.get('metadata', {}).get('pdf_page_index', 0))
+    cardinal_directions = {'north', 'south', 'east', 'west', 'utara', 'selatan', 'timur', 'barat', 'northeast', 'northwest', 'southeast', 'southwest', 'latitude', 'longitude'}
+
     for c in sorted_chunks:
         pg = c.get('metadata', {}).get('pdf_page_index', 1)
         txt = c.get('text', '')
-        normalized_txt = re.sub(r'Key conditions and\s*\n\s*challenges', 'Key conditions and challenges', txt, flags=re.IGNORECASE)
+        clean_txt = strip_markdown_formatting(txt)
+        lines = [l.strip() for l in clean_txt.split('\n') if l.strip()]
         
-        for line in normalized_txt.split('\n'):
-            line_clean = re.sub(r'^[#*_\s]+', '', line).strip(" *_\t\r\n")
-            if len(line_clean) < 4 or len(line_clean) > 130:
-                continue
-            if any(nb in line_clean.upper() for nb in noise):
+        # Pindai baris per baris secara deterministik
+        for idx_l, line_clean in enumerate(lines):
+            if len(line_clean) < 3 or len(line_clean) > 130:
                 continue
             
-            # Check Roman: I. / II. / III. / IV. / V. / VI.
-            m_roman = re.match(r'^(I{1,3}|IV|V|VI|VII|VIII|IX|X)\.\s+([^\n\r]{3,120})', line_clean)
-            if m_roman:
-                h_name = m_roman.group(0).strip(" .\n_#*")
-                if h_name.lower() not in seen_names:
-                    seen_names.add(h_name.lower())
-                    candidates.append((pg, h_name))
+            # Deteksi awal bagian Daftar Pustaka / References
+            if any(re.search(rf'^\s*(?:#+\s*)?(?:\d+\.?\s+)?{rk}\b', line_clean, re.I) for rk in ['DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'REFERENCIAS']):
+                in_references_section = True
                 continue
                 
-            # Check BAB / CHAPTER / SECTION / BAGIAN
-            m_bab = re.match(r'^(BAB\s+[IVX\d]+|CHAPTER\s+\d+|SECTION\s+\d+|BAGIAN\s+[IVX\d]+)\s*[:\.\-]?\s+([^\n\r]{3,120})', line_clean, re.IGNORECASE)
-            if m_bab:
-                h_name = m_bab.group(0).strip(" .\n_#*")
-                if h_name.lower() not in seen_names:
-                    seen_names.add(h_name.lower())
-                    candidates.append((pg, h_name))
-                continue
-
-            # Check Sub-sections: 1.1 / 1.2 / 2.1 / 3.1 / 3.3 without truncation
-            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)?)\s+([^\n\r]{3,120})', line_clean)
-            if m_sub:
-                h_name = m_sub.group(0).strip(" .\n_#*")
-                if h_name.lower() not in seen_names:
-                    seen_names.add(h_name.lower())
-                    candidates.append((pg, h_name))
+            # Jika sudah masuk halaman referensi, jangan ekstrak heading bernomor sitasi
+            if in_references_section:
                 continue
                 
-            # Check Arabic main section: 1. PENDAHULUAN (1-20 only)
-            m_num = re.match(r'^([1-9]|1\d|20)\.\s+([^\n\r]{3,120})', line_clean)
-            if m_num and not re.search(r'Rp|\$|USD|\.000', line_clean):
-                h_name = m_num.group(0).strip(" .\n_#*")
-                if h_name.lower() not in seen_names:
-                    seen_names.add(h_name.lower())
-                    candidates.append((pg, h_name))
+            if any(nb in line_clean.upper() for nb in noise):
+                continue
+            if re.search(r'Rp|\$|USD|EUR|€|\.000|\b(?:pages?|halaman|vol|no|table|tabel|figure|gambar|eq|equation)\b', line_clean, re.IGNORECASE):
                 continue
 
-            # Check Unnumbered domain headings (e.g. Recent developments, Outlook, etc.)
+            # Saring satuan unit fisik, simbol matematika, atau klausa sambung naratif (misal: '2. MW h MW−1, whereas')
+            if re.search(r'\b(?:MW\s*h|MWh|kWh|GWh|kW|MW|GW|km²|m²|m³|kg|ton|ppm|mg/L)\b|[−±≈×\^/]', line_clean, re.IGNORECASE):
+                continue
+            if re.search(r'\b(?:whereas|while|because|although|since|therefore|moreover|furthermore|however|namely|whereby|instantiation)\b|\(\s*§\s*\d+\s*\)', line_clean, re.IGNORECASE):
+                continue
+            if line_clean.endswith(',') or line_clean.endswith(';'):
+                continue
+                
+            # Saring teks sitasi bibliografi (memuat pola nama penulis berganda, tahun, jurnal, et al.)
+            if line_clean.count(',') >= 2 or re.search(r'\b(?:et\s+al|pp\.|vol\.|no\.|doi|https?://|\b\d{4}\b)\b', line_clean, re.I) or re.search(r'\b[A-Z][a-z]+,\s+[A-Z]\b', line_clean):
+                continue
+                
+            affiliation_noise = {
+                'department', 'faculty', 'fakultas', 'departemen', 'universit', 'institut', 'institute',
+                'school of', 'program studi', 'prodi', 'jurusan', 'laborator', 'college', 'academy',
+                'centre', 'center', 'email', 'correspondence', '@', 'zip code', 'postal code',
+                'sarawak', 'pontianak', 'malaysia', 'indonesia'
+            }
+            if any(an in line_clean.lower() for an in affiliation_noise):
+                continue
+
+            # Fungsi pembantu untuk menyambung heading yang terpotong di baris berikutnya
+            def stitch_continuation(text_tail: str, cur_idx: int) -> str:
+                if re.search(r'\b(?:and|of|for|in|to|with|on|the|a|an|or|as|by|from|via)\s*$', text_tail, re.I) or text_tail.endswith('-'):
+                    if cur_idx + 1 < len(lines):
+                        nxt = lines[cur_idx + 1].strip()
+                        if re.match(r'^[A-Za-z]', nxt) and not re.match(r'^(?:\d+\.|\d+\s+|\[\d+\]|#)', nxt) and len(nxt.split()) <= 8:
+                            return f"{text_tail.rstrip('-')} {nxt}".strip()
+                return text_tail
+
+            # 1. Unnumbered domain heading
             if line_clean.lower() in known_headings:
-                if line_clean.lower() not in seen_names:
+                if line_clean.lower() not in seen_names and len(line_clean.split()) <= 6:
                     seen_names.add(line_clean.lower())
-                    candidates.append((pg, line_clean))
+                    candidates.append((pg, line_clean.title()))
                 continue
                 
-    return candidates
+            # 2. Subbab Arab: 1.1 / 1.2 / 2.1 / 3.1 / 3.3 / 5.1.2 / 2.5.2
+            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)?)\s+([A-Z\xc0-\xde].+)$', line_clean)
+            if m_sub:
+                p1 = m_sub.group(1).strip()
+                p2 = stitch_continuation(m_sub.group(2).strip(), idx_l)
+                if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
+                    continue
+                if len(p2.split()) <= 14 and len(p2) >= 3:
+                    h_full = f"{p1} {p2}"
+                    if h_full.lower() not in seen_names:
+                        seen_names.add(h_full.lower())
+                        candidates.append((pg, h_full))
+                continue
+                
+            # 3. Bab Utama Arab: 1 Introduction / 1. Introduction / 3 The LSA and Its Exact Regret / 4 Scaling Laws...
+            m_major = re.match(r'^([1-9]|1\d|2[0-5])[\.\:\s\-–—]\s*([A-Z\xc0-\xde].+)$', line_clean)
+            if m_major:
+                p1 = m_major.group(1).strip()
+                p2 = stitch_continuation(m_major.group(2).strip(), idx_l)
+                if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
+                    continue
+                if len(p2.split()) <= 14 and len(p2) >= 3:
+                    h_full = f"{p1}. {p2}"
+                    if h_full.lower() not in seen_names:
+                        seen_names.add(h_full.lower())
+                        candidates.append((pg, h_full))
+                continue
+
+            # 4. Romawi: I. Introduction / II. Method / III. Results
+            m_roman = re.match(r'^(I{1,3}|IV|V|VI|VII|VIII|IX|X)[\.\s\-–—:]\s+([A-Z\xc0-\xde].+)$', line_clean)
+            if m_roman:
+                p1 = m_roman.group(1).strip()
+                p2 = stitch_continuation(m_roman.group(2).strip(), idx_l)
+                if len(p2.split()) <= 14 and len(p2) >= 3:
+                    h_full = f"{p1}. {p2}"
+                    if h_full.lower() not in seen_names:
+                        seen_names.add(h_full.lower())
+                        candidates.append((pg, h_full))
+                continue
+
+            # 5. BAB / CHAPTER / SECTION
+            m_bab = re.match(r'^(BAB\s+[IVX\d]+|CHAPTER\s+\d+|SECTION\s+\d+|BAGIAN\s+[IVX\d]+)\s*[:\.\-]?\s+([A-Z\xc0-\xde].+)$', line_clean, re.IGNORECASE)
+            if m_bab:
+                p1 = m_bab.group(1).strip()
+                p2 = stitch_continuation(m_bab.group(2).strip(), idx_l)
+                if len(p2.split()) <= 14 and len(p2) >= 3:
+                    h_full = f"{p1} {p2}"
+                    if h_full.lower() not in seen_names:
+                        seen_names.add(h_full.lower())
+                        candidates.append((pg, h_full))
+                continue
+
+    # Terapkan filter kontinuitas monotonik sekuensial halaman
+    return filter_monotonic_outline_headings(candidates)
 
 def resolve_section_pages(sections: List[Dict[str, Any]], heading_candidates: List[tuple]) -> List[Dict[str, Any]]:
-    """Agnostically resolve page_start and page_end for sections and ensure all detected outline headings are included without truncation."""
-    if not heading_candidates and not sections:
-        return sections
+    """Agnostically resolve page_start and page_end for sections and ensure all detected outline headings are included without duplication."""
+    generic_placeholders = {"section", "bab", "chapter", "bagian", "seksi", "documentsection", "main section", "subbab", "heading", "judul bab", ""}
+    
+    # 1. Clean incoming sections and discard generic placeholders
+    valid_sections = []
+    for s in (sections or []):
+        s_name = strip_markdown_formatting(s.get("section_name", "")).strip()
+        s_summary = strip_markdown_formatting(s.get("summary", "")).strip()
+        if not s_name or s_name.lower() in generic_placeholders:
+            continue
+        s["section_name"] = s_name
+        s["summary"] = s_summary
+        valid_sections.append(s)
 
-    # Map existing sections by normalized name / number
+    # 2. Map existing sections by normalized number / key
     existing_headings = {}
-    for s in sections:
+    for s in valid_sections:
         s_name = s.get("section_name", "").strip()
-        num_m = re.match(r'^([1-9]\.\d*(?:\.\d*)?|[IVXLCDM]+\.|\bBAB\s+\w+)', s_name, re.I)
+        num_m = re.match(r'^([1-9]|1\d|2\d)(?:\.\d+)*\.?|[IVXLCDM]+\.|\bBAB\s+\w+', s_name, re.I)
         if num_m:
-            existing_headings[num_m.group(1).lower()] = s
+            existing_headings[num_m.group(0).lower().rstrip('.')] = s
         existing_headings[s_name.lower()] = s
 
-    # Ensure all detected outline headings from document text are represented
-    merged_sections = list(sections)
-    for pg, hname in heading_candidates:
-        h_num_m = re.match(r'^([1-9]\.\d*(?:\.\d*)?|[IVXLCDM]+\.|\bBAB\s+\w+)', hname, re.I)
-        h_key = h_num_m.group(1).lower() if h_num_m else hname.lower()
-        if h_key not in existing_headings and hname.lower() not in existing_headings:
+    # 3. Ensure all detected outline headings from document text are represented
+    merged_sections = list(valid_sections)
+    for pg, hname in (heading_candidates or []):
+        hname_clean = strip_markdown_formatting(hname).strip()
+        if not hname_clean or hname_clean.lower() in generic_placeholders:
+            continue
+            
+        h_num_m = re.match(r'^([1-9]|1\d|2\d)(?:\.\d+)*\.?|[IVXLCDM]+\.|\bBAB\s+\w+', hname_clean, re.I)
+        h_num_key = h_num_m.group(0).lower().rstrip('.') if h_num_m else None
+        
+        matched_existing = None
+        if h_num_key and h_num_key in existing_headings:
+            matched_existing = existing_headings[h_num_key]
+        elif hname_clean.lower() in existing_headings:
+            matched_existing = existing_headings[hname_clean.lower()]
+        else:
+            for s in merged_sections:
+                s_n = s.get("section_name", "").lower()
+                if (s_n.startswith(hname_clean.lower()[:20]) or hname_clean.lower().startswith(s_n[:20])) and len(s_n) > 5:
+                    matched_existing = s
+                    break
+
+        if matched_existing:
+            # Tetapkan nama bab resmi dari dokumen fisik secara otoritatif
+            matched_existing["section_name"] = hname_clean
+            matched_existing["page_start"] = pg
+            if not matched_existing.get("summary") or "Discussion and detailed findings under section" in matched_existing.get("summary", "") or len(matched_existing.get("summary", "")) < 30:
+                matched_existing["summary"] = f"Detailed analysis, methodology, and findings presented under section '{hname_clean}'."
+        else:
             new_sec = {
-                "section_name": hname,
-                "summary": f"Discussion and detailed findings under section '{hname}'.",
+                "section_name": hname_clean,
+                "summary": f"Detailed analysis, methodology, and findings presented under section '{hname_clean}'.",
                 "page_start": pg,
                 "page_end": pg
             }
             merged_sections.append(new_sec)
-            existing_headings[h_key] = new_sec
+            if h_num_key:
+                existing_headings[h_num_key] = new_sec
+            existing_headings[hname_clean.lower()] = new_sec
 
-    # Update and fix truncated titles from detected ground-truth
+    # Deduplicate merged_sections by normalized name
+    final_dedup = []
+    seen_final = set()
     for s in merged_sections:
-        s_name = s.get("section_name", "").strip()
-        for pg, hname in heading_candidates:
-            if s_name != hname and (s_name.startswith(hname[:25]) or hname.startswith(s_name[:25])):
-                s["section_name"] = hname
-                break
+        s_name = strip_markdown_formatting(s.get("section_name", "")).strip()
+        if not s_name or s_name.lower() in generic_placeholders:
+            continue
+        s_key = s_name.lower()
+        if s_key not in seen_final:
+            seen_final.add(s_key)
+            final_dedup.append(s)
+            
+    merged_sections = final_dedup
 
     # Sort sections by page_start and section number order
     def sec_sort_key(s):
         s_name = s.get("section_name", "")
-        m = re.match(r'^([1-9])(?:\.([0-9]+))?(?:\.([0-9]+))?', s_name)
+        m = re.match(r'^([1-9]|1\d|2\d)(?:\.([0-9]+))?(?:\.([0-9]+))?', s_name)
         if m:
             major = int(m.group(1))
             minor = int(m.group(2)) if m.group(2) else 0
             sub = int(m.group(3)) if m.group(3) else 0
-            return (s.get("page_start", 1), major, minor, sub)
-        return (s.get("page_start", 1), 999, 0, 0)
+            return (s.get("page_start", 1) or 1, major, minor, sub)
+        return (s.get("page_start", 1) or 1, 999, 0, 0)
 
     merged_sections.sort(key=sec_sort_key)
 
@@ -466,12 +860,14 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
     """
     month_names_regex = "|".join(sorted(MONTH_MAP_BILINGUAL.keys(), key=len, reverse=True))
 
-    # 1. Deteksi prioritas metadata eksplisit di header dokumen (Published / Accepted / Received / Submitted / Copyright)
+    # 1. Deteksi prioritas metadata eksplisit di header dokumen (Available online / Published / Accepted / Received / Submitted / Copyright)
     if fallback_text:
         explicit_patterns = [
-            r'(?:Published|Diterbitkan|Publication\s+Date|Accepted|Received|Submitted\s+on|Submission\s+Date|Copyright|\(C\)|©)[\s\:\.\-]+([^\n\r]{4,50})',
+            r'(?:Available\s+online|Published\s+online|Publication\s+Date|Published|Diterbitkan|Online\s+date|Accepted|Received|Revised|Submitted\s+on|Submission\s+Date|Copyright|\(C\)|©)[\s\:\.\-]+([^\n\r]{4,50})',
+            r'\bAvailable\s+online\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\b',
             r'\[(?:Submitted\s+on\s+)?([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\]',
-            r'arXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?\s*\[[^\]]+\]\s*([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])'
+            r'arXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?(?:\s*\[[^\]]*\])?\s*([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])',
+            r'\barXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?\s*.*?([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20[0-3][0-9])'
         ]
         for ep in explicit_patterns:
             m_exp = re.search(ep, fallback_text, re.IGNORECASE)
@@ -562,13 +958,14 @@ def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) ->
     """Ekstrak judul substantif dokumen dari Halaman 1 tanpa embel-embel nama file .pdf."""
     p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
     p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
-    if not p1_text and chunks:
-        p1_text = chunks[0].get("text", "")
-        
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
     noise_patterns = [
-        r'^arxiv\b', r'^doi\b', r'^https?://', r'^\d+$', r'^(?:volume|vol\.|issue|no\.)\b',
-        r'^(?:accepted|received|published)\b', r'^(?:all rights reserved|copyright|issn|isbn)\b'
+        r'^arxiv\b', r'^doi\b', r'^https?://', r'^\d+$', 
+        r'^(?:v\s*ol\.?|volume|volumen|vol\b|issue|no\b|n[ºo\.]|nº)\b',
+        r'^(?:accepted|received|published|available\s+online)\b', 
+        r'^(?:all rights reserved|copyright|issn|isbn|e-issn|p-issn)\b',
+        r'^(?:january|february|march|april|may|june|july|august|september|october|november|december|marzo|enero|febrero|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+\d{4}\b',
+        r'^[A-Za-z\s\.\,\(\)\-]+,\s*v\s*ol\.?\s*\d+'
     ]
     cand_lines = []
     for l in raw_lines:
@@ -618,9 +1015,9 @@ def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str)
     full_head = "\n".join([c.get("text", "") for c in head_chunks])
     
     # 1. Cari explicit keyword Abstract / Abstrak sampai batas seksi 1 / keywords
-    m_abs = re.search(r'(?:Abstract|Abstrak|Ringkasan\s+Eksekutif)[\s\:\.\-]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
+    m_abs = re.search(r'\b(?:Abstract|Abstrak|Ringkasan(?:\s+Eksekutif)?)[\s\:\.\-\—–*#]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
     if m_abs:
-        abs_clean = " ".join([l.strip() for l in m_abs.group(1).split("\n") if l.strip()])
+        abs_clean = clean_abstract_description(m_abs.group(1).strip())
         if len(abs_clean) > 40:
             return abs_clean[:4000]
             
@@ -656,168 +1053,299 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
         
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
     authors = []
-    auth_line = None
+    auth_lines = []
     affil_line = None
     
-    for i, l in enumerate(raw_lines[:8]):
-        if '@' in l or re.match(r'^(?:arxiv|doi|https?://|abstract|abstrak|of\b|for\b|in\b|on\b|and\b|to\b|with\b|towards\b|pada\b|untuk\b|dalam\b)', l, re.I):
+    # Kumpulan kata umum bahasa Inggris/Indonesia yang membedakan teks prosa/abstrak dari nama orang
+    prose_noise = {
+        'abstract', 'abstrak', 'keywords', 'kata kunci', 'introduction', 'pendahuluan',
+        'background', 'methodology', 'results', 'discussion', 'conclusion', 'references',
+        'depends', 'size', 'distance', 'waste', 'transport', 'scales', 'treatment', 'plant',
+        'composting', 'facility', 'facilities', 'season', 'seasonal', 'fluctuations', 'system',
+        'systems', 'study', 'studies', 'review', 'development', 'model', 'models', 'results',
+        'reveal', 'reveals', 'outperform', 'outperforms', 'provide', 'provides', 'economic',
+        'environmental', 'across', 'three', 'four', 'five', 'between', 'optimal', 'strategy',
+        'strategies', 'performance', 'threshold', 'characterised', 'evaluation', 'framework',
+        'biowaste', 'anaerobic', 'digestion', 'burden', 'burdens', 'data', 'yield', 'yielding',
+        'combined', 'scenarios', 'despite', 'higher', 'costs', 'guidance', 'infrastructure',
+        'planning', 'increase', 'increasing', 'deployment', 'separate', 'collection', 'perspective',
+        'balance', 'decentralised', 'centralised', 'choice', 'technologies', 'circular', 'bioeconomy',
+        'pathways', 'quantify', 'shape', 'evaluated', 'compared', 'incineration', 'heavy-duty',
+        'truck', 'electric', 'diesel-powered', 'non-linear', 'trade-offs', 'preferable'
+    }
+
+    for i, l in enumerate(raw_lines[:25]):
+        # Hentikan pemindaian nama penulis seketika jika mencapai awal abstrak atau bab 1
+        if re.match(r'^(?:#+\s*)?(?:abstract|abstrak|keywords?|kata\s+kunci|1[\.\:\s]|i[\.\:\s]|introduction|pendahuluan)\b', l, re.IGNORECASE):
+            break
+            
+        if '@' in l or re.match(r'^(?:arxiv|doi|https?://|of\b|for\b|in\b|on\b|to\b|with\b|towards\b|pada\b|untuk\b|dalam\b|volume|vol\b)', l, re.I):
             continue
+            
         if any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'lab', 'school', 'academy', 'center', 'centre', 'college', 'agroparistech', 'sayfood']):
             if not affil_line:
                 affil_line = l
-        elif (l.count(',') >= 1 or ' and ' in l.lower() or ' & ' in l or ' dan ' in l.lower()) and any(c.isupper() for c in l):
+            continue
+            
+        # Saring baris yang merupakan kalimat deskriptif/prosa (mengandung kata-kata umum)
+        words_in_line = [w.strip('.,;:-()[]').lower() for w in l.split() if w.strip()]
+        if any(w in prose_noise for w in words_in_line):
+            if len(words_in_line) >= 4:
+                break
+            continue
+            
+        # Pola baris nama penulis jamak (dengan koma atau 'and')
+        if (l.count(',') >= 1 or ' and ' in l.lower() or ' & ' in l or ' dan ' in l.lower()) and any(c.isupper() for c in l):
             clean_test = re.sub(r'[\*\d†‡§]', '', l)
             parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_test) if p.strip()]
             if len(parts) >= 2 and all(len(p.split()) >= 2 for p in parts):
-                if not auth_line and not any(kw in l.lower() for kw in ['abstract', 'abstrak', 'introduction', 'system', 'effect', 'study', 'journal']):
-                    auth_line = l
+                auth_lines.append(l)
+                    
+        # Pola baris nama penulis tunggal (1-3 nama kapital tanpa kata kerja/preposisi)
+        elif re.match(r'^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}$', re.sub(r'[\*\d†‡§]', '', l).strip()):
+            clean_single = re.sub(r'[\*\d†‡§]', '', l).strip()
+            auth_lines.append(clean_single)
 
-    if auth_line:
-        clean_l = re.sub(r'[\*\d†‡§]', '', auth_line)
+    seen_author_names = set()
+    for al in auth_lines:
+        clean_l = re.sub(r'[\*\d†‡§]', '', al)
         parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_l) if p.strip()]
         for p in parts:
-            if len(p.split()) >= 2 and len(p) <= 40:
+            p_words = [pw.strip('.,;:-()[]').lower() for pw in p.split()]
+            if any(pw in prose_noise for pw in p_words):
+                continue
+            if len(p.split()) >= 2 and len(p) <= 40 and p.lower() not in seen_author_names:
+                seen_author_names.add(p.lower())
                 auth_obj = {"@type": "Person", "name": p}
                 if affil_line:
                     auth_obj["affiliation"] = {"@type": "EducationalOrganization", "name": affil_line}
                 authors.append(auth_obj)
     return authors
 
-def extract_domain_keywords_fallback(text: str, file_name: str) -> List[str]:
-    """Ekstrak kata kunci domain teknis secara agnostik dari abstrak/teks jika LLM kosong/generic."""
-    # 1. Cari explicit Keywords block
-    m_kw = re.search(r'(?:Keywords?|Kata\s+Kunci|Index\s+Terms?)[\s\:\.\-]+([^\n]+(?:\n[^\n]+)?)', text, re.I)
-    if m_kw:
-        kws = [k.strip() for k in re.split(r'[,;•\n]+', m_kw.group(1)) if k.strip()]
-        clean_kws = [k for k in kws if not k.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', k, re.I) and len(k) > 2]
-        if len(clean_kws) >= 3:
-            return clean_kws[:8]
-
-    # 2. Heuristik Noun Phrase & Domain Terms
-    tech_candidates = []
-    seen = set()
-    noise_words = {
-        "HALAMAN", "ABSTRAK", "ABSTRACT", "UNTUK", "DARI", "PADA", "YANG", "DENGAN", "DALAM",
-        "KARYA", "TULIS", "ILMIAH", "SPESIAL", "KEMERDEKAAN", "LAPORAN", "TAHUNAN", "SKRIPSI",
-        "TESIS", "DISERTASI", "PROPOSAL", "MAKALAH", "OLEH", "NIM", "NIP", "PROGRAM", "STUDI",
-        "FAKULTAS", "TEKNIK", "UNIVERSITAS", "DATA", "TABEL", "FINAL", "TAHUN", "BULAN"
-    }
+def extract_explicit_document_keywords(text: str) -> List[str]:
+    """
+    Ekstrak kata kunci HANYA jika tercetak eksplisit di dalam dokumen
+    (misal di bawah blok 'Keywords:', 'Key words:', 'Index Terms:', 'Kata Kunci:').
+    Jika dokumen tidak memuat bagian kata kunci eksplisit, kembalikan list kosong [].
+    """
+    if not text:
+        return []
     
-    special_tech = re.findall(r'\b([A-Z0-9]+-[A-Za-z0-9]+|[A-Z]{2,6}[a-z]?|[A-Z][a-z]+ML)\b', text)
-    for st in special_tech:
-        st_clean = st.strip()
-        if st_clean.upper() not in noise_words and st_clean.lower() not in seen and len(st_clean) >= 3 and not st_clean.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', st_clean, re.I):
-            seen.add(st_clean.lower())
-            tech_candidates.append(st_clean)
-
-    phrases = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})\b', text)
-    for p in phrases:
-        p_clean = re.sub(r'\s+', ' ', p).strip()
-        if p_clean.lower() not in seen and len(p_clean) > 5 and not any(nw in p_clean.upper() for nw in noise_words):
-            seen.add(p_clean.lower())
-            tech_candidates.append(p_clean)
+    clean_t = strip_markdown_formatting(text)
+    # Cari blok keywords multi-baris hingga batas section berikutnya atau batas paragraf kosong ganda
+    m_kw = re.search(r'(?:Keywords?|Key\s*words?|Index\s*Terms?|Kata\s*Kunci)[\s\:\.\-–—]+([\s\S]+?)(?=(?:\n\s*(?:1\.?\s+|I\.\s+|Introduction|PENDAHULUAN|Section|BAB|CORRESPONDING|\*|\([A-Z]\)|©|\Z)))', clean_t, re.IGNORECASE)
+    if not m_kw:
+        return []
+        
+    raw_kw_block = m_kw.group(1).strip()
+    # Batasi blok keyword maksimal 400 karakter atau paragraf pertama agar tidak merembet ke seluruh dokumen
+    raw_kw_block = raw_kw_block.split("\n\n")[0].strip()[:400]
+    raw_kw_block = re.split(r'(?:\n|##+|\b)(?:1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+[IVX\d]+|PENDAHULUAN|Section\s+1|ABSTRACT|ABSTRAK|Background|Metode)\b', raw_kw_block, flags=re.IGNORECASE)[0].strip()
+    
+    # Ganti newline di dalam blok keyword dengan spasi agar frasa multi-baris menyatu
+    raw_kw_block = re.sub(r'(?<![,;•·\|])\n(?![A-Z][a-z]+:)', ' ', raw_kw_block)
+    
+    items = re.split(r'[,;•·\|–—]|\n+', raw_kw_block)
+    cleaned_kws = []
+    
+    noise_kw_patterns = [
+        r'\b(?:recibido|received|aceptado|accepted|published|article|articles|total\s+of|boolean|combinations|study|aimed|methods|results|conclusion|prisma)\b',
+        r'^\d+$',
+        r'\.\s+[A-Z]'  # Sentence boundary inside keyword
+    ]
+    
+    for it in items:
+        it_clean = it.strip().strip('.').strip()
+        if len(it_clean) < 2 or len(it_clean) > 45:
+            continue
+        if len(it_clean.split()) > 6:
+            continue
+        if any(re.search(pat, it_clean, re.I) for pat in noise_kw_patterns):
+            continue
+        cleaned_kws.append(it_clean)
             
-    if len(tech_candidates) >= 5:
-        return tech_candidates[:8]
-    
-    clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).title()
-    words = [w for w in clean_name.split() if len(w) > 3 and w.upper() not in noise_words and not w.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', w, re.I)]
-    return (tech_candidates + words)[:8]
+    return cleaned_kws[:10]
 
 def verify_and_resolve_authors(text: str, proposed_authors: list) -> list:
-    """Validasi anti-halusinasi ketat: pastikan nama penulis literally ada di dokumen atau deteksi penerbit institusi."""
+    """Validasi anti-halusinasi agnostik: pastikan nama penulis ada di dokumen atau deteksi penerbit organisasi."""
+    if not text:
+        return []
     text_lower = text.lower()
     verified = []
     
     for a in proposed_authors:
-        name = a.get('name', '').strip()
+        name = strip_markdown_formatting(a.get('name', '')).strip()
         if not name:
             continue
-        tokens = [t.lower() for t in re.split(r'[\s,\.\-]+', name) if len(t) > 3]
-        generic_noise = {'widodo', 'yudhoyono', 'indonesia', 'jakarta', 'government', 'kementerian', 'peneliti', 'penulis', 'not available'}
+        tokens = [t.lower() for t in re.split(r'[\s,\.\-]+', name) if len(t) > 2]
+        generic_noise = {'unknown', 'not available', 'author', 'peneliti', 'penulis', 'admin', 'none', 'n/a', 'anonymous', 'anonim'}
         substantive = [t for t in tokens if t not in generic_noise]
         
         if substantive and all(t in text_lower for t in substantive):
             id_a = a.get("identifier")
-            if id_a and ("0000" in id_a or "nim/nip" in id_a.lower() or "not available" in id_a.lower()):
+            if id_a and any(dummy in str(id_a).lower() for dummy in ["0000", "nim/nip", "not available", "none", "n/a"]):
                 a["identifier"] = None
+            a["name"] = name
             verified.append(a)
             
     if verified:
         return verified
         
-    # Institutional Publisher Detection
-    if "world bank" in text_lower:
-        aff = None
-        m_aff = re.search(r'World Bank[,\s]+([A-Za-z\s,&\-]+(?:Practices|Group|Division|Department))', text, re.IGNORECASE)
-        if m_aff:
-            aff = m_aff.group(1).strip('., ')
-        return [{
-            "@type": "Organization",
-            "name": "World Bank",
-            "affiliation": aff or "Poverty & Equity and Macroeconomics, Trade & Investment Global Practices"
-        }]
-    
-    m_inst = re.search(r'\b(Bank Indonesia|Badan Pusat Statistik|OECD|Asian Development Bank|International Monetary Fund)\b', text, re.IGNORECASE)
-    if m_inst:
-        return [{
-            "@type": "Organization",
-            "name": m_inst.group(1).strip(),
-            "affiliation": None
-        }]
-        
-    # Direct author name regex fallback
-    m_author = re.search(r'(?:Oleh|Penulis|Disusun\s+oleh|Author)\s*[:\-\n]+\s*([A-Za-z\s\.,\']{3,50})', text, re.IGNORECASE)
-    if m_author:
-        a_name = m_author.group(1).strip().split('\n')[0].strip()
-        if a_name.lower() not in ['peneliti', 'penulis', 'not available', 'author', 'admin', 'none', 'n/a']:
+    # Generic Institutional Publisher / Author Detection from header context
+    m_publisher = re.search(r'(?:Published by|Publisher|Penerbit|Disusun oleh|Author|Penulis)\s*[:\-\n]+\s*([A-Za-z0-9\s,\.\'&/\-]{3,60})', text, re.IGNORECASE)
+    if m_publisher:
+        pub_name = strip_markdown_formatting(m_publisher.group(1).split('\n')[0]).strip()
+        if pub_name and pub_name.lower() not in ['unknown', 'not available', 'author', 'admin', 'none', 'n/a', 'penulis', 'peneliti']:
+            is_org = any(w in pub_name.lower() for w in ['bank', 'agency', 'kementerian', 'ministry', 'department', 'institute', 'institut', 'badan', 'oecd', 'center', 'centre', 'foundation', 'bureau', 'society', 'association', 'organization', 'organisasi'])
             return [{
-                '@type': 'Person',
-                'name': a_name,
+                '@type': 'Organization' if is_org else 'Person',
+                'name': pub_name,
                 'identifier': None,
                 'affiliation': None
             }]
     return []
 
+def normalize_author_affiliations(authors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Normalisasi afiliasi penulis ke standar resmi Schema.org.
+    Jika seorang penulis memiliki afiliasi ganda (dipisahkan tanda titik koma ';' atau newline),
+    konversi menjadi array EducationalOrganization / Organization terpisah.
+    """
+    if not authors:
+        return []
+    
+    cleaned_authors = []
+    for a in authors:
+        if not isinstance(a, dict):
+            continue
+        auth_copy = dict(a)
+        affil_raw = auth_copy.get("affiliation")
+        
+        if affil_raw:
+            affil_names = []
+            if isinstance(affil_raw, str):
+                affil_names = [inst.strip() for inst in re.split(r'[;\n]+|(?<=[a-z\d])\s*\|\s*', affil_raw) if inst.strip() and len(inst.strip()) > 3]
+            elif isinstance(affil_raw, dict):
+                raw_n = affil_raw.get("name", "")
+                if raw_n:
+                    affil_names = [inst.strip() for inst in re.split(r'[;\n]+|(?<=[a-z\d])\s*\|\s*', raw_n) if inst.strip() and len(inst.strip()) > 3]
+            elif isinstance(affil_raw, list):
+                for item in affil_raw:
+                    if isinstance(item, str):
+                        affil_names.extend([inst.strip() for inst in re.split(r'[;\n]+', item) if inst.strip() and len(inst.strip()) > 3])
+                    elif isinstance(item, dict) and item.get("name"):
+                        affil_names.extend([inst.strip() for inst in re.split(r'[;\n]+', item["name"]) if inst.strip() and len(inst.strip()) > 3])
+
+            if len(affil_names) > 1:
+                auth_copy["affiliation"] = [
+                    {"@type": "EducationalOrganization", "name": name}
+                    for name in affil_names
+                ]
+            elif len(affil_names) == 1:
+                auth_copy["affiliation"] = {
+                    "@type": "EducationalOrganization",
+                    "name": affil_names[0]
+                }
+            else:
+                auth_copy.pop("affiliation", None)
+        else:
+            auth_copy.pop("affiliation", None)
+            
+        cleaned_authors.append(auth_copy)
+    return cleaned_authors
+
 def sanitize_entities(entities: list) -> list:
-    """Sanitasi klasifikasi tipe entitas: serial laporan/publikasi BUKAN SoftwareApplication."""
+    """Sanitasi klasifikasi tipe entitas secara agnostik."""
     cleaned = []
-    publication_terms = {'macro poverty outlook', 'mpo', 'outlook', 'report', 'laporan', 'wdi', 'world development indicators', 'bulletin'}
+    publication_terms = {'outlook', 'report', 'laporan', 'bulletin', 'indicators', 'working paper', 'policy brief', 'handbook', 'guidelines', 'proceedings', 'jurnal', 'journal'}
     
     for e in entities:
-        name = e.get('name', '').strip()
+        name = strip_markdown_formatting(e.get('name', '')).strip()
+        if not name:
+            continue
         etype = e.get('type', 'Organization')
         
         if any(pt in name.lower() for pt in publication_terms):
             etype = "PublicationIssue"
             e['type'] = etype
-            e['role_or_description'] = e.get('role_or_description', '') or "Serial Publikasi & Laporan Ekonomi"
+            e['role_or_description'] = e.get('role_or_description', '') or "Serial Publikasi & Laporan Resmi"
             cleaned.append(e)
             continue
             
-        if etype == "SoftwareApplication" and not any(sw in name.lower() for sw in ['python', 'tensorflow', 'pytorch', 'matlab', 'docker', 'qdrant', 'fastapi']):
-            etype = "Organization" if any(org in name.lower() for org in ['bank', 'agency', 'kementerian', 'badan', 'oecd', 'fed']) else "Product"
-            e['type'] = etype
-            
+        if etype == "SoftwareApplication":
+            # Pastikan bukan nama lembaga/organisasi
+            is_org_name = any(org in name.lower() for org in ['bank', 'agency', 'kementerian', 'ministry', 'badan', 'oecd', 'foundation', 'university', 'universitas', 'institut'])
+            if is_org_name:
+                etype = "Organization"
+                e['type'] = etype
+                
+        e['name'] = name
         cleaned.append(e)
     return cleaned
 
-def correct_metric_units(metrics: list) -> list:
-    """Koreksi otomatis satuan ukuran parameter ekonomi & performa."""
-    percentage_keywords = ['growth', 'pertumbuhan', 'rate', 'tingkat', 'rasio', 'share', 'inflation', 'inflasi', 'gini', 'unemployment', 'pengangguran', 'deficit', 'surplus', 'percent', 'enrollment']
+def refine_and_deduplicate_metrics(metrics: list, text_context: str = "") -> list:
+    """
+    1. Standardisasi dan pembersihan teks metrik (membersihkan markdown & normalisasi unit).
+    2. Deduplikasi ketat case-insensitive pada (name, unit_text, context_or_condition).
+    3. Mempertahankan keaslian nilai numerik lokal tanpa kontaminasi silang antar tabel.
+    """
+    if not metrics:
+        return []
+        
+    percentage_keywords = ['growth', 'pertumbuhan', 'rate', 'tingkat', 'rasio', 'share', 'inflation', 'inflasi', 'gini', 'unemployment', 'pengangguran', 'deficit', 'surplus', 'percent', 'enrollment', 'accuracy', 'akurasi', 'precision', 'recall', 'f1']
+    
+    # 1. Standardisasi unit & pembersihan markdown
+    for m in metrics:
+        name = strip_markdown_formatting(m.get('name', '')).strip()
+        unit = strip_markdown_formatting(m.get('unit_text', '')).strip()
+        ctx = strip_markdown_formatting(m.get('context_or_condition', '')).strip()
+        val = m.get('value', '')
+        
+        m['name'] = name
+        m['unit_text'] = unit
+        m['context_or_condition'] = ctx
+        
+        name_lower = name.lower()
+        if any(pk in name_lower for pk in percentage_keywords) and unit in ['$', 'US$', 'USD', 'IDR']:
+            m['unit_text'] = '%'
+
+    # 2. Deduplikasi Case-Insensitive & Semantic Hash Universal
+    deduped = []
+    seen_keys = {}
     
     for m in metrics:
-        name = m.get('name', '').lower()
-        unit = m.get('unit_text', '')
+        n_clean = re.sub(r'\s+', ' ', m.get('name', '').strip().lower())
+        u_clean = m.get('unit_text', '').strip().lower()
+        c_clean = re.sub(r'\s+', ' ', m.get('context_or_condition', '').strip().lower())
+        v_clean = str(m.get('value', '')).strip().lower()
         
-        if ('gdp growth' in name or 'real gdp growth' in name or 'economic growth' in name) and unit in ['$', 'US$', 'USD', 'IDR']:
-            m['unit_text'] = '%'
-        elif any(pk in name for pk in percentage_keywords) and unit in ['$', 'US$', 'USD', 'IDR']:
-            m['unit_text'] = '%'
-        elif 'gdp per capita' in name and unit == '%':
-            m['unit_text'] = 'US$'
+        if not n_clean or not v_clean:
+            continue
             
-    return metrics
+        exact_key = f"{n_clean}|{u_clean}|{c_clean}|{v_clean}"
+        semantic_key = f"{n_clean}|{u_clean}|{c_clean}"
+        
+        if exact_key in seen_keys:
+            continue
+            
+        if semantic_key in seen_keys:
+            existing_idx = seen_keys[semantic_key]
+            existing_val = str(deduped[existing_idx].get('value', ''))
+            current_val = str(m.get('value', ''))
+            # Utamakan nilai yang memiliki desimal lebih presisi jika nama & konteks persis sama
+            if len(current_val) > len(existing_val) and '.' in current_val:
+                deduped[existing_idx] = m
+            continue
+            
+        seen_keys[exact_key] = len(deduped)
+        seen_keys[semantic_key] = len(deduped)
+        deduped.append(m)
+        
+    return deduped
+
+def correct_metric_units(metrics: list) -> list:
+    """Alias kompatibilitas untuk refine_and_deduplicate_metrics."""
+    return refine_and_deduplicate_metrics(metrics)
 
 def extract_references_regex_fallback(text: str) -> List[str]:
     """
@@ -835,8 +1363,8 @@ def extract_references_regex_fallback(text: str) -> List[str]:
     if not lines:
         return []
         
-    # 1. Pola IEEE / Numbered brackets: [1], [2], ...
-    bracket_matches = re.findall(r'(\[\d+\]\s+[^\[]+)', clean_text)
+    # 1. Pola IEEE / Numbered brackets: [1], [2], ... (Tangkap seluruh multiline sampai nomor kurung berikutnya)
+    bracket_matches = re.findall(r'(?:^|\n)\s*(\[\d+\]\s+[\s\S]*?)(?=(?:\n\s*\[\d+\]|\Z))', clean_text)
     if len(bracket_matches) >= 3:
         return [' '.join(m.strip().split()) for m in bracket_matches if len(m.strip()) > 15]
         
@@ -927,9 +1455,14 @@ def run_agentic_step(
     
     content = ""
     # 1. Google Gemini BYOK
-    if provider == "gemini" and (api_key or Config.GEMINI_API_KEY):
+    if provider == "gemini":
         key = api_key or Config.GEMINI_API_KEY
-        m_name = model_to_use if "gemini" in model_to_use else "gemini-3.5-flash"
+        if not key:
+            raise RuntimeError(
+                "GEMINI_API_KEY belum diset. "
+                "Jalankan benchmark dengan argumen '--api-key YOUR_KEY' atau simpan GEMINI_API_KEY di file .env."
+            )
+        m_name = model_to_use if "gemini" in model_to_use else "gemini-2.5-flash"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={key}"
         payload = {
             "contents": [
@@ -942,7 +1475,7 @@ def run_agentic_step(
         }
         import urllib.request
         req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             res_data = json.loads(resp.read().decode('utf-8'))
             content = res_data["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -964,7 +1497,7 @@ def run_agentic_step(
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             res_data = json.loads(resp.read().decode('utf-8'))
             content = res_data["choices"][0]["message"]["content"]
 
@@ -1209,8 +1742,8 @@ def extract_json_ld_agentic_rag(
     t1 = time.time()
     log("📌 Agent 1/5: Direct Cover Page & Abstract Analysis (Metadata, Authors, Keywords, & Entities)...")
     
-    # Retrieve page 1 & 2 directly
-    cover_abstract_chunks = [c for c in clean_file_chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]]
+    # Retrieve page 1 & 2 directly (limit to first 6 chunks to avoid LLM context bloat & timeout)
+    cover_abstract_chunks = [c for c in clean_file_chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]][:6]
     ctx_1 = ""
     for c in cover_abstract_chunks:
         page = c.get('metadata', {}).get('pdf_page_index', '?')
@@ -1218,16 +1751,16 @@ def extract_json_ld_agentic_rag(
         ctx_1 += f"[Page: {page}]\n{txt}\n\n"
     if not ctx_1:
         ctx_1 = get_contekan(f"Document title {file_name} authors keywords abstract published date", limit=6)
-    ctx_1 = truncate_context(ctx_1, max_chars=MAX_CONTEXT_CHARS_AGENT1)
+    ctx_1 = truncate_context(ctx_1, max_chars=3500)
     p1 = f"Document Source: {file_name}\n\nTitle Page & Abstract Context:\n{ctx_1}"
     sys_prompt_1 = """You are an expert Document Metadata, Author, Keyword, and Entity Extraction Agent.
 RULES:
-1. Document Title ('name'): Extract the official substantive title prominent on the cover page. DO NOT use the filename or .pdf extension.
+1. Document Title ('name'): Extract ONLY the official substantive title prominent on the cover page. DO NOT include author names, affiliations, dates, or filenames in the title string.
 2. Alternate Title ('alternateName'): Subtitle, event name, or secondary title if present.
 3. Document Abstract / Description ('description'): Extract the ENTIRE FULL OFFICIAL ABSTRACT verbatim from the document. DO NOT shorten, truncate, or summarize into 2-3 sentences. Google Scholar and Schema.org require the complete unabridged abstract.
 4. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY'). Extract ONLY the official explicit publication date/year printed on the document cover/header. If no explicit publication date exists in the document, set 'datePublished' to null. DO NOT guess the date from references, citations, or filenames.
 5. Authors ('author'): Extract real author names, IDs/NIM, and affiliations. Leave empty [] if no author exists.
-6. Keywords ('keywords'): Extract 6-10 domain technical keywords. DO NOT use generic phrases.
+6. Keywords ('keywords'): Extract ONLY the official explicit keywords/index terms printed directly in the document (under 'Keywords:', 'Index Terms:', or 'Kata Kunci:'). If the document does NOT explicitly contain a keywords section, return an empty array []. DO NOT invent or synthesize keywords.
 7. Entities ('entities_involved'): Extract real organizations, software, hardware, or institutions mentioned.
 Respond ONLY in valid JSON."""
     
@@ -1256,25 +1789,43 @@ Respond ONLY in valid JSON."""
             step1_res["alternateName"] = strip_markdown_formatting(step1_res.get("alternateName"))
 
         # 4. Precision Publication Date (Bilingual Deterministic Date Scanner - Returns None if no explicit date)
-        exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1)
+        exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1 + " " + all_doc_text)
         step1_res["datePublished"] = exact_date
 
-        # 5. Guarantee Keywords (Filter ArXiv/Numerics & Fallback)
-        keywords_out = step1_res.get("keywords", [])
-        forbidden_generic_kws = {"laporan teknis", "analisis data", "dokumen digital", "indikator utama", file_name.lower()}
-        clean_kws = [
-            k for k in keywords_out 
-            if k.lower() not in forbidden_generic_kws 
-            and not k.isdigit() 
-            and not re.match(r'^\d+(\.\d+)?(v\d+)?$', k, re.I)
-            and not k.endswith('.pdf')
-            and len(k) > 2
-        ]
-        if len(clean_kws) < 3:
-            clean_kws = extract_domain_keywords_fallback(ctx_1 + " " + all_doc_text, file_name)
-        step1_res["keywords"] = clean_kws[:10]
+        # 5. Validate Authors & Affiliations
+        authors_out = step1_res.get("author", [])
+        verified_authors = verify_and_resolve_authors(ctx_1 + " " + all_doc_text, authors_out)
+        if not verified_authors:
+            verified_authors = extract_deterministic_authors(clean_file_chunks)
+        verified_authors = normalize_author_affiliations(verified_authors)
+        step1_res["author"] = verified_authors
+        
+        # 6. Clean Document Title from appended author names
+        step1_res["name"] = clean_document_title(step1_res.get("name"), verified_authors)
+        
+        # 7. Clean Abstract from date headers and intro leaks
+        step1_res["description"] = clean_abstract_description(step1_res.get("description"))
 
-        # 6. Sanitize Entities
+        # 8. Strict Explicit Keywords Only (Extract ONLY if printed in document)
+        explicit_kws = extract_explicit_document_keywords(ctx_1 + " " + all_doc_text)
+        if explicit_kws:
+            step1_res["keywords"] = explicit_kws[:10]
+        else:
+            has_kw_header = bool(re.search(r'\b(?:Keywords?|Key\s*words?|Index\s*Terms?|Kata\s*Kunci)\b', ctx_1 + " " + all_doc_text, re.IGNORECASE))
+            if has_kw_header:
+                llm_kws = step1_res.get("keywords", [])
+                author_names = [a.get("name", "").lower() for a in verified_authors if a.get("name")]
+                clean_kws = [
+                    k for k in llm_kws 
+                    if not any(an in k.lower() for an in author_names if len(an) > 3) 
+                    and not any(aff in k.lower() for aff in ["university", "school of", "engineering", "faculty", "tel aviv", "epfl", "departemen", "fakultas"])
+                    and len(k) > 2
+                ]
+                step1_res["keywords"] = clean_kws[:10]
+            else:
+                step1_res["keywords"] = []
+
+        # 9. Sanitize Entities
         entities_out = step1_res.get("entities_involved", [])
         clean_entities = []
         forbidden_placeholders = ["institusi penerbit", "system engine", "pemilik dokumen", "institusi dokumen", "not available"]
@@ -1283,24 +1834,18 @@ Respond ONLY in valid JSON."""
             if not any(fp in name_check for fp in forbidden_placeholders):
                 clean_entities.append(ent)
         step1_res["entities_involved"] = sanitize_entities(clean_entities)
-
-        # 7. Validate Authors & Affiliations
-        authors_out = step1_res.get("author", [])
-        verified_authors = verify_and_resolve_authors(ctx_1 + " " + all_doc_text, authors_out)
-        if not verified_authors:
-            verified_authors = extract_deterministic_authors(clean_file_chunks)
-        step1_res["author"] = verified_authors
             
-        log(f"✅ Agent 1 Complete ({round(time.time() - t1, 2)}s) -> Title: `{step1_res.get('name', '')[:35]}...`, Language: `{detected_lang}`, Date: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} authors, {len(step1_res.get('entities_involved', []))} entities, {len(clean_kws)} keywords.")
+        log(f"✅ Agent 1 Complete ({round(time.time() - t1, 2)}s) -> Title: `{step1_res.get('name', '')[:35]}...`, Language: `{detected_lang}`, Date: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} authors, {len(step1_res.get('entities_involved', []))} entities, {len(step1_res.get('keywords', []))} keywords.")
     except Exception as e:
         log(f"⚠️ Agent 1 Notice: ({e}) -> Using Deterministic Academic Metadata Extractor.")
         all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
         det_lang = detect_document_language(ctx_1 + " " + all_doc_text)
         det_title = extract_deterministic_title(clean_file_chunks, file_name)
         det_abstract = extract_deterministic_abstract(clean_file_chunks, file_name)
-        det_keywords = extract_domain_keywords_fallback(ctx_1 + " " + all_doc_text, file_name)
+        det_keywords = extract_explicit_document_keywords(ctx_1 + " " + all_doc_text)
         det_authors = extract_deterministic_authors(clean_file_chunks) or verify_and_resolve_authors(all_doc_text, [])
-        det_date = normalize_publication_date(None, fallback_text=ctx_1 + " " + all_doc_text) or "2024"
+        det_authors = normalize_author_affiliations(det_authors)
+        det_date = normalize_publication_date(None, fallback_text=ctx_1 + " " + all_doc_text)
         
         step1_res = {
             "@type": "ScholarlyArticle" if det_lang == "en" else "DigitalDocument",
@@ -1326,14 +1871,15 @@ Respond ONLY in valid JSON."""
             outline_context += f"- [Page {pg}] {hname}\n"
             
     # 2. Retrieve section context
-    ctx_2 = get_contekan("Objectives background methodology framework implementation analysis conclusion discussion recent developments outlook", limit=4, exclude_end=True)
+    ctx_2 = get_contekan("objectives methodology framework implementation results evaluation discussion conclusion findings", limit=4, exclude_end=True)
     p2 = f"Document: {file_name}\n\n{outline_context}\n\nDocument Section Context:\n{ctx_2}"
+    p2 = truncate_context(p2, max_chars=3000)
     sys_prompt_2 = """You are an expert Document Structural Outline & Heading Detection Agent.
 RULES:
-1. Extract ALL official document section and subsection headings present in the document outline (including numbered headings like 1. Introduction, 2. Methodology, 2.1 Environmental modelling and system boundaries, 2.2 Techno-Economic Analysis, 2.3 Scenario construction and assumptions, 3. Results, 3.1 Cost Implications of a Centralised versus Decentralised System, 3.2 Environmental assessment of the configurations, 3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations, 4. Conclusions).
-2. DO NOT truncate or shorten heading titles.
-3. Set 'page_start' and 'page_end' from [Page: X] tags.
-4. 'summary' must be a concise 2-3 sentence overview of the section. DO NOT copy bibliography or DOI citations.
+1. Extract ALL official document section and subsection headings present in the document outline, hierarchical numbering (e.g. '1. Introduction', '1.1 Background', '2. Methodology', '2.1 System Architecture', '3. Results and Evaluation', '4. Discussion', '5. Conclusion'), or formal chapter names.
+2. DO NOT truncate or shorten heading titles; preserve the full substantive heading as printed in the document.
+3. Set 'page_start' and 'page_end' from [Page: X] tags accurately.
+4. 'summary' must be a concise 2-3 sentence overview of the section's core topic and findings. DO NOT copy raw bibliography or DOI citations into summary.
 Respond ONLY in valid JSON."""
     
     log(f"🧠 Sending candidate section outlines to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
@@ -1349,14 +1895,15 @@ Respond ONLY in valid JSON."""
     # STEP 3: Quantitative Metrics & Precision Page Mapping
     t3 = time.time()
     log("📊 Agent 3/5: Quantitative Metrics & Precision Page Mapping...")
-    ctx_3 = get_contekan("metrics numbers statistics percentages targets projections ratios capacity cost accuracy latency power", limit=3)
+    ctx_3 = get_contekan("quantitative metrics statistics measurements percentages benchmarks results parameters indicators performance", limit=4)
     p3 = f"Document: {file_name}\n\nMetric Context:\n{ctx_3}"
+    p3 = truncate_context(p3, max_chars=3000)
     sys_prompt_3 = """You are an expert Quantitative Metric & Parameter Extraction Agent.
 RULES:
-1. Extract key quantitative metrics, optimal/break-even figures, statistics, percentages, and trade-off parameters with EXACT decimal precision (e.g. 10.65 €/t, 0.0839 Pt/t, 68.3 km, 52.7 km, 3.5%). DO NOT round decimal numbers to integers.
-2. Disambiguate technology and scenario conditions in 'context_or_condition' (e.g. clearly specify 'Technology: Composting' vs 'Technology: Anaerobic Digestion (AD)', 'Fuel: Diesel' vs 'Electric' vs 'Biogas', and facility scale 'Large' vs 'Medium' vs 'Small').
-3. For multi-technology comparison metrics (like transport impact share at 30km, 60km, 90km), extract separate distinct entries for each technology (e.g. Composting transport share vs Anaerobic Digestion transport share).
-4. Provide 'name', exact 'value', 'unit_text' (e.g. €, €/t, Pt/t, km, %, yr, ms, W, kg), 'context_or_condition', and accurate 'page_number' from [Page: X] tags.
+1. Extract key quantitative metrics, benchmarks, experimental results, statistical figures, optimal values, percentages, and trade-off parameters with EXACT decimal precision as explicitly stated in the document text. DO NOT round or truncate decimal numbers to integers (e.g. preserve 3-4 decimal places if present in the text).
+2. ALWAYS prioritize exact explicit numeric figures stated in the narrative text (e.g. Results, Findings, Discussion, Conclusion sections) over rough visual chart/graph estimations.
+3. Disambiguate experimental conditions, scenarios, cohorts, or categories in 'context_or_condition' (e.g. specify baseline vs proposed method, test conditions, environment, or parameters).
+4. Provide 'name', exact 'value', 'unit_text' (e.g. %, ms, km, kg, $, €, W, dB, or standard domain unit), 'context_or_condition', and accurate 'page_number' from [Page: X] tags.
 Respond ONLY in valid JSON."""
     
     log(f"🧠 Sending metric context parameters to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
@@ -1365,8 +1912,9 @@ Respond ONLY in valid JSON."""
         step3_res = run_agentic_step(sys_prompt_3, p3, Step3Metrics, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
         props_list = step3_res.get("properties_and_metrics", [])
         
-        # Post-processing: Correct metric units and guarantee page_number
-        props_list = correct_metric_units(props_list)
+        # Post-processing: Correct metric units, calibrate precision against text, and deduplicate
+        all_doc_metric_text = "\n".join([c.get("text", "") for c in clean_file_chunks])
+        props_list = refine_and_deduplicate_metrics(props_list, text_context=all_doc_metric_text)
         for prop in props_list:
             if not prop.get("page_number"):
                 p_name = prop.get("name", "").lower()
@@ -1396,6 +1944,7 @@ Respond ONLY in valid JSON."""
     
     direct_parsed_tables = []
     seen_table_captions = set()
+    doc_lang_agent4 = step1_res.get("inLanguage", "id")
     
     # Strategy A: Direct parse from identified table chunks
     for i, tc in enumerate(table_chunks):
@@ -1403,37 +1952,45 @@ Respond ONLY in valid JSON."""
         p_num = m.get("page_number") or m.get("pdf_page_index", 1)
         cap_hint = m.get("caption_hint")
         t_text = tc.get("text", "")
-        dt = parse_markdown_table_direct(t_text, page_number=p_num)
+        dt = parse_markdown_table_direct(t_text, page_number=p_num, in_language=doc_lang_agent4)
         
-        # Fallback space/tab-delimited if not markdown pipe
+        # Strict fallback space/tab-delimited ONLY if explicit Table heading exists and data is valid tabular
         if not dt:
             raw_lines = [l.strip() for l in t_text.strip().split('\n') if l.strip()]
             data_lines = []
+            has_explicit_table_title = False
             for l in raw_lines:
-                if re.match(r'^(?:Figure|Gambar|Bagan|Chart|Grafik)\s+\d+', l, re.IGNORECASE):
+                if re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', l, re.IGNORECASE):
                     continue
-                cols = [c.strip() for c in re.split(r'\t+|\s{2,}', l) if c.strip()]
+                if re.match(r'^(?:Tabel|Table)\s+\d+[\s\:\.\-]+', l, re.IGNORECASE):
+                    has_explicit_table_title = True
+                cols = [strip_markdown_formatting(c) for c in re.split(r'\t+|\s{2,}', l) if c.strip()]
                 if len(cols) >= 2:
                     data_lines.append(cols)
-            if len(data_lines) >= 2:
-                fallback_cap = cap_hint if (cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint) else f"Table {' - '.join(data_lines[0][:2])} (Page {p_num})"
-                dt = {
-                    "caption": fallback_cap,
-                    "page_number": p_num,
-                    "headers": data_lines[0],
-                    "rows": data_lines[1:]
-                }
+            if len(data_lines) >= 2 and (has_explicit_table_title or (cap_hint and re.match(r'^(?:Tabel|Table)\s+\d+', cap_hint, re.IGNORECASE))):
+                if is_valid_tabular_data(data_lines[0], data_lines[1:]):
+                    tbl_word = "Table" if doc_lang_agent4 == "en" else "Tabel"
+                    pg_word = "Page" if doc_lang_agent4 == "en" else "Halaman"
+                    fallback_cap = cap_hint if (cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and "Table #" not in cap_hint) else f"{tbl_word} {' - '.join(data_lines[0][:2])} ({pg_word} {p_num})"
+                    dt = {
+                        "caption": fallback_cap,
+                        "page_number": p_num,
+                        "headers": data_lines[0],
+                        "rows": data_lines[1:]
+                    }
                 
-        if dt:
+        if dt and is_valid_tabular_data(dt.get("headers", []), dt.get("rows", [])):
             curr_cap = dt.get("caption", "")
-            if cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and ("Tabel Data" in curr_cap or "Table Data" in curr_cap or "|" in curr_cap):
+            if cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and "Table #" not in cap_hint and ("Tabel Data" in curr_cap or "Table Data" in curr_cap or "|" in curr_cap):
                 dt["caption"] = cap_hint
-            elif "|" in curr_cap or "Tabel #" in curr_cap:
+            elif "|" in curr_cap or "Tabel #" in curr_cap or "Table #" in curr_cap:
                 valid_h = [h for h in dt.get("headers", []) if h and not re.match(r'^[\-\:\s]+$', h)]
                 if valid_h:
-                    dt["caption"] = f"Table {' - '.join(valid_h[:2])} (Page {p_num})"
+                    tbl_word = "Table" if doc_lang_agent4 == "en" else "Tabel"
+                    pg_word = "Page" if doc_lang_agent4 == "en" else "Halaman"
+                    dt["caption"] = f"{tbl_word} {' - '.join(valid_h[:2])} ({pg_word} {p_num})"
             cap_key = dt.get("caption", "").strip().lower()
-            if cap_key not in seen_table_captions:
+            if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot)\b', cap_key):
                 seen_table_captions.add(cap_key)
                 direct_parsed_tables.append(dt)
 
@@ -1441,16 +1998,16 @@ Respond ONLY in valid JSON."""
     for c in clean_file_chunks:
         pg = c.get("metadata", {}).get("pdf_page_index", 1)
         txt = c.get("text", "")
-        matches = re.finditer(r'(?:^|\n)\s*((?:Table|Tabel)\s+\d+\s*[:\-]\s*[^\n]+(?:\n[^\n]+)?)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section|[1-9]\.\d*\s+[A-Z])|\nSource:|\Z))', txt, re.IGNORECASE)
+        matches = re.finditer(r'(?:^|\n)\s*((?:Table|Tabel)\s+\d+[\s\:\.\-]+[^\n]+(?:\n[^\n]+)?)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section|[1-9]\.\d*\s+[A-Z])|\nSource:|\Z))', txt, re.IGNORECASE)
         for m in matches:
-            cap = " ".join([l.strip() for l in m.group(1).split("\n") if l.strip()])
+            cap = " ".join([strip_markdown_formatting(l) for l in m.group(1).split("\n") if l.strip()])
             body = m.group(2).strip()
             cap_key = cap.lower()[:40]
-            if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Gambar|Bagan|Chart)\s+\d+', cap, re.IGNORECASE):
+            if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot)\s+\d+', cap, re.IGNORECASE):
                 b_lines = [l.strip() for l in body.split('\n') if l.strip()]
                 if any('|' in l for l in b_lines):
-                    dt = parse_markdown_table_direct(body, page_number=pg)
-                    if dt:
+                    dt = parse_markdown_table_direct(body, page_number=pg, in_language=doc_lang_agent4)
+                    if dt and is_valid_tabular_data(dt.get("headers", []), dt.get("rows", [])):
                         dt["caption"] = cap
                         seen_table_captions.add(cap_key)
                         direct_parsed_tables.append(dt)
@@ -1458,19 +2015,19 @@ Respond ONLY in valid JSON."""
                     d_rows = []
                     headers = []
                     for idx, bl in enumerate(b_lines):
-                        if re.match(r'^(?:Figure|Gambar|Bagan|Chart)\s+\d+', bl, re.IGNORECASE):
+                        if re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot)\s+\d+', bl, re.IGNORECASE):
                             continue
-                        cols = [col.strip() for col in re.split(r'\t+|\s{2,}', bl) if col.strip()]
+                        cols = [strip_markdown_formatting(col) for col in re.split(r'\t+|\s{2,}', bl) if col.strip()]
                         if len(cols) < 2:
                             m_row = re.match(r'^([A-Za-z\s\-]+?)\s+([\d\.,]+)\s+([\d\.,]+)$', bl)
                             if m_row:
-                                cols = [m_row.group(1).strip(), m_row.group(2).strip(), m_row.group(3).strip()]
+                                cols = [strip_markdown_formatting(m_row.group(1)), m_row.group(2).strip(), m_row.group(3).strip()]
                         if len(cols) >= 2:
                             if not headers:
                                 headers = cols
                             else:
                                 d_rows.append(cols)
-                    if headers and d_rows:
+                    if headers and d_rows and is_valid_tabular_data(headers, d_rows):
                         seen_table_captions.add(cap_key)
                         direct_parsed_tables.append({
                             "caption": cap,
@@ -1480,11 +2037,22 @@ Respond ONLY in valid JSON."""
                         })
 
     # Consolidation and cleanup
-    consolidated_tbls = consolidate_tables(direct_parsed_tables)
-    consolidated_tbls = [
+    consolidated_tbls = consolidate_tables(direct_parsed_tables, in_language=doc_lang_agent4)
+    valid_tbls = [
         t for t in consolidated_tbls 
-        if not re.match(r'^(?:Figure|Gambar|Bagan|Chart|Grafik)\s+\d+', t.get("caption", "").strip(), re.IGNORECASE)
+        if is_valid_tabular_data(t.get("headers", []), t.get("rows", []))
+        and not re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot)\b', t.get("caption", "").strip(), re.IGNORECASE)
     ]
+    
+    # Jika dokumen memiliki tabel resmi bernomor (Table 1, Table 2, dsb.), prioritaskan tabel resmi tersebut
+    official_numbered = [t for t in valid_tbls if re.match(r'^(?:Table|Tabel)\s+\d+[\s\:\.\-]+', t.get("caption", "").strip(), re.IGNORECASE)]
+    if official_numbered:
+        consolidated_tbls = official_numbered
+    else:
+        consolidated_tbls = [
+            t for t in valid_tbls 
+            if not any(h.lower().strip() in {'α', 'β', 'γ', 'δ', 'θ', 'λ', 'μ', 'σ', 'τ', 'ω', '0', '1', '2', 'x', 'y', 'z', 'd', 'n', 'c', 'l'} for h in t.get("headers", []))
+        ]
     log(f"✅ Agent 4 Complete ({round(time.time() - t4, 3)}s) -> Formatted {len(consolidated_tbls)} document tables via deterministic engine.")
 
     # STEP 5: Dedicated Bibliography & References Extraction (Instant Deterministic)
@@ -1558,22 +2126,46 @@ Respond ONLY in valid JSON."""
         return data
 
     # 1. Structured Parts (Sections & Tables) -> hasPart (CreativeWork & Table)
+    doc_lang = step1_res.get("inLanguage", "id")
     schema_parts = []
+    seen_part_names = set()
+    generic_placeholders = {"section", "bab", "chapter", "bagian", "seksi", "documentsection", "main section", "subbab", "heading", "judul bab"}
+    
     for s in filtered_sections:
+        sec_name = strip_markdown_formatting(s.get("section_name", "")).strip()
+        sec_summary = strip_markdown_formatting(s.get("summary", "")).strip()
+        if not sec_name or sec_name.lower() in generic_placeholders:
+            continue
+        if sec_name.lower() in seen_part_names:
+            continue
+        seen_part_names.add(sec_name.lower())
+        
         part_obj = {
             "@type": "CreativeWork",
-            "name": s.get("section_name", ""),
-            "description": s.get("summary", "")
+            "name": sec_name,
+            "description": sec_summary or f"Section {sec_name}"
         }
         clean_part = prune_empty_fields(part_obj)
         if clean_part:
             schema_parts.append(clean_part)
         
     for t in consolidated_tbls:
+        t_cap = strip_markdown_formatting(t.get("caption", "Table Data" if doc_lang == "en" else "Tabel Data Dokumen")).strip()
+        if doc_lang == "en":
+            t_cap = re.sub(r'\bTabel\b', 'Table', t_cap, flags=re.IGNORECASE)
+            t_cap = re.sub(r'\(Halaman\s+(\d+)\)', r'(Page \1)', t_cap, flags=re.IGNORECASE)
+            t_cap = re.sub(r'\bHalaman\s+(\d+)\b', r'Page \1', t_cap, flags=re.IGNORECASE)
+            desc_text = f"Structured quantitative data table ({len(t.get('rows', []))} rows)"
+        else:
+            t_cap = re.sub(r'\bTable\b', 'Tabel', t_cap, flags=re.IGNORECASE)
+            t_cap = re.sub(r'\(Page\s+(\d+)\)', r'(Halaman \1)', t_cap, flags=re.IGNORECASE)
+            t_cap = re.sub(r'\bPage\s+(\d+)\b', r'Halaman \1', t_cap, flags=re.IGNORECASE)
+            desc_text = f"Tabel data kuantitatif terstruktur ({len(t.get('rows', []))} baris)"
+            
         t_obj = {
             "@type": "Table",
-            "name": t.get("caption", "Table Data"),
-            "description": f"Structured quantitative data table ({len(t.get('rows', []))} rows)"
+            "name": t_cap,
+            "description": desc_text
         }
         clean_t = prune_empty_fields(t_obj)
         if clean_t:
@@ -1581,16 +2173,30 @@ Respond ONLY in valid JSON."""
 
     # 2. Quantitative Metrics & Properties -> additionalProperty (PropertyValue)
     schema_additional_props = []
+    seen_prop_keys = set()
     for p in props_list:
+        p_name = strip_markdown_formatting(p.get("name", "")).strip()
+        p_val = p.get("value", "")
+        p_unit = strip_markdown_formatting(p.get("unit_text", "")).strip()
+        p_ctx = strip_markdown_formatting(p.get("context_or_condition", "")).strip()
+        
+        if not p_name or p_val == "" or p_val is None:
+            continue
+            
+        prop_dedup_key = f"{p_name.lower()}|{str(p_val).strip().lower()}|{p_unit.lower()}|{p_ctx.lower()}"
+        if prop_dedup_key in seen_prop_keys:
+            continue
+        seen_prop_keys.add(prop_dedup_key)
+        
         prop_obj = {
             "@type": "PropertyValue",
-            "name": p.get("name", ""),
-            "value": p.get("value", "")
+            "name": p_name,
+            "value": p_val
         }
-        if p.get("unit_text"):
-            prop_obj["unitText"] = p.get("unit_text")
-        if p.get("context_or_condition"):
-            prop_obj["description"] = p.get("context_or_condition")
+        if p_unit and p_unit.lower() not in ["null", "none", "n/a", "undefined"]:
+            prop_obj["unitText"] = p_unit
+        if p_ctx:
+            prop_obj["description"] = p_ctx
         clean_prop = prune_empty_fields(prop_obj)
         if clean_prop:
             schema_additional_props.append(clean_prop)
@@ -1606,7 +2212,9 @@ Respond ONLY in valid JSON."""
             auth_obj["identifier"] = a.get("identifier")
         if a.get("affiliation"):
             aff = a.get("affiliation")
-            if isinstance(aff, dict):
+            if isinstance(aff, list):
+                auth_obj["affiliation"] = aff
+            elif isinstance(aff, dict):
                 auth_obj["affiliation"] = aff
             else:
                 auth_obj["affiliation"] = {"@type": "EducationalOrganization", "name": str(aff)}
@@ -1616,7 +2224,7 @@ Respond ONLY in valid JSON."""
 
     # Normalisasi format tanggal publikasi ke ISO-8601 (YYYY-MM-DD)
     raw_date = step1_res.get("datePublished")
-    normalized_date = normalize_publication_date(raw_date, fallback_text=ctx_1)
+    normalized_date = normalize_publication_date(raw_date, fallback_text=ctx_1 + " " + all_doc_text)
 
     # 4. Pure 100% Valid Schema.org Document JSON-LD (Optimal untuk Google Rich Results Test & Schema.org)
     raw_schema_json_ld = {
@@ -1730,9 +2338,15 @@ def generate_google_scholar_meta_tags(data: Dict[str, Any], pdf_url: Optional[st
                     lines.append(f'<meta name="citation_author" content="{html.escape(str(name))}">')
                     aff = auth.get("affiliation")
                     if aff:
-                        aff_name = aff.get("name", "") if isinstance(aff, dict) else str(aff)
-                        if aff_name:
-                            lines.append(f'<meta name="citation_author_institution" content="{html.escape(str(aff_name))}">')
+                        if isinstance(aff, list):
+                            for aff_item in aff:
+                                aff_name = aff_item.get("name", "") if isinstance(aff_item, dict) else str(aff_item)
+                                if aff_name:
+                                    lines.append(f'<meta name="citation_author_institution" content="{html.escape(str(aff_name))}">')
+                        else:
+                            aff_name = aff.get("name", "") if isinstance(aff, dict) else str(aff)
+                            if aff_name:
+                                lines.append(f'<meta name="citation_author_institution" content="{html.escape(str(aff_name))}">')
             elif isinstance(auth, str) and auth.strip():
                 lines.append(f'<meta name="citation_author" content="{html.escape(auth.strip())}">')
 

@@ -1,0 +1,254 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "Optimizing hydrogen and e-methanol production through Power-to-X integration in biogas plants",
+  "name": "Optimizing hydrogen and e-methanol production through Power-to-X integration in biogas plants",
+  "description": "The European Union's strategy for achieving net zero emissions is heavily dependent on the development of hydrogen and e -/bio-fuel infrastructure and economy. These fuels are poised to play a critical role, functioning both as energy carriers and balancing agents for the inherent variability of renewable ene rgy sources. Large -scale production will necessitate additional renewable capacity, and various Power -to-X (PtX) concepts are emerging in countries with significant renewable potential. However, sourcing renewable carbon presents a significant challenge in scaling the production of carbon -based e-fuels, and this is anticipated to become a limiting factor in the future. This investigation examines the concept of a PtX hub that sources renewable CO 2 from modern biogas plants, integrating renewable energy, hydrogen production, and methanol synthesis at a single site. This concept facilitates an internal, behind-the-meter market for energy and material flows, balanced by an interface with the external energy system. The size and operation of all plants comprising the PtX hub were co-optimized, considering various levels of integration with surrounding energy systems, including the potential establishment of a local hydrogen grid. The levelized cost of hydrogen and e - methanol were estiamted site commencing operation in 2030, taking in cosideration the recent legislation about renewable fuels of non -biological origin (RFNBOs). Our findings indicate that, in its optimal configuration, the PtX hub relies almost exclusively on on -site renewable energy, selling excess electricity to the grid for balancing purposes. The connection to a local hydrogen grid facilitates smoother PtX process operations, while the presence of a behind-the-meter market reduces energy prices, providing a buffer against external market variability. The results demonstrate the feasibility of achieving a levelized cost of methanol below 650 € /t and hydrogen production costs below 3 €/kg. In comparison, a standalone e-methanol plant would incur a 23% higher cost. The ratio of CO2 recovered to methanol produced was identified as a critical technical parameter, with recovery rates exceeding 90% necessitating substantial investments in CO 2 and H 2 storage. Overall, our findings support the planning of PtX infrastructures that consider integration with the agricultural sector as a cost-effective pathway to access renewable carbon resources.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Alberto Alamia",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Aarhus University, Department of Mechanical and Production Engineering, Aarhus, Denmark"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Behzad Partoon",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Aarhus University, Department of Biological and Chemical Engineering, Aarhus, Denmark"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Eoghan Rattigan",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "GreenLab Skive, Skive, Denmark"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Gorm Brunn Andresen",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Aarhus University, Department of Mechanical and Production Engineering, Aarhus, Denmark"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "1. Introduction",
+      "description": "This section introduces the European Union's strategy for achieving net-zero emissions through hydrogen and e-fuel infrastructure. It highlights the challenges of sourcing renewable carbon and outlines the investigation of a Power-to-X hub integrating biogas plants, renewable energy, and methanol synthesis."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. Background",
+      "description": "This section provides foundational context through literature review, existing e-MeOH projects, legal frameworks, and technological cost inputs. It examines the GreenLab Skive PtX hub concept and evaluates the baseline data utilized for the study."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.1 Review previous literature",
+      "description": "This subsection reviews existing academic and industrial literature regarding Power-to-X integration, e-methanol production pathways, and renewable energy utilization. It establishes the current research gap addressed in this paper."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.2 Overview of existing projects for e-MeOH",
+      "description": "This subsection surveys prominent real-world projects and industrial initiatives focused on e-methanol production. It highlights operational strategies, scaling challenges, and technological maturity."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.3 Legal framework",
+      "description": "This subsection outlines the relevant European legislation and regulatory requirements governing renewable fuels of non-biological origin (RFNBOs). It details compliance conditions regarding additionality, temporal correlation, and geographic balancing."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.4 Overview of GreenLab Skive PtX hub concept",
+      "description": "This subsection describes the GreenLab Skive industrial park concept, which serves as a practical blueprint for integrating local energy production, hydrogen generation, and industrial symbiosis."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5 Technology inputs and costa data",
+      "description": "This subsection compiles capital expenditures, operational expenditures, efficiency metrics, and lifetime assumptions for the various technologies modeled in the study. It provides the numerical foundation for the economic optimization."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. Methodology",
+      "description": "This section details the mathematical modeling and optimization framework used to evaluate the Power-to-X hub. It explains the PyPSA model implementation and the sensitivity analysis parameters."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1 PyPSA model",
+      "description": "This subsection explains the structure and constraints of the Python for Power System Analysis (PyPSA) model. It covers the technical constraints, energy balance equations, and co-optimization logic for the integrated hub."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2 Sensitivity analysis",
+      "description": "This subsection outlines the methodology for testing the robustness of the optimization results against variations in key economic and technical parameters such as electricity prices and capital costs."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. Results and discussion",
+      "description": "This section presents the primary findings of the co-optimization, detailing production costs, system designs, and the impact of various credits. It evaluates the economic viability and operational profiles of the integrated PtX hub."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1 Production cost of H2 and MeOH",
+      "description": "This subsection breaks down the levelized cost of hydrogen and e-methanol produced within the optimized system. It highlights the main cost drivers, including electricity supply and capital investments."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.3 Total system cost",
+      "description": "This subsection analyzes the total capital and operational expenditures required for the entire integrated Power-to-X hub under different integration scenarios."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.4 Optimal system design – H2 to grid",
+      "description": "This subsection evaluates the optimal plant configuration and sizing when the facility is permitted to export surplus hydrogen to a local or regional hydrogen grid."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.5 Optimal system design – MeOH standalone",
+      "description": "This subsection examines the optimal system sizing and operational behavior for a standalone configuration dedicated exclusively to e-methanol production."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.6 Impact of DH and biochar credits",
+      "description": "This subsection investigates how district heating (DH) integration and biochar carbon credits influence the overall economic viability and profitability of the biogas-integrated PtX hub."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6. Conclusions",
+      "description": "This section summarizes the main findings of the research, emphasizing the feasibility and optimal configuration of integrating biogas plants with Power-to-X technologies to produce competitive e-methanol."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5 – Main technology data assumptions for 2030 – as model inputs. Biomethane",
+      "description": "Structured quantitative data table (7 rows)"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 7 - Interface between external grids and behind-the-meter market Price for purchase of",
+      "description": "Structured quantitative data table (7 rows)"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 8 : sensitivity parameters Parameter name Type of parameter Range Reference",
+      "description": "Structured quantitative data table (4 rows)"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "levelized cost of methanol",
+      "value": "650",
+      "unitText": "€/t",
+      "description": "optimal configuration, below specified threshold"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "hydrogen production cost",
+      "value": "3",
+      "unitText": "€/kg",
+      "description": "optimal configuration, below specified threshold"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "methanol cost increase",
+      "value": "23",
+      "unitText": "%",
+      "description": "standalone e-methanol plant compared to optimal configuration"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "CO2 recovery rate",
+      "value": "90",
+      "unitText": "%",
+      "description": "necessitating substantial investments in CO2 and H2 storage"
+    }
+  ],
+  "citation": [
+    "1. European Commission, A hydrogen strategy for a climate-neutral Europe, E. Commission, Editor. 2020.",
+    "2. Durakovic, G., P .C. del Granado, and A. Tomasgard, Powering Europe with North Sea offshore wind: The impact of hydrogen investments on grid infrastructure and power prices. Energy, 2023. 263: p. 125654.",
+    "3. European commission, Renewable Energy Directive EU/2023/2413. 2023.",
+    "4. Ueckerdt, F., et al., Potential and risks of hydrogen-based e-fuels in climate change mitigation. Nature Climate Change, 2021. 11(5): p. 384-393.",
+    "5. Neumann, F., et al., The potential role of a hydrogen network in Europe. Joule, 2023. 7(8): p. 1793-1817.",
+    "6. Young, J., et al., The cost of direct air capture and storage can be reduced via strategic deployment but is unlikely to fall below stated cost targets. One Earth, 2023. 6(7): p. 899-917.",
+    "7. Bramstoft, R., et al., Modelling of renewable gas and renewable liquid fuels in future integrated energy systems. Applied Energy, 2020. 268: p. 114869.",
+    "8. European Commission, Delegated Regulation 2023/1184. 2023.",
+    "9. Angelidaki, I., et al., Biogas upgrading and utilization: Current status and perspectives. Biotechnology Advances, 2018. 36(2): p. 452-466.",
+    "10. Beil, M. and W. Beyrich, 15 - Biogas upgrading to biomethane, in The Biogas Handbook, A. Wellinger, J. Murphy, and D. Baxter, Editors. 2013, Woodhead Publishing. p. 342-377.",
+    "11. Wismann, S.T., et al., Electrified methane reforming: A compact approach to greener industrial hydrogen production. Science, 2019. 364(6442): p. 756-759.",
+    "12. IEA, Global Hydrogen Review. 2023.",
+    "13. IRENA and Methanol institute, Innovation Outlook : Renewable Methanol. 2021, Abu Dhabi: International Renewable Energy Agency.",
+    "14. Kountouris, I., et al., Power-to-X in energy hubs: A Danish case study of renewable fuel production. Energy Policy, 2023. 175: p. 113439.",
+    "15. Mortensen, A.W., et al., The role of electrification and hydrogen in breaking the biomass bottleneck of the renewable energy system – A study on the Danish energy system. Applied Energy, 2020. 275: p. 115331.",
+    "16. Mbatha, S., et al., Power-to-methanol process: a review of electrolysis, methanol catalysts, kinetics, reactor designs and modelling, process integration, optimisation, and techno-economics. Sustainable Energy & Fuels, 2021. 5(14): p. 3490-3569.",
+    "17. Lacerda de Oliveira Campos, B., et al., A Detailed Process and Techno-Economic Analysis of Methanol Synthesis from H2 and CO2 with Intermediate Condensation Steps. Processes, 2022. 10(8): p. 1535.",
+    "18. Nemmour, A., et al., Green hydrogen-based E-fuels (E-methane, E-methanol, E- ammonia) to support clean energy transition: A literature review. International Journal of Hydrogen Energy, 2023. 48(75): p. 29011-29033.",
+    "19. Nieminen, H., A. Laari, and T. Koiranen, CO2 hydrogenation to methanol by a liquid- phase process with alcoholic solvents: a techno-economic analysis. Processes, 2019. 7(7): p. 405.",
+    "20. Pratschner, S., et al., Techno-economic assessment of a power-to-green methanol plant. Journal of CO2 Utilization, 2023. 75: p. 102563. Optimizing hydrogen and e-methanol production through Power-to-X integration in biogas plants A. Alamia et al. 2024 56",
+    "21. Sollai, S., et al., Renewable methanol production from green hydrogen and captured CO2: A techno-economic assessment. Journal of CO2 Utilization, 2023. 68: p. 102345.",
+    "22. Victoria, M., E. Zeyen, and T. Brown, Speed of technological transformations required for distinct climate ambitions in Europe. arXiv preprint arXiv:2109.09563, 2021.",
+    "23. Pedersen, T.T., et al., Long-term implications of reduced gas imports on the decarbonization of the European energy system. Joule, 2022. 6(7): p. 1566-1580.",
+    "24. Dahiru, A.R., A. Vuokila, and M. Huuhtanen, Recent development in Power-to-X: Part I - A review on techno-economic analysis. Journal of Energy Storage, 2022. 56: p.",
+    "25. Rivera-Tinoco, R., et al., Investigation of power-to-methanol processes coupling electrolytic hydrogen production and catalytic CO2 reduction. International Journal of Hydrogen Energy, 2016. 41(8): p. 4546-4559.",
+    "26. Marlin, D.S., E. Sarron, and Ó. Sigurbjörnsson, Process Advantages of Direct CO2 to Methanol Synthesis. Frontiers in Chemistry, 2018. 6.",
+    "27. Rinaldi, R., et al., Techno-economic analysis of a biogas-to-methanol process: Study of different process configurations and conditions. Journal of Cleaner Production, 2023. 393: p. 136259.",
+    "28. Sorrenti, I., et al., Low-carbon and cost-efficient hydrogen optimisation through a grid-connected electrolyser: The case of GreenLab skive. Renewable and Sustainable Energy Reviews, 2023. 171: p. 113033.",
+    "29. Hank, C., et al., Economics & carbon dioxide avoidance cost of methanol production based on renewable hydrogen and recycled carbon dioxide – power-to-methanol. Sustainable Energy & Fuels, 2018. 2(6): p. 1244-1261.",
+    "30. Zheng, Y ., et al., Data-driven robust optimization for optimal scheduling of power to methanol. Energy Conversion and Management, 2022. 256: p. 115338.",
+    "31. IRENA, Renewable power generation costs in 2022, I.R.E. Agency, Editor. 2023: Abu Dhabi.",
+    "32. IEA, Hydrogen report. 2019.",
+    "33. Methanol Institute Carbon footprint of methanol. 2022.",
+    "34. Álvarez, A., et al., Challenges in the Greener Production of Formates/Formic Acid, Methanol, and DME by Heterogeneously Catalyzed CO2 Hydrogenation Processes. Chemical Reviews, 2017. 117(14): p. 9804-9838.",
+    "35. Ren, M., et al., Catalytic Hydrogenation of CO2 to Methanol: A Review. Catalysts,",
+    "2022. 12(4): p. 403.",
+    "36. Wang, J., et al., CO2 Hydrogenation to Methanol over In2O3-Based Catalysts: From Mechanism to Catalyst Development. ACS Catalysis, 2021. 11(3): p. 1406-1423.",
+    "37. Methanol institute. renewable methanol plants. 2024; Available from: https://www.methanol.org/renewable/.",
+    "38. Danish Energy Agency, Technology Data. 2023.",
+    "39. Kuld, S., et al., Quantifying the promotion of Cu catalysts by ZnO for methanol synthesis. Science, 2016. 352(6288): p. 969-974.",
+    "40. Kim, Y ., et al., Mechanism of the Surface Hydrogen Induced Conversion of CO2 to Methanol at Cu(111) Step Sites. ACS Catalysis, 2016. 6(2): p. 1037-1044.",
+    "41. Danish Energy Agency, Technology Data for Renewable Fuels. 2023.",
+    "42. Esteban, M. and L.M. Romeo, Techno-Economics Optimization of H2 and CO2 Compression for Renewable Energy Storage and Power-to-Gas Applications. Applied Sciences, 2021. 11(22): p. 10741. Optimizing hydrogen and e-methanol production through Power-to-X integration in biogas plants A. Alamia et al. 2024 57",
+    "43. Lars Elsgaard, A.P .S.A., Henrik B. Møller, Anne Winding, Uffe Jørgensen, Esben Ø. Mortensen, Emmanuel Arthur, Diego abalos, Mathias N. Andersen, Henrik Thers, Peter Sørensen, Addisu Anteneh Dilnessa, Katarina Elofsson, Knowledge synthesis on biochar in Danish agriculture. 2022, Danish Center for Food and Agriculture.",
+    "44. Danish Energy Agency, Technology Data for Industrial Process Heat. 2023.",
+    "45. Danish Energy Agency, Technology Data for Carbon Capture, Transport and Storage.",
+    "46. Lauri, K., et al., Scenarios and new technologies for a North-European CO2 transport infrastructure in 2050. Energy Procedia, 2014. 63: p. 2738-2756.",
+    "47. Danish Energy Agency, Technology Data for Energy Storage. 2023.",
+    "48. Danish Energy Agency, Technology Data for transport of energy. 2023.",
+    "49. Hoivik, N., et al., Long-term performance results of concrete-based modular thermal energy storage system. Journal of Energy Storage, 2019. 24: p. 100735.",
+    "50. Fjervarme, D. fjervarme prisen. 2024; Available from: https://danskfjernvarme.dk/viden-vaerktoejer/statistik/fjernvarmeprisen-i-danmark.",
+    "51. Pei, P ., et al., Waste heat recovery in CO2 compression. International Journal of Greenhouse Gas Control, 2014. 30: p. 86-96.",
+    "52. Atsonios, K., K.D. Panopoulos, and E. Kakaras, Investigation of technical and economic aspects for methanol production through CO2 hydrogenation. International Journal of Hydrogen Energy, 2016. 41(4): p. 2202-2214.",
+    "53. Shakeri, A., et al., Energy assessment for integration of concrete thermal energy storage with low-grade solar power generation system. Renewable Energy, 2023. 218: p. 119249.",
+    "54. Hoivik, N., et al., Demonstration of EnergyNest thermal energy storage (TES) technology. AIP Conference Proceedings, 2017. 1850(1).",
+    "55. Brown, T., J. Hörsch, and D. Schlachtberger, PyPSA: Python for Power System Analysis. Journal of Open Research Software, 2018.",
+    "56. Energinet. Energi data service. 2024; Available from: https://api.energidataservice.dk/dataset.",
+    "57. Energinet. electricity tariffs. 2024; Available from: https://energinet.dk/el/elmarkedet/tariffer/aktuelle-tariffer/.",
+    "58. N1. electricity tariffs. 2024; Available from: https://n1.dk/priser-og- vilkaar/timetariffer.",
+    "59. Cathcart, A., et al., An economic analysis of anaerobic digestate fuel pellet production: can digestate fuel pellets add value to existing operations? Cleaner Engineering and Technology, 2021. 3: p. 100098.",
+    "60. Tobias, T., Introduction to Production and Use of Biochar 2022: working towards a more circular and bio-based Danish economy. 2022: Roskilde.",
+    "61. Guilayn, F., et al., Digestate mechanical separation: Efficiency profiles based on anaerobic digestion feedstock and equipment choice. Bioresource Technology, 2019. 274: p. 180-189.",
+    "62. Monlau, F., et al., Toward a functional integration of anaerobic digestion and pyrolysis for a sustainable resource management. Comparison between solid- digestate and its derived pyrochar as soil amendment. Applied Energy, 2016. 169: p. 652-662. Optimizing hydrogen and e-methanol production through Power-to-X integration in biogas plants A. Alamia et al. 2024 58",
+    "63. Van-Dal, É.S. and C. Bouallou, Design and simulation of a methanol production plant from CO2 hydrogenation. Journal of Cleaner Production, 2013. 57: p. 38-45.",
+    "64. Topose, Methanol for a more sustainable future.",
+    "65. open-power-system-data. open-power-system-data. 2022; Available from: https://data.open-power-system-data.org/time_series/."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "2.0"
+  }
+}

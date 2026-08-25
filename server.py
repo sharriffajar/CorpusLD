@@ -233,11 +233,11 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                 continue
             
             lines = b_clean.split("\n")
-            # Strictly ensure Figure / Gambar / Bagan / Chart is NEVER treated as a table block!
-            is_figure_block = any(re.match(r'^(?:Figure|Gambar|Bagan|Chart|Grafik)\s+\d+', l.strip(), re.IGNORECASE) for l in lines[:2])
+            # Strictly ensure Figure / Gambar / Bagan / Chart / Plot is NEVER treated as a table block!
+            is_figure_block = any(re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', l.strip(), re.IGNORECASE) for l in lines[:3])
             is_table_block = not is_figure_block and (
-                any("|" in l for l in lines) or (
-                    len(lines) >= 2 and any(re.match(r'^(?:Tabel|Table)\s+\d+', l.strip(), re.IGNORECASE) for l in lines[:2])
+                (any("|" in l for l in lines) and not any(re.search(r'[ˆ\^]qm|[qQpP]\([A-Za-z0-9_\+\-\s=,\|\^\ˆ]+\)', l) for l in lines)) or (
+                    len(lines) >= 3 and any(re.match(r'^(?:Tabel|Table)\s+\d+[\s\:\.\-]+', l.strip(), re.IGNORECASE) for l in lines[:2])
                 )
             )
             
@@ -246,8 +246,17 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                 table_pages_buffer.append(page_idx)
             else:
                 flush_table()
-                clean_paragraph = b_clean.replace("\n", " ").strip()
+                clean_paragraph = "\n".join([l.strip() for l in b_clean.split("\n") if l.strip()])
                 if len(clean_paragraph) > 3:
+                    # Stitching kalimat/paragraf yang terpotong di perbatasan halaman
+                    if chunks and chunks[-1].get("metadata", {}).get("chunk_type") == "paragraph":
+                        last_txt = chunks[-1]["text"].strip()
+                        if last_txt and last_txt[-1] not in {'.', '!', '?', ':', '}', ']', ')'} and not re.match(r'^(?:[1-9]|BAB|CHAPTER|SECTION)\b', clean_paragraph, re.I):
+                            if clean_paragraph[0].islower() or re.match(r'^(?:and|or|with|that|which|dan|atau|yang|dengan|untuk|pada)\b', clean_paragraph, re.I):
+                                chunks[-1]["text"] = last_txt + " " + clean_paragraph
+                                chunks[-1]["metadata"]["page_span"] = list(set(chunks[-1]["metadata"].get("page_span", []) + [page_idx]))
+                                continue
+
                     chunks.append({
                         "text": clean_paragraph,
                         "metadata": {
@@ -296,21 +305,28 @@ def parse_with_unstructured(file_path: str, file_name: str, api_key: str, server
             languages=['ind', 'eng']
         )
     )
-    res = client.general.partition(req)
+    res = client.general.partition(request=req)
     chunks = []
     if res.elements:
         for el in res.elements:
-            t = el.get("text", "").strip()
+            if isinstance(el, dict):
+                t = el.get("text", "").strip()
+                meta = el.get("metadata", {})
+                el_type = el.get("type", "")
+            else:
+                t = (getattr(el, "text", "") or "").strip()
+                meta = getattr(el, "metadata", {}) or {}
+                el_type = getattr(el, "type", "")
             if not t:
                 continue
-            meta = el.get("metadata", {})
+            page_num = meta.get("page_number", 1) if isinstance(meta, dict) else getattr(meta, "page_number", 1)
             chunks.append({
                 "text": t,
                 "metadata": {
                     "source": file_name,
-                    "pdf_page_index": meta.get("page_number", 1),
+                    "pdf_page_index": page_num,
                     "parser_used": "unstructured_api",
-                    "chunk_type": "table" if el.get("type") == "Table" else "paragraph"
+                    "chunk_type": "table" if el_type == "Table" else "paragraph"
                 }
             })
     return chunks

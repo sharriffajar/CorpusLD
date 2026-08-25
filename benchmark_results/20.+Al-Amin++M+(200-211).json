@@ -1,0 +1,174 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "The effectiveness of implementing case-based learning in improving clinical skills, critical thinking, problem solving, motivation, and satisfaction of nursing students: Systematic Review",
+  "name": "The effectiveness of implementing case-based learning in improving clinical skills, critical thinking, problem solving, motivation, and satisfaction of nursing students: Systematic Review",
+  "description": "Objectives: This study aimed to identify and analyze the effectiveness of implementing case-based learning in improving nursing students’ clinical skills, critical thinking, problem-solving, motivation, and satisfaction. Methods: A systematic review was employed. This article has been compiled in accordance with the PRISMA method. Article searches were conducted using PubMed, EBSCOhost, ProQuest, ScienceDirect, the Cochrane Library, and Scopus. Structured research questions using the PICO method, and search",
+  "inLanguage": "en",
+  "keywords": [
+    "Case-based learning",
+    "clinical skills",
+    "critical thinking",
+    "problem solving",
+    "motivation",
+    "satisfaction",
+    "nursing students"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Muhammad Al-Amin R. Sapeni",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Nursing Department, Sekolah Tinggi Ilmu Kesehatan Mayapada, Jakarta, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Mariyati Mardjuky",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department Maternity Nursing, Nursing Study Program, Sekolah Tinggi Ilmu Kesehatan Maluku Husada, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Eza Kemal Firdaus",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Universitas Tanjungpura, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Haeril Amir",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Faculty of Public Health, Universitas Muslim Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Candra Dewi Rahayu",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Universitas Sains Al-Qur’an, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Afni Yan Syah",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Akademi Keperawatan Kesdam Iskandar Muda Banda Aceh, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Yunita",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Evi Gustia Kesuma",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "Introduction",
+      "description": "This section provides background information on the use of case-based learning in nursing education and establishes the objectives of the systematic review to evaluate its effectiveness."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Results",
+      "description": "This section details the findings from the selected studies regarding the impact of case-based learning on nursing students' clinical skills, critical thinking, problem-solving, motivation, and satisfaction."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Discussion",
+      "description": "This section interprets the findings, comparing them with existing literature and discussing the implications of implementing case-based learning in nursing curricula."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Conclusion",
+      "description": "This section summarizes the overall findings of the review, highlighting the positive effects of case-based learning on nursing students and suggesting directions for future practice and research."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3. The result of Case-Based Learning Implementation on Nursing Students. No.",
+      "description": "Structured quantitative data table (2 rows)"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Total identified articles",
+      "value": 590,
+      "unitText": "articles",
+      "description": "Initial article searches across PubMed, EBSCOhost, ProQuest, ScienceDirect, the Cochrane Library, and Scopus"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Included articles",
+      "value": 6,
+      "unitText": "articles",
+      "description": "Articles included in the systematic review based on the research question"
+    }
+  ],
+  "citation": [
+    "1. Akhtar-Danesh N, Baumann A, Kolotylo C, Lawlor Y , Tompkins C, Lee R. Perceptions of Professionalism Among Nursing Faculty and Nursing Students. West J Nurs Res. 2013;35(2):248-271.",
+    "2. Yoo MS, Park HR. Effects of case-based learning on communication skills, problem-solving ability, and learning motivation in nursing students. Nurs Heal Sci. 2015;17(2):166-172.",
+    "3. Raymond C, Profetto-McGrath J, Myrick F, Strean WB. Balancing the seen and unseen: Nurse educator as role model for critical thinking. Nurse Educ Pract. 2018;31:41-47.",
+    "4. Martyn J, Terwijn R, Kek MYCA, Huijser H. Exploring the relationships between teaching, approaches to learning, and critical thinking in a problem-based learning foundation nursing course. Nurse Educ Today. 2014;34(5):829-835.",
+    "5. Benner P, Sutphen M, Leonard V , Day L. Educating nurses: A call for radical transformation. San Francisco: Jossey-Bass, CJNR 2010;42(2):141-143.",
+    "6. Tu Y-C, Lin Y-J, Lee JW, Fan L-W. Effects of Didactic Instruction and Test-Enhanced Learning in a Nursing Review Course. J Nurs Educ. 2017;56(11):683-687.",
+    "7. Zhang F, Zhao L, Zeng Y , Xu K, Wen X. A comparison of inquiry-oriented teaching and lecture-based approach in nursing ethics education. Nurse Educ Today. 2019;79:86–91.",
+    "8. Afrasiabifar A, Asadolah M. Effectiveness of shifting traditional lecture to interactive lecture to teach nursing students. Investig y Educ en Enferm. 2019;37(1).",
+    "9. Kantar LD, Massouh A. Case-based learning: What traditional curricula fail to teach. Nurse Educ Today. 2015;35(8):e8-14.",
+    "10. McLean SF. Case-Based Learning and its Application in Medical and Health-Care Fields: A Review of Worldwide Literature. J Med Educ Curric Dev. 2016;3:JMECD.S20377.",
+    "11. Gholami M, Saki M, Toulabi T, Kordestani Moghadam P, Hossein Pour AH, Dostizadeh R. Iranian Nursing Students’ Experiences of Case-Based Learning: A Qualitative Study. J Prof Nurs. 2017;33(3):241-249.",
+    "12. Yoo MS, Park JH, Lee SR. The effects of case-based learning using video on clinical decision making and learning motivation in undergraduate nursing students. J Korean Acad Nurs. 2010;40(6):863871.",
+    "13. Kaddoura MA. Critical Thinking Skills of Nursing Students in Lecture-Based Teaching and Case-Based Learning. Int J Scholarsh Teach Learn. 2011;5(2).",
+    "14. Hong S, Yu P. Comparison of the effectiveness of two styles of case-based learning implemented in lectures for developing nursing students’ critical thinking ability: A randomized controlled trial. Int J Nurs Stud. 2017;68:16-24.",
+    "15. Page MJ, McKenzie JE, Bossuyt PM, Boutron I, Hoffmann TC, Mulrow CD, et al. The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. BMJ. 2021;372.",
+    "16. Eriksen MB, Frandsen TF. The impact of patient, intervention, comparison, outcome (PICO) as a search strategy tool on literature search quality: A systematic review. J Med Libr Assoc. 2018;106(4):10-11.",
+    "17. Singh J. Critical appraisal skills programme. J Pharmacol Pharmacother. 2013;4(1):76-77.",
+    "18. Hong QN, Fàbregues S, Bartlett G, Boardman F, Cargo M, Dagenais P, et al. The Mixed Methods Appraisal Tool (MMAT) version 2018 for information professionals and researchers. Educ Inf. 2018;34(4):285-291.",
+    "19. Thomas BH, Ciliska D, Dobbins M, Micucci S. A process for systematically reviewing the literature: Providing the research evidence for public health nursing interventions. Worldviews Evidence-Based Nurs. 2004;1(3):176-184.",
+    "20. Raurell-Torredà M, Olivet-Pujol J, Romero-Collado À, Malagon-Aguilera MC, Patiño-Masó J, Baltasar- Bagué A. Case-Based Learning and Simulation: Useful Tools to Enhance Nurses’ Education? Nonrandomized Controlled Trial. J Nurs Scholarsh. 2015;47(1):34–42.",
+    "21. Li S, Ye X, Chen W. Practice and effectiveness of “nursing case-based learning” course on nursing student’s critical thinking ability: A comparative study. Nurse Educ Pract. 2019;36(759):91-96.",
+    "22. Chan AWK, Chair SY , Sit JWH, Wong EML, Lee DTF, Fung OWM. Case-based web learning versus face- to-face learning: A mixed-method study on university nursing students. J Nurs Res. 2016;24(1):31-40.",
+    "23. Gholami M, Changaee F, Karami K, Shahsavaripour Z, Veiskaramian A, Birjandi M. Effects of multiepisode case-based learning (CBL) on problem-solving ability and learning motivation of nursing students in an emergency care course. J Prof Nurs. 2021;37(3):612-",
+    "24. Chan AW-K, Chair S-Y , Sit JW-H, Wong EM-L, Lee DT-F, Fung OW-M. Case-Based Web Learning Versus Face-to-Face Learning. J Nurs Res. 2016;24(1):31-",
+    "25. Ha H, Lopez T. Developing health literacy knowledge and skills through case-based learning. Am J Pharm Educ. 2014;78(1):1-7.",
+    "26. Sapeni MAAR, Said S. The effectiveness of case- based learning in increasing critical thinking of nursing students: A literature review. Enferm Clin. 2020;30:182-185. AL-AMIN R SAPENE M, ET AL Gac Méd Caracas 211",
+    "27. Bi M, Zhao Z, Yang J, Wang Y . Comparison of case- based learning and traditional method in teaching postgraduate students of medical oncology. Med Teach. 2019;41(10):1124-1128.",
+    "28. Simonsohn AB, Fischer MR. Evaluation eines fallbasierten computergestützten lernsystems (CASUS) im klinischen studienabschnitt. Dtsch Medizinische Wochenschrift. 2004;129(11):552-556.",
+    "29. Haley CM, Brown B, Koerber A, Nicholas CL, Belcher A. Comparing Case-Based with Team-Based Learning: Dental Students’ Satisfaction, Level of Learning, and Resources Needed. J Dent Educ. 2020;84(4):486-494.",
+    "30. Chae D, Kim H, Yoo JY , Lee J. Agreement on Core Components of an E-Learning Cultural Competence Program for Public Health Workers in South Korea: A Delphi Study. Asian Nurs Res (Korean Soc Nurs Sci). 2019;13(3):184-191.",
+    "31. Thistlethwaite JE, Davies D, Ekeocha S, Kidd JM, MacDougall C, Matthews P, et al. The effectiveness of case-based learning in health professional education. A BEME systematic review: BEME Guide No. 23. Med Teach. 2012;34(6):42-4–44.",
+    "32. Kabisch M, Ruckes C, Seibert-Grafe M, Blettner M. Randomized Controlled Trials. Dtsch Arztebl Int. 2011;108(39):663-668.",
+    "33. Grendell RN. Narrative pedagogy, technology, and curriculum transformation in nursing education. J Leadersh Stud. 2011;4(4):65-67."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "2.0"
+  },
+  "alternateName": "La efectividad de implementar el aprendizaje basado en casos para mejorar las habilidades clínicas, el pensamiento crítico, la resolución de problemas, la motivación y la satisfacción de los estudiantes de enfermería: Revisión Sistemática"
+}

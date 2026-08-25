@@ -1,0 +1,339 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "ESBMC-ARDUINO: CLOSING THE DEPLOYMENT GAP FOR FORMAL VERIFICATION OF OPEN-HARDWARE PLCS",
+  "name": "ESBMC-ARDUINO: CLOSING THE DEPLOYMENT GAP FOR FORMAL VERIFICATION OF OPEN-HARDWARE PLCS",
+  "description": "scan-cycle model with idealized unbounded integers. The artifact that runs on the board, however, executes on a resource-constrained Microcontroller Unit (MCU) with a 16-bit machine word (8-bit AVR Arduinos), and sensors are read through a finite-resolution Analog-to-Digital Converter (ADC). We show that this deployment gap makes naive width-aware verification unsound in practice: on 123 real third-party programs, checking 16-bit arithmetic overflow without a hardware input model raises a 44 % false-alarm rate (54/123) and finds zero genuine defects, because it explores sensor values no ADC can produce. Because the gap sits exactly where computation meets the physical process – a bounded sensor reading scaled by finite-width integer arithmetic into an actuation command – an overflow can silently suppress a physical safety action such as a high-level alarm. At the same time, an unbounded input model fabricates alarms that no environment can trigger. We present a method for hardware-faithful verification of IEC 61131-3 on open hardware: a declarative Hardware Abstraction Layer (HAL) descriptor (word width, ADC/Pulse-Width Modulation (PWM) resolution, I/O binding) and a sound lowering that interprets arithmetic at the target word width and constrains each input to its hardware-realizable range, transferring to the Programmable Logic Controller (PLC) domain the target-model discipline established for safety-critical embedded C (Frama-C, Astrée). We instantiate it for Arduino as ESBMC-Arduino, deriving HAL parameters from the official Arduino cores and realizing the input-range model as a lightweight hook in the Efficient SMT-based Context-Bounded Model Checker (ESBMC) Ladder Diagram (LD) frontend. On the 123-program corpus, the HAL annotator eliminates all 54 false alarms (54→0) while preserving every robustness proof, and a controlled corpus demonstrates the genuine – but rare – width-dependent defects the method detects with physically realizable witnesses.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Pierre Dantas",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science, The University of Manchester, Manchester, UK"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Lucas Cordeiro",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science, The University of Manchester, Manchester, UK"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Waldir Junior",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Electrical Engineering, Federal University of Amazonas (UFAM), Manaus, AM, Brazil"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "1. Introduction",
+      "description": "Introduces the context of open-hardware PLCs and the problem of the deployment gap between abstract formal verification models and resource-constrained microcontroller execution."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.1 The Deployment Gap",
+      "description": "Details the specific discrepancies arising from hardware limitations like finite bit-widths and ADC resolution that invalidate abstract verification assumptions."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.2 Contributions",
+      "description": "Outlines the primary technical contributions of the work, including hardware-faithful verification and the ESBMC-Arduino framework."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.3 Scope",
+      "description": "Defines the boundaries and specific hardware classes targeted within the scope of this study."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. Background",
+      "description": "Provides necessary background on PLC scan cycles, open-hardware toolchains, PLCopen XML representation, and machine models of Arduino-class targets."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.1 The PLC Scan Cycle",
+      "description": "Explains the standard cyclic execution model of Programmable Logic Controllers involving input reading, logic execution, and output writing."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.2 Open-Hardware PLCs and the OpenPLC Toolchain",
+      "description": "Describes open-hardware PLC platforms and how the OpenPLC toolchain compiles IEC 61131-3 code into target microcontroller binaries."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.4 PLCopen XML",
+      "description": "Discusses the XML-based standard format used to serialize PLC programs across different development environments."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain",
+      "description": "Traces the compilation pipeline transforming high-level PLCopen XML specifications into executable microcontroller machine code."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.6 Machine Models of Arduino-Class Targets",
+      "description": "Analyzes the architectural characteristics, memory constraints, and data type widths typical of Arduino-class microcontrollers."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.7 Bounded Model Checking andk-Induction for PLCs",
+      "description": "Reviews the foundational formal verification techniques of bounded model checking and k-induction applied to industrial control systems."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. Related Work",
+      "description": "Surveys existing literature concerning IEC 61131-3 verification, target-faithful analysis of embedded software, and code-generation correctness."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1 Verification of IEC 61131-3",
+      "description": "Examines prior approaches and tools designed to formally verify safety properties in IEC 61131-3 industrial programs."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2 Target-Faithful Analysis of Embedded Software",
+      "description": "Reviews methods that ensure software verification accounts for specific hardware target behaviors and constraints."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3 Code-Generation Correctness",
+      "description": "Discusses research on verifying the correctness of compilers and code generators targeting embedded systems."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. The Deployment Gap, Formally",
+      "description": "Formalizes the concept of the deployment gap using physical process models, fault models, and motivating examples."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1 Physical Process and Fault Model",
+      "description": "Introduces the formal framework capturing physical plant interactions and potential hardware-induced software faults."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.1 Fault model",
+      "description": "Defines the specific classes of faults considered, such as integer overflow and truncation errors caused by hardware limitations."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.2 Assumptions",
+      "description": "Outlines the foundational assumptions regarding the environment, sensor resolution, and microcontroller behavior."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.3 Motivating example",
+      "description": "Presents a concrete industrial control example where abstract verification fails to catch real hardware overflow behaviors."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5. Hardware-Faithful Verification",
+      "description": "Proposes the hardware-faithful verification framework, detailing scan-cycle execution models, faithful lowering, and soundness guarantees."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.1 Scan-Cycle Execution Model",
+      "description": "Formulates an execution model that accurately reflects the discrete scan cycle of target hardware."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.3 Faithful Lowering",
+      "description": "Describes the transformation process that preserves hardware semantics during intermediate representation generation."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.4 Soundness and Gap Diagnosis",
+      "description": "Analyzes the soundness of the proposed verification approach and methods for diagnosing discrepancies caused by the deployment gap."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2 Implementation",
+      "description": "Details the software architecture and implementation details of the ESBMC-Arduino verification pipeline."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.1 Where the Hook Sits",
+      "description": "Explains the integration point within the compilation and verification toolchain where hardware-specific checks are injected."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.2 What the Hook Emits",
+      "description": "Details the assertions and code structures generated by the verification hook to capture hardware constraints."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.3 Configurability and Engineering",
+      "description": "Discusses engineering choices and configuration options available to adapt the verifier to different microcontroller targets."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7. The Approach in Practice",
+      "description": "Demonstrates the practical application of the tool from both an engineer's perspective and an internal architectural viewpoint."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7.1.1 Engineer’s View",
+      "description": "Illustrates how control engineers interact with the ESBMC-Arduino tool during PLC application development."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7.1.2 Under the Hood",
+      "description": "Provides a deep dive into the internal mechanisms and solver interactions occurring during a verification run."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8. Evaluation",
+      "description": "Evaluates the performance, effectiveness, and soundness of ESBMC-Arduino across various benchmark programs and hardware targets."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.1 Setup and Methodology",
+      "description": "Outlines the experimental setup, benchmark suites, and evaluation methodology used in the empirical study."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.2 RQ1: The Gap Is Real but Rare",
+      "description": "Investigates research question 1, showing that deployment gaps occur in practice though they are relatively infrequent across standard benchmarks."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.3 RQ2: Naive Width-Aware Verification Is Unusable",
+      "description": "Evaluates research question 2, demonstrating that naive application of bit-precise verification without proper modeling leads to severe scalability and usability issues."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
+      "description": "Addresses research question 3, proving that hardware abstraction layer annotations successfully recover verification soundness."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific",
+      "description": "Performs cross-tool validation to establish that the identified deployment gaps are inherent to the hardware-software interface rather than artifacts of a single verifier."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.6 RQ4: Performance and Completeness",
+      "description": "Analyzes research question 4 regarding verification runtime overhead, scalability, and completeness of the proposed approach."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "10. Threats to Validity",
+      "description": "Identifies potential internal and external validity threats to the experimental results and discusses mitigation strategies."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "9. Discussion",
+      "description": "Synthesizes the broader implications of the findings for industrial control system security and formal verification tool design."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "11. Future Work",
+      "description": "Outlines promising directions for future research, including support for more complex microcontroller architectures and richer hardware models."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "12. Conclusion",
+      "description": "Summarizes the paper's core contributions in closing the deployment gap for open-hardware PLC verification using ESBMC-Arduino."
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "false-alarm rate",
+      "value": 44.0,
+      "unitText": "%",
+      "description": "checking 16-bit arithmetic overflow without a hardware input model on 123 real third-party programs"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "false alarms",
+      "value": 54.0,
+      "unitText": "count",
+      "description": "false alarms eliminated by the HAL annotator on the 123-program corpus (54 to 0)"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "machine word width",
+      "value": 16.0,
+      "unitText": "bits",
+      "description": "resource-constrained Microcontroller Unit (MCU)"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "machine word width",
+      "value": 8.0,
+      "unitText": "bits",
+      "description": "AVR Arduinos"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "genuine defects found",
+      "value": 0.0,
+      "unitText": "count",
+      "description": "checking 16-bit arithmetic overflow without a hardware input model on 123 real third-party programs"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "programs corpus",
+      "value": 123.0,
+      "unitText": "count",
+      "description": "real third-party programs tested"
+    }
+  ],
+  "citation": [
+    "[1] Thiago Alves and Thomas Morris. Openplc: An iec 61131-3 compliant open source industrial controller for cyber security research.Computers & Security, 78:364–379, September 2018. ISSN 0167-4048. doi: 10.1016/j.cose.2018.07.007.",
+    "[2] Thiago Rodrigues Alves, Mario Buratto, Flavio Mauricio de Souza, and Thelma Virginia Rodrigues. Openplc: An open source alternative to automation. InIEEE Global Humanitarian Technology Conference (GHTC 2014), page 585–589, San Jose, CA, USA, October 2014. IEEE. doi: 10.1109/ghtc.2014.6970342.",
+    "[3] Arduino. Arduino OPTA: Micro PLC with industrial IoT. https://www.arduino.cc/pro/ hardware-arduino-opta/, 2024. Accessed 2026-06-27.",
+    "[4] Arduino. Arduino PLC IDE: IEC 61131-3 programming for arduino pro hardware. https://www.arduino.cc/ pro/software-plc-ide/, 2024. Accessed 2026-06-27.",
+    "[5] CONTROLLINO. CONTROLLINO: Arduino-compatible industrial PLC. https://www.controllino.com/, 2024. Accessed 2026-06-27.",
+    "[6] Industrial Shields. M-Duino arduino-based PLC family. https://www.industrialshields.com/, 2024. Accessed 2026-06-27.",
+    "[7] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-PLC: Formal verification of IEC 61131-3 ladder diagram programs, 2026. TACAS 2027 artefact. Reproducible viabash conformance/run_all.sh.",
+    "[8] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-GraphPLC: Formal verification of graphical PLCopen XML ladder diagram programs using SMT-based model checking, 2026.",
+    "[9] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-PLC+: Unified IEC 61131-3 formal verification framework with ST frontend and graphical function block support (pull request #5427). GitHub Pull Request #5427, esbmc/esbmc, 2026. URL https://github.com/esbmc/esbmc/pull/5427. Source code and benchmark suite.",
+    "[10] Jean-Charles Tournier, Borja Fernández Adiego, and Ignacio D. Lopez-Miguel. PLCverif: Status of a formal verifi- cation tool for programmable logic controller. InProceedings of the 18th International Conference on Accelerator and Large Experimental Physics Control Systems (ICALEPCS’21), page MOPV042, Shanghai, China, October 2021. JACoW Publishing. ISBN 978-3-95450-221-9. doi: 10.18429/JACoW-ICALEPCS2021-MOPV042.",
+    "[11] Ignacio D. Lopez-Miguel, Borja Fernández Adiego, Matias Salinas, and Christine Betz.Formal Verification of PLCs as a Service: A CERN-GSI Safety-Critical Case Study, pages 227–235. Springer Nature Switzerland, Williamsburg, V A, USA, June 2025. ISBN 9783031937064. doi: 10.1007/978-3-031-93706-4_13.",
+    "[12] Florent Kirchner, Nikolai Kosmatov, Virgile Prevosto, Julien Signoles, and Boris Yakobowski. Frama-c: A software analysis perspective.Formal Aspects of Computing, 27(3):573–609, May 2015. ISSN 1433-299X. doi: 10.1007/s00165-014-0326-7. 19 ESBMC-Arduino: Closing the Deployment Gap for Open-Hardware PLCsA PREPRINT",
+    "[13] Patrick Cousot, Radhia Cousot, Jêrome Feret, Laurent Mauborgne, Antoine Miné, David Monniaux, and Xavier Rival. The astreÉ analyzer. InProgramming Languages and Systems, page 21–30, Edinburgh, UK, 2005. Springer Berlin Heidelberg. ISBN 9783540319870. doi: 10.1007/978-3-540-31987-0_3.",
+    "[14] Arduino. ArduinoCore-avr: the official arduino avr core. https://github.com/arduino/ArduinoCore-avr, 2024. ADC 10-bit, analogWrite/PWM 8-bit; A VR-GCCint= 16-bit. Accessed 2026-06-28.",
+    "[15] Edouard Tisserant, Laurent Bessard, and Mario de Sousa. An open source iec 61131-3 integrated development environment, July 2007. ISSN 1935-4576.",
+    "[16] Lucas Cordeiro, Bernd Fischer, and Joao Marques-Silva. Smt-based bounded model checking for embedded ansi-c software.IEEE Transactions on Software Engineering, 38(4):957–974, July 2012. ISSN 0098-5589. doi: 10.1109/tse.2011.59.",
+    "[17] Mikhail R. Gadelha, Rafael S. Menezes, and Lucas C. Cordeiro. ESBMC 6.1: Automated Test Case Generation Using Bounded Model Checking.International Journal on Software Tools for Technology Transfer, 23(6):857–861, May 2020. doi: 10.1007/s10009-020-00571-2.",
+    "[18] Mary Sheeran, Satnam Singh, and Gunnar Stålmarck. Checking safety properties using induction and a sat-solver. InFormal Methods in Computer-Aided Design, page 127–144, Berlin, 2000. Springer Berlin Heidelberg. ISBN 9783540409229. doi: 10.1007/3-540-40922-x_8.",
+    "[19] Matthias Weis, Philipp Marks, Benjamin Maschler, Dustin White, Pascal Kesseli, and Michael Weyrich. Towards establishing formal verification and inductive code synthesis in the PLC domain. In2021 IEEE 19th International Conference on Industrial Informatics (INDIN), pages 1–8, Palma de Mallorca, Spain, July 2021. IEEE. doi: 10.1109/INDIN45523.2021.9557423.",
+    "[20] Roberto Cavada, Alessandro Cimatti, Marco Dorigatti, Alberto Griggio, Alessandro Mariotti, Andrea Micheli, Sergio Mover, Marco Roveri, and Stefano Tonetta. The nuXmv symbolic model checker. InComputer Aided Verification (CAV 2014), volume 8559 ofLecture Notes in Computer Science, pages 334–345, Vienna, Austria, 2014. Springer. doi: 10.1007/978-3-319-08867-9_22.",
+    "[21] Kun Wang, Jingyi Wang, Christopher M. Poskitt, Xiangxiang Chen, Jun Sun, and Peng Cheng. K-st: A formal executable semantics of the structured text language for plcs.IEEE Transactions on Software Engineering, 49 (10):4796–4813, October 2023. ISSN 2326-3881. doi: 10.1109/tse.2023.3315292.",
+    "[22] Jaeseo Lee and Kyungmin Bae.Formal Semantics and Analysis of Multitask PLC ST Programs with Preemption, pages 425–442. Springer Nature Switzerland, Milan, Italy, September 2024. ISBN 9783031711626. doi: 10.1007/978-3-031-71162-6_22.",
+    "[23] Jaeseo Lee and Kyungmin Bae.Formal Analysis of Networked PLC Controllers Interacting with Physical Environments, pages 328–356. Springer Nature Switzerland, Singapore, Singapore, October 2025. ISBN 9783032071064. doi: 10.1007/978-3-032-07106-4_14.",
+    "[24] Xaver Fink, Anastasia Mavridou, Andreas Katis, and Borja Fernández Adiego.Verifying PLC Programs via Monitors: Extending the Integration of FRET and PLCverif, page 427–435. Springer Nature Switzerland, Moffett Field, CA, USA, 2024. ISBN 9783031606984. doi: 10.1007/978-3-031-60698-4_26.",
+    "[25] Chibuzo Ukegbu and Hoda Mehrpouyan. Cooperative verification of PLC programs using CoVeriTeam: Towards a reliable and secure industrial control systems. InProceedings of Cyber-Physical Systems and Internet of Things Week 2023, CPS-IoT Week ’23, pages 37–42, San Antonio, TX, USA, May 2023. ACM. doi: 10.1145/3576914. 3587490.",
+    "[26] Ali Ebnenasir. Formalizing ladder logic programs and timing charts for fault impact analysis and verification of fault tolerance. Technical Report CS-TR-23-01, Michigan Technological University, Department of Computer Science, 2023. URL https://www.mtu.edu/cs/research/papers/pdfs/ formalizing-ladder-logic-ali-ebnenasir-tech-rpt-010623-rev.pdf.",
+    "[27] Roberto Bruttomesso, Alessandro Di Pinto, Moreno Carullo, and Andrea Carcano. Method for automatic translation of ladder logic to a SMT-based model checker in a network. US Patent 11,906,943. Assignee: Nozomi Networks SAGL, 2024. Filed: 2021-08-12. Granted: 2024-02-20.",
+    "[28] Xavier Leroy. Formal verification of a realistic compiler.Communications of the ACM, 52(7):107–115, July 2009. ISSN 1557-7317. doi: 10.1145/1538788.1538814.",
+    "[29] Edmund Clarke, Daniel Kroening, and Flavio Lerda.A Tool for Checking ANSI-C Programs, page 168–176. Springer Berlin Heidelberg, Berlin, 2004. ISBN 9783540247302. doi: 10.1007/978-3-540-24730-2_15.",
+    "[30] Antonio Iacobelli, Lorenzo Rinieri, Andrea Melis, Amir Al Sadi, Marco Prandini, and Franco Callegati. Detection of ladder logic bombs in PLC control programs: An architecture based on formal verification. In2024 IEEE 7th 20 ESBMC-Arduino: Closing the Deployment Gap for Open-Hardware PLCsA PREPRINT International Conference on Industrial Cyber-Physical Systems (ICPS), pages 1–7, St. Louis, MO, USA, May 2024. IEEE. doi: 10.1109/ICPS59941.2024.10639995.",
+    "[31] Kamil Rosiak et al. IEC 61131-3 clone detection dataset (plcopen xml / structured text). https://github.com/ KamilRosiak/IEC_61131_3_Clone_Detection, 2022. Accessed 2026-06-28.",
+    "[32] Rafael Sá Menezes, Mohannad Aldughaim, Bruno Farias, Xianzhiyu Li, Edoardo Manino, Fedor Shmarov, Kunjian Song, Franz Brauße, Mikhail R. Gadelha, Norbert Tihanyi, Konstantin Korovin, and Lucas C. Cordeiro. ESBMC v7.4: Harnessing the Power of Intervals: (Competition Contribution). InTools and Algorithms for the Construction and Analysis of Systems (TACAS 2024), volume 14572 ofLecture Notes in Computer Science, pages 376–380, Luxembourg City, Luxembourg, 2024. Springer Nature Switzerland. doi: 10.1007/978-3-031-57256-2_24. 21"
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "2.0"
+  },
+  "datePublished": "2026-07-09",
+  "dateModified": "2026-07-09",
+  "alternateName": "A PREPRINT"
+}

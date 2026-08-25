@@ -45,3 +45,9 @@ Thumbs.db
 
 # Log files
 *.log
+
+# Benchmark Caches & Test PDF Files
+benchmark_results/.chunk_cache/
+benchmark_corpus/*.pdf
+!benchmark_corpus/README.md
+!benchmark_corpus/.gitkeep

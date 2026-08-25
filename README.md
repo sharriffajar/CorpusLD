@@ -76,6 +76,10 @@
 - **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
 - **Privacy First**: API keys reside solely in your browser's local memory (`localStorage`).
 
+### 8. 🔬 Multi-Style Document Benchmark Suite & Visual Studio
+- **Agnostic Quality Evaluation Engine**: Tests and scores extraction quality across 8 invariant dimensions (Title Integrity, Abstract Purity, Keywords Ground Truth, Monotonic Hierarchy, Quantitative Precision, Structured Tables, Citation Catalog, and Academic Discoverability).
+- **Master-Detail Evaluation Dashboard**: Interactive HTML Studio dashboard ([`benchmark_results/dashboard.html`](benchmark_results/dashboard.html)) with latency analytics, 1-click clipboard exports, and real-time inspector.
+
 ---
 
 ## 📁 Repository Structure
@@ -84,6 +88,11 @@
 CorpusLD/
 ├── server.py                 # FastAPI High-Performance Server & RAG Engine
 ├── json_ld_extractor.py      # 5-Agent Extraction Pipeline & Schema.org Validator
+├── benchmark_runner.py       # Multi-Style Document Benchmark Runner & Quality Suite
+├── benchmark_corpus/         # Benchmark Test PDF Directory (User Corpus)
+├── benchmark_results/        # Benchmark JSON-LD Outputs & Interactive Dashboard
+│   ├── dashboard.html        # Master-Detail Visual Evaluation Dashboard
+│   └── benchmark_history.json# Historical Run Analytics
 ├── config.py                 # Central Configuration
 ├── requirements.txt          # Python Dependencies
 ├── .env.example              # Environment Configuration Template
@@ -138,6 +147,19 @@ python server.py
 ```
 Open your browser and navigate to **`http://localhost:8000`**.
 
+### 6. Run Multi-Style Document Benchmark Suite
+You can test and evaluate extraction quality across scientific documents:
+```bash
+# Run benchmark on a specific file in benchmark_corpus/
+python benchmark_runner.py --file "sample_paper.pdf"
+
+# Run full batch benchmark across all documents
+python benchmark_runner.py --clean
+
+# Open visual dashboard in your browser
+# benchmark_results/dashboard.html
+```
+
 ---
 
 ## 📖 User Workflow
@@ -161,3 +183,4 @@ Open your browser and navigate to **`http://localhost:8000`**.
 
 ## 📄 License
 Distributed under the Apache License, Version 2.0. See `LICENSE` for details.
+
