@@ -1170,10 +1170,9 @@ html, body {
 /* Validator Audit Banner */
 .validator-banner {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding: 12px 18px;
+  align-items: stretch;
+  gap: 24px;
+  padding: 16px 20px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -1181,10 +1180,17 @@ html, body {
 
 .validator-left {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
-  flex: 0 0 280px;
-  min-width: 0;
+  flex: 0 0 320px;
+  min-width: 280px;
+}
+
+.validator-divider {
+  width: 1px;
+  background-color: var(--border-subtle);
+  align-self: stretch;
+  flex-shrink: 0;
 }
 
 .score-box {
@@ -1192,8 +1198,8 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 58px;
-  height: 58px;
+  min-width: 60px;
+  height: 60px;
   background-color: var(--bg-surface-raised);
   border: 2px solid var(--accent-emerald-border);
   border-radius: var(--radius-md);
@@ -1209,33 +1215,34 @@ html, body {
 }
 
 .score-total {
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--text-muted);
 }
 
 .validator-badge-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
   min-width: 0;
 }
 
 .validator-sublabel {
   font-size: 10px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
 }
 
 .badge-tag {
   display: inline-block;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--radius-xs);
   width: fit-content;
-  white-space: nowrap;
+  line-height: 1.3;
 }
 
 .badge-ready {
@@ -1244,21 +1251,63 @@ html, body {
   border: 1px solid var(--accent-emerald-border);
 }
 
+.badge-good {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-review {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 .validator-checks-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
   flex: 1;
   min-width: 0;
 }
 
 .check-item {
   font-size: 11px;
-  color: var(--text-secondary);
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  line-height: 1.3;
+  gap: 8px;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.check-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-body {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.check-cat {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  letter-spacing: 0.02em;
+}
+
+.check-title {
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.check-desc {
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 
 /* Sub-tabs */
