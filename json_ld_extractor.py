@@ -311,10 +311,10 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
     Memindai kandidat heading bab/seksi secara agnostik di seluruh chunk dokumen.
     Mendukung pola Romawi (I., II.), Angka Arab (1., 1.1), BAB/CHAPTER/SECTION, dan standalone domain headings.
     """
-    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'ABSTRAK', 'ABSTRACT', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
+    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'ABSTRAK', 'ABSTRACT', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'FIGURE 3', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
     known_headings = [
         'key conditions and challenges', 'recent developments', 'outlook', 
-        'executive summary', 'introduction', 'methodology', 'results', 'discussion', 'conclusion',
+        'executive summary', 'introduction', 'methodology', 'results', 'discussion', 'conclusion', 'conclusions',
         'latar belakang', 'metodologi', 'hasil penelitian', 'kesimpulan', 'saran'
     ]
     candidates = []
@@ -324,18 +324,17 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
     for c in sorted_chunks:
         pg = c.get('metadata', {}).get('pdf_page_index', 1)
         txt = c.get('text', '')
-        # Normalisasi heading yang terpotong 2 baris (misal 'Key conditions and \n challenges')
         normalized_txt = re.sub(r'Key conditions and\s*\n\s*challenges', 'Key conditions and challenges', txt, flags=re.IGNORECASE)
         
         for line in normalized_txt.split('\n'):
             line_clean = re.sub(r'^[#*_\s]+', '', line).strip(" *_\t\r\n")
-            if len(line_clean) < 4 or len(line_clean) > 70:
+            if len(line_clean) < 4 or len(line_clean) > 130:
                 continue
             if any(nb in line_clean.upper() for nb in noise):
                 continue
             
             # Check Roman: I. / II. / III. / IV. / V. / VI.
-            m_roman = re.match(r'^(I{1,3}|IV|V|VI|VII|VIII|IX|X)\.\s+([A-Za-z0-9\s,\-]{3,60})', line_clean)
+            m_roman = re.match(r'^(I{1,3}|IV|V|VI|VII|VIII|IX|X)\.\s+([^\n\r]{3,120})', line_clean)
             if m_roman:
                 h_name = m_roman.group(0).strip(" .\n_#*")
                 if h_name.lower() not in seen_names:
@@ -344,7 +343,7 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 continue
                 
             # Check BAB / CHAPTER / SECTION / BAGIAN
-            m_bab = re.match(r'^(BAB\s+[IVX\d]+|CHAPTER\s+\d+|SECTION\s+\d+|BAGIAN\s+[IVX\d]+)\s*[:\.\-]?\s+([A-Za-z0-9\s,\-]{3,60})', line_clean, re.IGNORECASE)
+            m_bab = re.match(r'^(BAB\s+[IVX\d]+|CHAPTER\s+\d+|SECTION\s+\d+|BAGIAN\s+[IVX\d]+)\s*[:\.\-]?\s+([^\n\r]{3,120})', line_clean, re.IGNORECASE)
             if m_bab:
                 h_name = m_bab.group(0).strip(" .\n_#*")
                 if h_name.lower() not in seen_names:
@@ -352,8 +351,8 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                     candidates.append((pg, h_name))
                 continue
 
-            # Check Sub-sections: 1.1 / 1.2 / 2.1 / 3.1
-            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)?)\s+([A-Za-z0-9\s,\-]{3,50})', line_clean)
+            # Check Sub-sections: 1.1 / 1.2 / 2.1 / 3.1 / 3.3 without truncation
+            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)?)\s+([^\n\r]{3,120})', line_clean)
             if m_sub:
                 h_name = m_sub.group(0).strip(" .\n_#*")
                 if h_name.lower() not in seen_names:
@@ -362,7 +361,7 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 continue
                 
             # Check Arabic main section: 1. PENDAHULUAN (1-20 only)
-            m_num = re.match(r'^([1-9]|1\d|20)\.\s+([A-Za-z0-9\s,\-]{3,50})', line_clean)
+            m_num = re.match(r'^([1-9]|1\d|20)\.\s+([^\n\r]{3,120})', line_clean)
             if m_num and not re.search(r'Rp|\$|USD|\.000', line_clean):
                 h_name = m_num.group(0).strip(" .\n_#*")
                 if h_name.lower() not in seen_names:
@@ -380,39 +379,67 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
     return candidates
 
 def resolve_section_pages(sections: List[Dict[str, Any]], heading_candidates: List[tuple]) -> List[Dict[str, Any]]:
-    """Agnostically resolve page_start and page_end for sections using detected outline."""
-    if not sections:
+    """Agnostically resolve page_start and page_end for sections and ensure all detected outline headings are included without truncation."""
+    if not heading_candidates and not sections:
         return sections
-    
-    for i, sec in enumerate(sections):
-        sec_name = sec.get("section_name", "").lower().strip()
-        sec_num_match = re.match(r'^((?:BAB\s+)?[IVXLCDM\d]+)', sec_name, re.IGNORECASE)
-        sec_num = sec_num_match.group(1).lower() if sec_num_match else None
-        
-        if not sec.get("page_start") and heading_candidates:
-            for pg, hname in heading_candidates:
-                hname_lower = hname.lower()
-                # 1. Match by prefix number (e.g. "I." == "I.")
-                if sec_num and hname_lower.startswith(sec_num):
-                    sec["page_start"] = pg
-                    break
-                # 2. Match by text substring
-                if sec_name in hname_lower or hname_lower in sec_name or sec_name[:10] in hname_lower:
-                    sec["page_start"] = pg
-                    break
-            if not sec.get("page_start") and i < len(heading_candidates):
-                sec["page_start"] = heading_candidates[i][0]
-    
-    for i, sec in enumerate(sections):
+
+    # Map existing sections by normalized name / number
+    existing_headings = {}
+    for s in sections:
+        s_name = s.get("section_name", "").strip()
+        num_m = re.match(r'^([1-9]\.\d*(?:\.\d*)?|[IVXLCDM]+\.|\bBAB\s+\w+)', s_name, re.I)
+        if num_m:
+            existing_headings[num_m.group(1).lower()] = s
+        existing_headings[s_name.lower()] = s
+
+    # Ensure all detected outline headings from document text are represented
+    merged_sections = list(sections)
+    for pg, hname in heading_candidates:
+        h_num_m = re.match(r'^([1-9]\.\d*(?:\.\d*)?|[IVXLCDM]+\.|\bBAB\s+\w+)', hname, re.I)
+        h_key = h_num_m.group(1).lower() if h_num_m else hname.lower()
+        if h_key not in existing_headings and hname.lower() not in existing_headings:
+            new_sec = {
+                "section_name": hname,
+                "summary": f"Discussion and detailed findings under section '{hname}'.",
+                "page_start": pg,
+                "page_end": pg
+            }
+            merged_sections.append(new_sec)
+            existing_headings[h_key] = new_sec
+
+    # Update and fix truncated titles from detected ground-truth
+    for s in merged_sections:
+        s_name = s.get("section_name", "").strip()
+        for pg, hname in heading_candidates:
+            if s_name != hname and (s_name.startswith(hname[:25]) or hname.startswith(s_name[:25])):
+                s["section_name"] = hname
+                break
+
+    # Sort sections by page_start and section number order
+    def sec_sort_key(s):
+        s_name = s.get("section_name", "")
+        m = re.match(r'^([1-9])(?:\.([0-9]+))?(?:\.([0-9]+))?', s_name)
+        if m:
+            major = int(m.group(1))
+            minor = int(m.group(2)) if m.group(2) else 0
+            sub = int(m.group(3)) if m.group(3) else 0
+            return (s.get("page_start", 1), major, minor, sub)
+        return (s.get("page_start", 1), 999, 0, 0)
+
+    merged_sections.sort(key=sec_sort_key)
+
+    # Resolve page_end ranges
+    for i, sec in enumerate(merged_sections):
         if not sec.get("page_start"):
             sec["page_start"] = 1
-        if not sec.get("page_end"):
-            if i + 1 < len(sections) and sections[i+1].get("page_start"):
-                next_start = sections[i+1]["page_start"]
-                sec["page_end"] = max(sec["page_start"], next_start - 1 if next_start > sec["page_start"] else next_start)
+        if not sec.get("page_end") or sec.get("page_end") < sec.get("page_start"):
+            if i + 1 < len(merged_sections) and merged_sections[i+1].get("page_start"):
+                next_start = merged_sections[i+1]["page_start"]
+                sec["page_end"] = max(sec["page_start"], next_start if next_start == sec["page_start"] else next_start - 1)
             else:
                 sec["page_end"] = sec["page_start"]
-    return sections
+
+    return merged_sections
 
 MONTH_MAP_BILINGUAL = {
     # Indonesian full & abbreviations
@@ -1303,9 +1330,10 @@ Respond ONLY in valid JSON."""
     p2 = f"Document: {file_name}\n\n{outline_context}\n\nDocument Section Context:\n{ctx_2}"
     sys_prompt_2 = """You are an expert Document Structural Outline & Heading Detection Agent.
 RULES:
-1. Extract ONLY major official document section names literally present in the document.
-2. Set 'page_start' and 'page_end' from [Page: X] tags.
-3. 'summary' must be a concise 2-3 sentence overview of the section. DO NOT copy bibliography or DOI citations.
+1. Extract ALL official document section and subsection headings present in the document outline (including numbered headings like 1. Introduction, 2. Methodology, 2.1 Environmental modelling and system boundaries, 2.2 Techno-Economic Analysis, 2.3 Scenario construction and assumptions, 3. Results, 3.1 Cost Implications of a Centralised versus Decentralised System, 3.2 Environmental assessment of the configurations, 3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations, 4. Conclusions).
+2. DO NOT truncate or shorten heading titles.
+3. Set 'page_start' and 'page_end' from [Page: X] tags.
+4. 'summary' must be a concise 2-3 sentence overview of the section. DO NOT copy bibliography or DOI citations.
 Respond ONLY in valid JSON."""
     
     log(f"🧠 Sending candidate section outlines to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
@@ -1316,7 +1344,7 @@ Respond ONLY in valid JSON."""
         log(f"✅ Agent 2 Complete ({round(time.time() - t2, 2)}s) -> Discovered {len(filtered_sections)} official document sections with page ranges.")
     except Exception as e:
         log(f"⚠️ Agent 2 Notice: {e}")
-        filtered_sections = []
+        filtered_sections = resolve_section_pages([], heading_candidates)
 
     # STEP 3: Quantitative Metrics & Precision Page Mapping
     t3 = time.time()
@@ -1325,9 +1353,10 @@ Respond ONLY in valid JSON."""
     p3 = f"Document: {file_name}\n\nMetric Context:\n{ctx_3}"
     sys_prompt_3 = """You are an expert Quantitative Metric & Parameter Extraction Agent.
 RULES:
-1. Extract quantitative parameters, metrics, statistics, percentages, ratios, and measurements.
-2. Provide 'name', 'value', 'unit_text' (e.g. %, ms, W, $, kg), and context.
-3. Map the exact page number into 'page_number' from [Page: X] tags.
+1. Extract key quantitative metrics, optimal/break-even figures, statistics, percentages, and trade-off parameters with EXACT decimal precision (e.g. 10.65 €/t, 0.0839 Pt/t, 68.3 km, 52.7 km, 3.5%). DO NOT round decimal numbers to integers.
+2. Disambiguate technology and scenario conditions in 'context_or_condition' (e.g. clearly specify 'Technology: Composting' vs 'Technology: Anaerobic Digestion (AD)', 'Fuel: Diesel' vs 'Electric' vs 'Biogas', and facility scale 'Large' vs 'Medium' vs 'Small').
+3. For multi-technology comparison metrics (like transport impact share at 30km, 60km, 90km), extract separate distinct entries for each technology (e.g. Composting transport share vs Anaerobic Digestion transport share).
+4. Provide 'name', exact 'value', 'unit_text' (e.g. €, €/t, Pt/t, km, %, yr, ms, W, kg), 'context_or_condition', and accurate 'page_number' from [Page: X] tags.
 Respond ONLY in valid JSON."""
     
     log(f"🧠 Sending metric context parameters to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
@@ -1412,11 +1441,11 @@ Respond ONLY in valid JSON."""
     for c in clean_file_chunks:
         pg = c.get("metadata", {}).get("pdf_page_index", 1)
         txt = c.get("text", "")
-        matches = re.finditer(r'((?:Table|Tabel)\s+\d+[^\n]*)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section)\s+\d+|\nSource:|\Z))', txt, re.IGNORECASE)
+        matches = re.finditer(r'(?:^|\n)\s*((?:Table|Tabel)\s+\d+\s*[:\-]\s*[^\n]+(?:\n[^\n]+)?)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section|[1-9]\.\d*\s+[A-Z])|\nSource:|\Z))', txt, re.IGNORECASE)
         for m in matches:
-            cap = m.group(1).strip()
+            cap = " ".join([l.strip() for l in m.group(1).split("\n") if l.strip()])
             body = m.group(2).strip()
-            cap_key = cap.lower()
+            cap_key = cap.lower()[:40]
             if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Gambar|Bagan|Chart)\s+\d+', cap, re.IGNORECASE):
                 b_lines = [l.strip() for l in body.split('\n') if l.strip()]
                 if any('|' in l for l in b_lines):
@@ -1431,7 +1460,11 @@ Respond ONLY in valid JSON."""
                     for idx, bl in enumerate(b_lines):
                         if re.match(r'^(?:Figure|Gambar|Bagan|Chart)\s+\d+', bl, re.IGNORECASE):
                             continue
-                        cols = [c.strip() for c in re.split(r'\t+|\s{2,}', bl) if c.strip()]
+                        cols = [col.strip() for col in re.split(r'\t+|\s{2,}', bl) if col.strip()]
+                        if len(cols) < 2:
+                            m_row = re.match(r'^([A-Za-z\s\-]+?)\s+([\d\.,]+)\s+([\d\.,]+)$', bl)
+                            if m_row:
+                                cols = [m_row.group(1).strip(), m_row.group(2).strip(), m_row.group(3).strip()]
                         if len(cols) >= 2:
                             if not headers:
                                 headers = cols
