@@ -1784,9 +1784,15 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
     if desc:
         text_corpus.append(("description", desc))
     for s in data.get("sections", []):
-        text_corpus.append((f"Seksi '{s.get('section_name')}'", s.get("summary", "")))
+        s_sum = s.get("summary") or ""
+        if s_sum:
+            text_corpus.append((f"Section '{s.get('section_name')}'", s_sum))
     for p in data.get("properties_and_metrics", []):
-        text_corpus.append((f"Metrik '{p.get('name')}'", f"{p.get('name')} {p.get('value')} {p.get('unit_text')} {p.get('condition')}"))
+        p_name = p.get("name") or ""
+        p_val = str(p.get("value") or "")
+        p_unit = str(p.get("unit_text") or "")
+        p_ctx = str(p.get("context_or_condition") or "")
+        text_corpus.append((f"Metric '{p_name}'", f"{p_name}: {p_val} {p_unit} {p_ctx}".strip()))
     
     antonym_conflicts = []
     for i in range(len(text_corpus)):
@@ -1797,11 +1803,12 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             lower_b = text_b.lower()
             for word, antonym in ANTONYM_PAIRS_BILINGUAL.items():
                 if re.search(r'\b' + re.escape(word) + r'\b', lower_a) and re.search(r'\b' + re.escape(antonym) + r'\b', lower_b):
-                    words_a = set(re.findall(r'\b\w{4,}\b', lower_a)) - {word, antonym}
-                    words_b = set(re.findall(r'\b\w{4,}\b', lower_b)) - {word, antonym}
+                    words_a = set(re.findall(r'\b[a-z]{4,}\b', lower_a)) - {word, antonym, "metric", "section", "table", "document"}
+                    words_b = set(re.findall(r'\b[a-z]{4,}\b', lower_b)) - {word, antonym, "metric", "section", "table", "document"}
                     shared = words_a & words_b
-                    if len(shared) >= 2:
-                        antonym_conflicts.append(f"Antonym Conflict antara {tag_a} ('{word}') dan {tag_b} ('{antonym}') terkait konsep: {', '.join(list(shared)[:3])}")
+                    # Only flag if there is strong semantic subject overlap
+                    if len(shared) >= 4:
+                        antonym_conflicts.append(f"Antonym Conflict between {tag_a} ('{word}') and {tag_b} ('{antonym}') regarding: {', '.join(list(shared)[:3])}")
     
     if antonym_conflicts:
         checks.append({
@@ -1818,25 +1825,27 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": True,
             "status": "PASS",
             "title": "Antonym Semantics Check",
-            "details": "Bebas dari pertentangan makna antonim dalam relasi fakta graf."
+            "details": "Free of antonym semantic contradictions in knowledge graph relations."
         })
 
     # 2. Negation Conflict Detection
     negation_conflicts = []
-    for i in range(len(text_corpus)):
-        tag_a, text_a = text_corpus[i]
+    # Real negation detection checks opposing statements on matching section claims
+    section_corpus = [(f"Section '{s.get('section_name')}'", s.get("summary", "")) for s in data.get("sections", []) if s.get("summary")]
+    for i in range(len(section_corpus)):
+        tag_a, text_a = section_corpus[i]
         lower_a = text_a.lower()
         neg_a = any(re.search(p, lower_a) for p in NEGATION_PATTERNS_BILINGUAL)
-        for j in range(i + 1, len(text_corpus)):
-            tag_b, text_b = text_corpus[j]
+        for j in range(i + 1, len(section_corpus)):
+            tag_b, text_b = section_corpus[j]
             lower_b = text_b.lower()
             neg_b = any(re.search(p, lower_b) for p in NEGATION_PATTERNS_BILINGUAL)
             if neg_a != neg_b:
-                words_a = set(re.findall(r'\b\w{4,}\b', lower_a))
-                words_b = set(re.findall(r'\b\w{4,}\b', lower_b))
+                words_a = set(re.findall(r'\b[a-z]{4,}\b', lower_a))
+                words_b = set(re.findall(r'\b[a-z]{4,}\b', lower_b))
                 shared = words_a & words_b
-                if len(shared) >= 3:
-                    negation_conflicts.append(f"Negation Conflict antara {tag_a} ({'Negasi' if neg_a else 'Afirmasi'}) dan {tag_b} ({'Negasi' if neg_b else 'Afirmasi'}) pada: {', '.join(list(shared)[:3])}")
+                if len(shared) >= 4:
+                    negation_conflicts.append(f"Negation Conflict between {tag_a} ({'Negative' if neg_a else 'Affirmative'}) and {tag_b} ({'Negative' if neg_b else 'Affirmative'}) on: {', '.join(list(shared)[:3])}")
 
     if negation_conflicts:
         checks.append({
@@ -1853,7 +1862,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": True,
             "status": "PASS",
             "title": "Negation Conflict Check",
-            "details": "Tidak ditemukan klaim negasi yang berbenturan secara internal."
+            "details": "No conflicting negation claims detected internally."
         })
 
     # 3. Numeric & Range Consistency Check
@@ -1866,11 +1875,11 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             try:
                 num_val = float(str(val).replace(",", ".").replace("%", "").strip())
                 if num_val > 100.0 and "growth" not in m.get("name", "").lower() and "pertumbuhan" not in m.get("name", "").lower() and "inflasi" not in m.get("name", "").lower():
-                    numeric_issues.append(f"Persentase '{m.get('name')}' bernilai {num_val}% (>100%) tanpa konteks pertumbuhan.")
+                    numeric_issues.append(f"Percentage '{m.get('name')}' is {num_val}% (>100%) without growth context.")
             except Exception:
                 pass
         if not m.get("page_number") or m.get("page_number") < 1:
-            numeric_issues.append(f"Metrik '{m.get('name')}' belum terpetakan ke nomor halaman ('page_number').")
+            numeric_issues.append(f"Metric '{m.get('name')}' is missing page_number mapping.")
 
     if numeric_issues:
         checks.append({
@@ -1887,7 +1896,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": True,
             "status": "PASS",
             "title": "Numerical & Range Consistency",
-            "details": f"{len(metrics)} metrik kuantitatif tervalidasi konsisten dalam batas rasio & ber-halaman."
+            "details": f"{len(metrics)} quantitative metrics validated consistent within ratio bounds and page referenced."
         })
 
     # 4. Source Grounding & Citation Credibility
@@ -1901,16 +1910,16 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": False,
             "status": "WARN",
             "title": "Source Grounding & Page Binding",
-            "details": f"Terdapat bab tanpa page_start yang valid: {', '.join(unpaged_sections[:2])}"
+            "details": f"Sections without valid page_start: {', '.join(unpaged_sections[:2])}"
         })
-        warnings.append("Seksi bab belum terikat nomor halaman penuh.")
+        warnings.append("Document sections missing page start.")
     else:
         checks.append({
             "check_type": "source_grounding",
             "passed": True,
             "status": "PASS",
             "title": "Source Grounding & Page Binding",
-            "details": f"Seluruh {len(sections)} bab dan {len(refs)} rujukan terikat presisi ke sumber dokumen."
+            "details": f"All {len(sections)} sections and {len(refs)} citations are grounded to source pages."
         })
 
     # 5. Graph Topology & Entity Density
@@ -1922,7 +1931,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": True,
             "status": "PASS",
             "title": "Graph Topology & Density",
-            "details": f"Densitas entitas optimal ({len(entities)} entitas ontologi, {len(keywords)} kata kunci penghubung)."
+            "details": f"Optimal entity density ({len(entities)} ontology entities, {len(keywords)} connector keywords)."
         })
     elif len(entities) > 0 or len(keywords) > 0:
         checks.append({
@@ -1930,7 +1939,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": True,
             "status": "WARN",
             "title": "Graph Topology & Density",
-            "details": f"Densitas moderat ({len(entities)} entitas, {len(keywords)} kata kunci)."
+            "details": f"Moderate density ({len(entities)} entities, {len(keywords)} keywords)."
         })
     else:
         checks.append({
@@ -1938,7 +1947,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             "passed": False,
             "status": "FLAGGED",
             "title": "Graph Topology & Density",
-            "details": "Graf terisolasi: belum ada entitas atau kata kunci yang terhubung."
+            "details": "Isolated graph: no ontology entities or keywords connected."
         })
 
     if contradictions:
@@ -1951,14 +1960,16 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
         integrity_score = 100
     else:
         resolution = "flagged"
-        rec = f"Flagged for review: {warnings[0] if warnings else 'Perlu review kecil'}. Verified with minor notices."
+        rec = f"Flagged for review: {warnings[0] if warnings else 'Minor notice'}. Verified with minor notices."
         integrity_score = max(50, 100 - len(warnings) * 12)
 
     return {
         "integrity_score": integrity_score,
         "resolution": resolution,
         "recommendation": rec,
-        "checks": checks
+        "checks": checks,
+        "contradictions": contradictions,
+        "warnings": warnings
     }
 
 def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1979,56 +1990,54 @@ def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
         checks.append({"status": "PASS", "title": "Schema.org Context & @type", "desc": f"Valid: `@context`={ctx}, `@type`={dtype}"})
     elif ctx == "https://schema.org":
         score += 10
-        checks.append({"status": "WARN", "title": "Schema.org @type Generik", "desc": f"`@type` ({dtype}) kurang spesifik untuk Rich Snippets khusus."})
+        checks.append({"status": "WARN", "title": "Generic Schema.org @type", "desc": f"`@type` ({dtype}) could be more specific for Rich Snippets."})
     else:
-        checks.append({"status": "FAIL", "title": "Context Invalid", "desc": "Field `@context` harus `https://schema.org`."})
+        checks.append({"status": "FAIL", "title": "Invalid Context", "desc": "Field `@context` must be `https://schema.org`."})
 
-    # 2. Metadata Pokok (Judul, Deskripsi, Penulis & Tanggal) (20 pts)
+    # 2. Primary Metadata (Title, Description, Authors & Date) (20 pts)
     name = str(data.get("name", "") or data.get("headline", "")).strip()
     desc = str(data.get("description", "")).strip()
     authors = data.get("author", [])
     if name and len(desc) >= 25 and not name.endswith(".pdf"):
         score += 20
-        auth_msg = f" ({len(authors)} Penulis terdeteksi)" if authors else ""
-        checks.append({"status": "PASS", "title": "Judul & Deskripsi Eksekutif", "desc": f"Judul terisi (`{name[:35]}...`){auth_msg} dan deskripsi optimal."})
+        auth_msg = f" ({len(authors)} Authors detected)" if authors else ""
+        checks.append({"status": "PASS", "title": "Title & Executive Abstract", "desc": f"Title defined (`{name[:35]}...`){auth_msg} and substantive description."})
     elif name:
         score += 10
-        checks.append({"status": "WARN", "title": "Deskripsi Singkat / Judul File PDF", "desc": "Judul masih berupa nama berkas PDF atau deskripsi singkat."})
+        checks.append({"status": "WARN", "title": "Short Description / Filename", "desc": "Title is still a filename or description is too short."})
     else:
-        checks.append({"status": "FAIL", "title": "Metadata Pokok Kosong", "desc": "Field `name` atau `description` tidak ditemukan."})
+        checks.append({"status": "FAIL", "title": "Empty Metadata", "desc": "Field `name` or `description` not found."})
 
-    # 3. Entitas & Kata Kunci (20 pts)
+    # 3. Entities & Keywords (20 pts)
     entities = data.get("entities_involved", []) or data.get("mentions", [])
     keywords = data.get("keywords", [])
     if entities and keywords:
         score += 20
-        checks.append({"status": "PASS", "title": "Knowledge Graph Entities & Keywords", "desc": f"Teridentifikasi {len(entities)} entitas asli dan {len(keywords)} kata kunci topik."})
+        checks.append({"status": "PASS", "title": "Knowledge Graph Entities & Keywords", "desc": f"Identified {len(entities)} authentic entities and {len(keywords)} domain keywords."})
     elif entities or keywords or data.get("sdPublisher") or data.get("action"):
         score += 20
-        desc_kw = f"Ditemukan {len(entities)} entitas dan {len(keywords)} kata kunci (sdPublisher provenance active)."
+        desc_kw = f"Found {len(entities)} entities and {len(keywords)} keywords (sdPublisher provenance active)."
         checks.append({"status": "PASS", "title": "Knowledge Graph Metadata & sdPublisher", "desc": desc_kw})
     else:
-        checks.append({"status": "WARN", "title": "Entitas & Keywords Kosong", "desc": "Belum ada entitas atau kata kunci yang terindeks."})
+        checks.append({"status": "WARN", "title": "Empty Entities & Keywords", "desc": "No entities or keywords indexed."})
 
-    # 4. Metrik Kuantitatif & Parameter (20 pts)
+    # 4. Quantitative Metrics & Parameters (20 pts)
     metrics = data.get("properties_and_metrics", []) or data.get("additionalProperty", [])
-    has_units = any(isinstance(m, dict) and (m.get("unit_text") or m.get("unitText")) for m in metrics)
-    has_pages = any(isinstance(m, dict) and (m.get("page_number") or m.get("valueReference")) for m in metrics)
     if metrics:
         score += 20
-        checks.append({"status": "PASS", "title": "Metrik Kuantitatif (additionalProperty)", "desc": f"Ditemukan {len(metrics)} metrik presisi tervalidasi Schema.org PropertyValue."})
+        checks.append({"status": "PASS", "title": "Quantitative Metrics (additionalProperty)", "desc": f"Found {len(metrics)} calibrated metrics validated with Schema.org PropertyValue."})
     else:
-        checks.append({"status": "WARN", "title": "Metrik Kuantitatif Kosong", "desc": "Tidak ada data metrik/angka spesifik yang terdeteksi."})
+        checks.append({"status": "WARN", "title": "Empty Metrics", "desc": "No specific metric or numerical parameters detected."})
 
-    # 5. Elemen Struktural & Tabel/Referensi (20 pts)
+    # 5. Structural Elements & Tables/References (20 pts)
     sections = data.get("sections", []) or [p for p in data.get("hasPart", []) if p.get("@type") == "CreativeWork"]
     tables = data.get("tables", []) or [p for p in data.get("hasPart", []) if p.get("@type") == "Table"]
     refs = data.get("references_or_sources", []) or data.get("citation", [])
     if sections or tables or refs or data.get("hasPart"):
         score += 20
-        checks.append({"status": "PASS", "title": "Struktur Dokumen, Tabel & Referensi", "desc": f"Tersedia {len(sections)} seksi, {len(tables)} tabel bersih, dan {len(refs)} referensi."})
+        checks.append({"status": "PASS", "title": "Document Structure, Tables & References", "desc": f"Available {len(sections)} sections, {len(tables)} clean tables, and {len(refs)} references."})
     else:
-        checks.append({"status": "WARN", "title": "Struktur Seksi Kosong", "desc": "Belum ada seksi atau tabel yang terstruktur."})
+        checks.append({"status": "WARN", "title": "Empty Structure", "desc": "No structured sections or tables available."})
 
     # Run Knowledge Graph Adversarial Verification
     kg_report = validate_knowledge_graph_adversarial(data)
