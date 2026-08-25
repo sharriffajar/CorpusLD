@@ -674,6 +674,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('doc-hero-title').textContent = data.name || appState.selectedDoc;
     document.getElementById('doc-hero-desc').textContent = data.description || '-';
 
+    // Hero metadata pills
+    const typeStr = Array.isArray(data['@type']) ? data['@type'].join(', ') : (data['@type'] || 'ScholarlyArticle');
+    const heroType = document.getElementById('hero-badge-type');
+    if (heroType) heroType.textContent = `🏷️ ${typeStr}`;
+
+    const heroLang = document.getElementById('hero-badge-lang');
+    if (heroLang) heroLang.textContent = `🌐 ${data.inLanguage || 'en'}`;
+
+    const heroDate = document.getElementById('hero-badge-date');
+    if (heroDate) heroDate.textContent = `📅 ${data.datePublished || '-'}`;
+
+    const heroAuthors = document.getElementById('hero-badge-authors');
+    if (heroAuthors) heroAuthors.textContent = `👥 ${data.author?.length || 0} Authors`;
+
+    const heroCitations = document.getElementById('hero-badge-citations');
+    if (heroCitations) heroCitations.textContent = `📚 ${data.citation?.length || data.references_or_sources?.length || 0} Citations`;
+
     // Rich Result & Knowledge Graph Adversarial Validator
     const valReport = rawPayload.validation || {};
     const schemaChecks = valReport.checks || [

@@ -6,7 +6,7 @@ import time
 import warnings
 import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from config import Config
@@ -33,11 +33,25 @@ class Author(BaseModel):
     identifier: Optional[str] = Field(None, description="Nomor identitas resmi (misal NIM atau NIP) jika tertulis")
     affiliation: Optional[Union[EducationalOrganization, str, Dict[str, Any]]] = Field(None, description="Nama institusi atau perguruan tinggi jika tertulis")
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_author(cls, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"name": data, "type": "Person"}
+        return data
+
 class UniversalEntity(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
     type: str = Field(default="Organization", alias="@type", description="Tipe entitas Schema.org: 'Person', 'Organization', 'EducationalOrganization', 'SoftwareApplication', 'Hardware', atau 'Place'")
     name: str = Field(default="", description="Nama resmi entitas/organisasi/tools/brand ASLI dari dokumen (DILARANG placeholder generic)")
     role_or_description: Optional[str] = Field(None, description="Peran atau deskripsi kaitan entitas dalam dokumen")
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_entity(cls, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"name": data, "type": "Organization"}
+        return data
 
 class DocumentSection(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
@@ -1020,6 +1034,18 @@ def run_agentic_step(
             for k, v in item.items():
                 if k == "@type" and "type" not in item:
                     clean["type"] = _sanitize_for_pydantic(v)
+                elif k in ("entities", "entities_involved") and isinstance(v, list):
+                    clean[k] = [
+                        {"name": x, "type": "Organization"} if isinstance(x, str) else _sanitize_for_pydantic(x)
+                        for x in v
+                    ]
+                    continue
+                elif k in ("authors", "author") and isinstance(v, list):
+                    clean[k] = [
+                        {"name": x, "type": "Person"} if isinstance(x, str) else _sanitize_for_pydantic(x)
+                        for x in v
+                    ]
+                    continue
                 clean[k] = _sanitize_for_pydantic(v)
             return clean
         elif isinstance(item, list):

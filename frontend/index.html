@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.2">
 </head>
 <body>
 
@@ -267,7 +267,20 @@
             <!-- JSON-LD RESULTS CONTAINER -->
             <div id="jsonld-results-container" class="jsonld-results-wrapper hidden">
               
-              <!-- RICH SNIPPETS VALIDATION CARD -->
+              <!-- DOCUMENT HERO OVERVIEW CARD -->
+              <div class="doc-hero-card">
+                <div class="doc-hero-meta-row">
+                  <span id="hero-badge-type" class="hero-meta-pill">🏷️ ScholarlyArticle</span>
+                  <span id="hero-badge-lang" class="hero-meta-pill">🌐 en</span>
+                  <span id="hero-badge-date" class="hero-meta-pill">📅 2024</span>
+                  <span id="hero-badge-authors" class="hero-meta-pill">👥 4 Authors</span>
+                  <span id="hero-badge-citations" class="hero-meta-pill">📚 15 Citations</span>
+                </div>
+                <h2 id="doc-hero-title" class="doc-hero-title">Document Title</h2>
+                <p id="doc-hero-desc" class="doc-hero-desc">Document description...</p>
+              </div>
+
+              <!-- RICH SNIPPETS & KG VALIDATION AUDIT STRIP -->
               <div class="validator-banner">
                 <div class="validator-left">
                   <div class="score-box">
@@ -276,8 +289,7 @@
                   </div>
                   <div class="validator-badge-info">
                     <span id="rich-badge" class="badge-tag badge-ready">Google Rich Result Ready</span>
-                    <h3 id="doc-hero-title">Document Title</h3>
-                    <p id="doc-hero-desc">Document description...</p>
+                    <span class="validator-sublabel">Schema.org &amp; Knowledge Graph Integrity Audit</span>
                   </div>
                 </div>
                 <div class="validator-checks-grid" id="validator-checks"></div>
@@ -439,6 +451,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.2"></script>
 </body>
 </html>
