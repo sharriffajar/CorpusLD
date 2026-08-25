@@ -490,9 +490,145 @@ def extract_accurate_date(text: str) -> Optional[str]:
     """Alias kompatibilitas untuk deteksi tanggal akurat."""
     return normalize_publication_date(None, fallback_text=text)
 
+def detect_document_language(text: str) -> str:
+    """Deteksi bahasa dokumen secara deterministik (id vs en)."""
+    if not text:
+        return "id"
+    id_count = len(re.findall(r'\b(?:yang|dengan|dan|pada|adalah|untuk|dalam|dari|ini|itu|sebagai|oleh|terhadap|atau|sebuah|penelitian|metode|hasil)\b', text, re.I))
+    en_count = len(re.findall(r'\b(?:the|and|of|in|with|for|is|on|by|this|that|from|as|an|to|are|was|were|which|study|research|method)\b', text, re.I))
+    return "en" if en_count > id_count else "id"
+
+def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) -> str:
+    """Ekstrak judul substantif dokumen dari Halaman 1 tanpa embel-embel nama file .pdf."""
+    p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
+    p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
+    if not p1_text and chunks:
+        p1_text = chunks[0].get("text", "")
+        
+    raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
+    noise_patterns = [
+        r'^arxiv\b', r'^doi\b', r'^https?://', r'^\d+$', r'^(?:volume|vol\.|issue|no\.)\b',
+        r'^(?:accepted|received|published)\b', r'^(?:all rights reserved|copyright|issn|isbn)\b'
+    ]
+    cand_lines = []
+    for l in raw_lines:
+        l_clean = strip_markdown_formatting(l)
+        if any(re.search(np, l_clean, re.I) for np in noise_patterns):
+            continue
+        if re.match(r'^(?:Abstract|Abstrak|Ringkasan|Keywords?|Kata\s+Kunci)\b', l_clean, re.I):
+            break
+        cand_lines.append(l_clean)
+        
+    if not cand_lines:
+        clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).strip()
+        return clean_name.title() if clean_name else file_name
+
+    title_lines = [cand_lines[0]]
+    idx = 1
+    while idx < len(cand_lines):
+        prev_l = title_lines[-1]
+        curr_l = cand_lines[idx]
+        is_continuation = False
+        if prev_l.endswith(':') or prev_l.endswith('-') or prev_l.endswith(','):
+            is_continuation = True
+        elif re.match(r'^(?:of|for|in|on|and|to|with|using|towards|dan|untuk|pada|dalam|berbasis|studi)\b', curr_l, re.I):
+            is_continuation = True
+        elif len(title_lines) < 2 and not any(w in curr_l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', '@']) and curr_l.count(',') == 0:
+            is_continuation = True
+            
+        if is_continuation:
+            title_lines.append(curr_l)
+            idx += 1
+        else:
+            break
+            
+    res = " ".join(title_lines).strip()
+    if len(res) > 5 and not res.endswith('.pdf') and res != file_name:
+        return res
+        
+    clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).strip()
+    clean_words = [w for w in clean_name.split() if not w.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', w, re.I)]
+    if clean_words:
+        return " ".join(clean_words).title()
+    return clean_name if clean_name else file_name
+
+def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str) -> str:
+    """Ekstrak teks abstrak asli dari Halaman 1 & 2 dokumen."""
+    head_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]]
+    full_head = "\n".join([c.get("text", "") for c in head_chunks])
+    
+    # 1. Cari explicit keyword Abstract / Abstrak
+    m_abs = re.search(r'(?:Abstract|Abstrak|Ringkasan\s+Eksekutif)[\s\:\.\-]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
+    if m_abs:
+        abs_clean = " ".join([l.strip() for l in m_abs.group(1).split("\n") if l.strip()])
+        if len(abs_clean) > 40:
+            return abs_clean[:1200]
+            
+    # 2. Cari paragraf isi utama halaman 1 setelah baris afiliasi & email
+    p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
+    p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
+    raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
+    
+    body_start = 0
+    for i, l in enumerate(raw_lines[:10]):
+        if '@' in l or any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'agroparistech', 'sayfood']):
+            body_start = i + 1
+            
+    if body_start > 0 and body_start < len(raw_lines):
+        abstract_lines = raw_lines[body_start:body_start+10]
+        abs_clean = " ".join([l for l in abstract_lines if not re.match(r'^(?:arxiv|doi|https?://|table|tabel|figure|gambar)', l, re.I)])
+        if len(abs_clean) > 50:
+            return abs_clean[:1200]
+
+    return f"Dokumen ilmiah {file_name}"
+
+def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Ekstrak penulis dari halaman cover secara deterministik."""
+    p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
+    p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
+    if not p1_text and chunks:
+        p1_text = chunks[0].get("text", "")
+        
+    raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
+    authors = []
+    auth_line = None
+    affil_line = None
+    
+    for i, l in enumerate(raw_lines[:8]):
+        if '@' in l or re.match(r'^(?:arxiv|doi|https?://|abstract|abstrak|of\b|for\b|in\b|on\b|and\b|to\b|with\b|towards\b|pada\b|untuk\b|dalam\b)', l, re.I):
+            continue
+        if any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'lab', 'school', 'academy', 'center', 'centre', 'college', 'agroparistech', 'sayfood']):
+            if not affil_line:
+                affil_line = l
+        elif (l.count(',') >= 1 or ' and ' in l.lower() or ' & ' in l or ' dan ' in l.lower()) and any(c.isupper() for c in l):
+            clean_test = re.sub(r'[\*\d†‡§]', '', l)
+            parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_test) if p.strip()]
+            if len(parts) >= 2 and all(len(p.split()) >= 2 for p in parts):
+                if not auth_line and not any(kw in l.lower() for kw in ['abstract', 'abstrak', 'introduction', 'system', 'effect', 'study', 'journal']):
+                    auth_line = l
+
+    if auth_line:
+        clean_l = re.sub(r'[\*\d†‡§]', '', auth_line)
+        parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_l) if p.strip()]
+        for p in parts:
+            if len(p.split()) >= 2 and len(p) <= 40:
+                auth_obj = {"@type": "Person", "name": p}
+                if affil_line:
+                    auth_obj["affiliation"] = {"@type": "EducationalOrganization", "name": affil_line}
+                authors.append(auth_obj)
+    return authors
+
 def extract_domain_keywords_fallback(text: str, file_name: str) -> List[str]:
     """Ekstrak kata kunci domain teknis secara agnostik dari abstrak/teks jika LLM kosong/generic."""
-    acronyms = re.findall(r'\b[A-Za-z0-9\-]{3,18}\b', text)
+    # 1. Cari explicit Keywords block
+    m_kw = re.search(r'(?:Keywords?|Kata\s+Kunci|Index\s+Terms?)[\s\:\.\-]+([^\n]+(?:\n[^\n]+)?)', text, re.I)
+    if m_kw:
+        kws = [k.strip() for k in re.split(r'[,;•\n]+', m_kw.group(1)) if k.strip()]
+        clean_kws = [k for k in kws if not k.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', k, re.I) and len(k) > 2]
+        if len(clean_kws) >= 3:
+            return clean_kws[:8]
+
+    # 2. Heuristik Noun Phrase & Domain Terms
     tech_candidates = []
     seen = set()
     noise_words = {
@@ -504,21 +640,23 @@ def extract_domain_keywords_fallback(text: str, file_name: str) -> List[str]:
     
     special_tech = re.findall(r'\b([A-Z0-9]+-[A-Za-z0-9]+|[A-Z]{2,6}[a-z]?|[A-Z][a-z]+ML)\b', text)
     for st in special_tech:
-        if st.upper() not in noise_words and st.lower() not in seen and len(st) >= 3 and not st.isdigit():
-            seen.add(st.lower())
-            tech_candidates.append(st)
+        st_clean = st.strip()
+        if st_clean.upper() not in noise_words and st_clean.lower() not in seen and len(st_clean) >= 3 and not st_clean.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', st_clean, re.I):
+            seen.add(st_clean.lower())
+            tech_candidates.append(st_clean)
 
     phrases = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})\b', text)
     for p in phrases:
-        if p.lower() not in seen and len(p) > 5 and not any(nw in p.upper() for nw in noise_words):
-            seen.add(p.lower())
-            tech_candidates.append(p)
+        p_clean = re.sub(r'\s+', ' ', p).strip()
+        if p_clean.lower() not in seen and len(p_clean) > 5 and not any(nw in p_clean.upper() for nw in noise_words):
+            seen.add(p_clean.lower())
+            tech_candidates.append(p_clean)
             
     if len(tech_candidates) >= 5:
         return tech_candidates[:8]
     
     clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).title()
-    words = [w for w in clean_name.split() if len(w) > 3 and w.upper() not in noise_words]
+    words = [w for w in clean_name.split() if len(w) > 3 and w.upper() not in noise_words and not w.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', w, re.I)]
     return (tech_candidates + words)[:8]
 
 def verify_and_resolve_authors(text: str, proposed_authors: list) -> list:
@@ -1006,35 +1144,47 @@ Jawab HANYA dalam JSON valid."""
     try:
         step1_res = run_agentic_step(sys_prompt_1, p1, Step1Overview, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
         
-        # Garansi Judul tidak berupa nama file PDF dan bersihkan markdown formatting
+        # 1. Garansi Judul tidak berupa nama file PDF
         doc_name = strip_markdown_formatting(step1_res.get("name", "").strip())
-        if not doc_name or doc_name.endswith(".pdf") or doc_name == file_name:
-            lines = [line.strip() for line in ctx_1.split("\n") if line.strip() and not line.startswith("[Halaman:")]
-            if lines:
-                doc_name = strip_markdown_formatting(lines[0])
+        if not doc_name or doc_name.endswith(".pdf") or doc_name == file_name or len(doc_name) < 4 or re.match(r'^\d+(\.\d+)?(v\d+)?$', doc_name):
+            doc_name = extract_deterministic_title(clean_file_chunks, file_name)
         step1_res["name"] = doc_name
         
-        # Bersihkan markdown dari description & alternateName juga
+        # 2. Garansi Bahasa (inLanguage) terdeteksi akurat
+        all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
+        detected_lang = detect_document_language(ctx_1 + " " + all_doc_text)
+        step1_res["inLanguage"] = detected_lang
+        
+        # 3. Garansi Abstrak & Description
         desc = step1_res.get("description", "").strip()
-        step1_res["description"] = strip_markdown_formatting(desc) if desc else doc_name
+        if not desc or desc.startswith("Dokumen ") or desc == doc_name or len(desc) < 30:
+            desc = extract_deterministic_abstract(clean_file_chunks, file_name)
+        step1_res["description"] = strip_markdown_formatting(desc)
+        
         if step1_res.get("alternateName"):
             step1_res["alternateName"] = strip_markdown_formatting(step1_res["alternateName"])
 
-        # Presisi Tanggal Publikasi (Bilingual Deterministic Date Scanner)
-        all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
+        # 4. Presisi Tanggal Publikasi (Bilingual Deterministic Date Scanner)
         exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1 + " " + all_doc_text)
         if exact_date:
             step1_res["datePublished"] = exact_date
 
-        # Garansi Keywords (Agnostic Domain Keyword Fallback)
+        # 5. Garansi Keywords (Agnostic Domain Keyword Fallback & Filter ArXiv/Numerics)
         keywords_out = step1_res.get("keywords", [])
         forbidden_generic_kws = {"laporan teknis", "analisis data", "dokumen digital", "indikator utama", file_name.lower()}
-        clean_kws = [k for k in keywords_out if k.lower() not in forbidden_generic_kws]
+        clean_kws = [
+            k for k in keywords_out 
+            if k.lower() not in forbidden_generic_kws 
+            and not k.isdigit() 
+            and not re.match(r'^\d+(\.\d+)?(v\d+)?$', k, re.I)
+            and not k.endswith('.pdf')
+            and len(k) > 2
+        ]
         if len(clean_kws) < 3:
-            clean_kws = extract_domain_keywords_fallback(ctx_1, file_name)
+            clean_kws = extract_domain_keywords_fallback(ctx_1 + " " + all_doc_text, file_name)
         step1_res["keywords"] = clean_kws[:10]
 
-        # Sanitasi Entities (Sanitasi Publikasi & Buang Generic Placeholders)
+        # 6. Sanitasi Entities (Sanitasi Publikasi & Buang Generic Placeholders)
         entities_out = step1_res.get("entities_involved", [])
         clean_entities = []
         forbidden_placeholders = ["institusi penerbit", "system engine", "pemilik dokumen", "institusi dokumen", "not available"]
@@ -1044,22 +1194,32 @@ Jawab HANYA dalam JSON valid."""
                 clean_entities.append(ent)
         step1_res["entities_involved"] = sanitize_entities(clean_entities)
 
-        # Validasi Penulis Anti-Halusinasi & Institusi
+        # 7. Validasi Penulis Anti-Halusinasi & Institusi
         authors_out = step1_res.get("author", [])
         verified_authors = verify_and_resolve_authors(ctx_1 + " " + all_doc_text, authors_out)
+        if not verified_authors:
+            verified_authors = extract_deterministic_authors(clean_file_chunks)
         step1_res["author"] = verified_authors
             
-        log(f"✅ Agent 1 Selesai ({round(time.time() - t1, 2)}s) -> Judul: `{step1_res.get('name', '')[:30]}...`, Tanggal: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} penulis/penerbit, {len(step1_res.get('entities_involved', []))} entitas, {len(clean_kws)} kata kunci.")
+        log(f"✅ Agent 1 Selesai ({round(time.time() - t1, 2)}s) -> Judul: `{step1_res.get('name', '')[:30]}...`, Bahasa: `{detected_lang}`, Tanggal: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} penulis/penerbit, {len(step1_res.get('entities_involved', []))} entitas, {len(clean_kws)} kata kunci.")
     except Exception as e:
-        log(f"⚠️ Agent 1 Error: {e}")
+        log(f"⚠️ Agent 1 Fallback Activated ({e}) -> Menggunakan Deterministic Academic Metadata Extractor.")
         all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
+        det_lang = detect_document_language(ctx_1 + " " + all_doc_text)
+        det_title = extract_deterministic_title(clean_file_chunks, file_name)
+        det_abstract = extract_deterministic_abstract(clean_file_chunks, file_name)
+        det_keywords = extract_domain_keywords_fallback(ctx_1 + " " + all_doc_text, file_name)
+        det_authors = extract_deterministic_authors(clean_file_chunks) or verify_and_resolve_authors(all_doc_text, [])
+        det_date = normalize_publication_date(None, fallback_text=ctx_1 + " " + all_doc_text) or "2024"
+        
         step1_res = {
-            "@type": "DigitalDocument", 
-            "name": file_name, 
-            "datePublished": extract_accurate_date(all_doc_text) or "2024",
-            "description": f"Dokumen {file_name}", 
-            "keywords": extract_domain_keywords_fallback("", file_name), 
-            "author": verify_and_resolve_authors(all_doc_text, []),
+            "@type": "ScholarlyArticle" if det_lang == "en" else "DigitalDocument",
+            "name": det_title,
+            "inLanguage": det_lang,
+            "datePublished": det_date,
+            "description": det_abstract,
+            "keywords": det_keywords,
+            "author": det_authors,
             "entities_involved": []
         }
 
