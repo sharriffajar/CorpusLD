@@ -129,8 +129,11 @@ def truncate_context(text: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
         return text
     return text[:max_chars] + "\n[...konteks dipotong...]"
 
-def strip_markdown_formatting(text: str) -> str:
+def strip_markdown_formatting(text: Any) -> str:
     """Bersihkan artefak formatting Markdown dari output LLM (# ** __ dll)."""
+    if text is None:
+        return ""
+    text = str(text)
     text = re.sub(r'^#+\s*', '', text)  # Remove heading markers
     text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # **bold** -> bold
     text = re.sub(r'__([^_]+)__', r'\1', text)  # __bold__ -> bold
@@ -1055,15 +1058,15 @@ def extract_json_ld_agentic_rag(
         if progress_callback:
             progress_callback(formatted_log)
 
-    log(f"🚀 Memulai Multi-Agent RAG Extraction untuk `{file_name}`...")
+    log(f"🚀 Starting Multi-Agent RAG Extraction for `{file_name}`...")
 
     clean_file_chunks = [c for c in chunks if c.get("metadata", {}).get("source") == file_name]
 
-    # Helper pencari contekan via Vector DB atau fallback (dengan format [Halaman: X])
+    # Context retriever via Vector DB or fallback (with [Page: X] tags)
     def get_contekan(query: str, limit: int = 4, force_end_chunks: bool = False, force_table_chunks: bool = False, exclude_end: bool = False) -> str:
         t_start = time.time()
         
-        # 1. Chunk khusus tabel
+        # 1. Table-specific chunks
         if force_table_chunks and clean_file_chunks:
             table_chunks = [c for c in clean_file_chunks if c.get("metadata", {}).get("chunk_type") == "table" or "|" in c.get("text", "")]
             if table_chunks:
@@ -1071,11 +1074,11 @@ def extract_json_ld_agentic_rag(
                 for c in table_chunks[:limit]:
                     page = c.get('metadata', {}).get('pdf_page_index', '?')
                     txt = sanitize_text_for_extraction(c.get('text', ''))
-                    text_acc += f"[Halaman: {page}]\n{txt}\n\n"
-                log(f"📊 Targeted Table Retrieval: Mengambil {len(table_chunks[:limit])} chunk bertipe tabel.")
+                    text_acc += f"[Page: {page}]\n{txt}\n\n"
+                log(f"📊 Targeted Table Retrieval: Retrieved {len(table_chunks[:limit])} table chunks.")
                 return text_acc
 
-        # 2. Chunk akhir dokumen (Daftar Pustaka lengkap)
+        # 2. Document tail chunks (References / Bibliography)
         if force_end_chunks and clean_file_chunks:
             max_page_idx = max([c.get("metadata", {}).get("pdf_page_index", 1) for c in clean_file_chunks] or [1])
             bib_chunks = []
@@ -1092,11 +1095,11 @@ def extract_json_ld_agentic_rag(
             for c in bib_chunks:
                 page = c.get('metadata', {}).get('pdf_page_index', '?')
                 txt = sanitize_text_for_extraction(c.get('text', ''))
-                text_acc += f"[Halaman: {page}]\n{txt}\n\n"
-            log(f"📄 Tail Chunks Search: Mengambil {len(bib_chunks)} chunk dari bagian referensi dokumen.")
+                text_acc += f"[Page: {page}]\n{txt}\n\n"
+            log(f"📄 Tail Chunks Search: Retrieved {len(bib_chunks)} chunks from references section.")
             return text_acc
 
-        # 3. Search ke Qdrant Vector DB
+        # 3. Search Qdrant Vector DB
         if qdrant_client and embedder and Config.QDRANT_COLLECTION_NAME:
             try:
                 vec = embedder.encode(query).tolist()
@@ -1121,14 +1124,14 @@ def extract_json_ld_agentic_rag(
                         if exclude_end and isinstance(page, int) and page >= (max_page_idx - 1):
                             continue
                         txt = sanitize_text_for_extraction(p.payload['text'])
-                        text_acc += f"[Halaman: {page}]\n{txt}\n\n"
+                        text_acc += f"[Page: {page}]\n{txt}\n\n"
                         added += 1
                         if added >= limit:
                             break
-                    log(f"🔍 Qdrant Search: `{query[:35]}...` -> Ditemukan {added} chunk ({t_search}s)")
+                    log(f"🔍 Qdrant Search: `{query[:35]}...` -> Found {added} chunks ({t_search}s)")
                     return text_acc
             except Exception as e:
-                log(f"⚠️ Vector Search gagal: {e}. Menggunakan fallback.")
+                log(f"⚠️ Vector Search notice: {e}. Using direct chunk fallback.")
         
         # 4. Fallback Direct Chunk
         text_acc = ""
@@ -1136,65 +1139,65 @@ def extract_json_ld_agentic_rag(
         for c in sample_chunks:
             page = c.get('metadata', {}).get('pdf_page_index', '?')
             txt = sanitize_text_for_extraction(c.get('text', ''))
-            text_acc += f"[Halaman: {page}]\n{txt}\n\n"
-        log(f"🔍 Direct Chunk Fallback: Mengambil {len(sample_chunks)} chunk pertama.")
+            text_acc += f"[Page: {page}]\n{txt}\n\n"
+        log(f"🔍 Direct Chunk Fallback: Retrieved first {len(sample_chunks)} chunks.")
         return text_acc
 
     # STEP 1: Cover Page & Abstract Direct Context (Agent 1)
     t1 = time.time()
-    log("📌 Agent 1/5: Direct Cover Page & Abstract Analysis (Metadata, Penulis, Keywords, & Entitas)...")
+    log("📌 Agent 1/5: Direct Cover Page & Abstract Analysis (Metadata, Authors, Keywords, & Entities)...")
     
-    # Ambil seluruh chunk dari Halaman 1 & 2 (Cover Page & Abstract) secara langsung
+    # Retrieve page 1 & 2 directly
     cover_abstract_chunks = [c for c in clean_file_chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]]
     ctx_1 = ""
     for c in cover_abstract_chunks:
         page = c.get('metadata', {}).get('pdf_page_index', '?')
         txt = sanitize_text_for_extraction(c.get('text', ''))
-        ctx_1 += f"[Halaman: {page}]\n{txt}\n\n"
+        ctx_1 += f"[Page: {page}]\n{txt}\n\n"
     if not ctx_1:
-        ctx_1 = get_contekan(f"Judul dokumen {file_name} penulis author NIM NIP universitas abstrak kata kunci keywords terbit date", limit=6)
+        ctx_1 = get_contekan(f"Document title {file_name} authors keywords abstract published date", limit=6)
     ctx_1 = truncate_context(ctx_1, max_chars=MAX_CONTEXT_CHARS_AGENT1)
-    p1 = f"Dokumen Source: {file_name}\n\nKonteks Halaman Judul & Abstrak:\n{ctx_1}"
-    sys_prompt_1 = """Kamu adalah Agentic Extractor spesialis Metadata, Penulis, Keywords, & Entitas Dokumen Agnostik.
-ATURAN EKSTRAKSI DOKUMEN AGNOSTIK:
-1. Judul Utama ('name'): Ekstrak judul topik inti/substantif dokumen yang tertulis paling menonjol (huruf kapital / tajuk utama). Jika ada sub-judul, sertakan di 'description'. DILARANG MENGGUNAKAN NAMA FILE (.pdf).
-2. Judul Alternatif ('alternateName'): Jika ada nama event, jenis laporan, sub-judul, atau tajuk program pendamping judul utama, masukkan ke 'alternateName'.
-3. Tanggal & Bahasa: 'inLanguage' (contoh: 'id', 'en') dan 'datePublished' (contoh: '2026-08', '2025-04') jika tertulis.
-4. Penulis ('author'): Ekstrak nama asli penulis/penyusun dokumen, identifier (NIM/NIP/ID/ORCID), dan afiliasi institusi/universitas/perusahaan yang tertulis jelas. DILARANG MENGGUNAKAN placeholder 'Peneliti' atau 'Not Available' jika nama orang/afiliasi asli tersedia. Jika tidak ada penulis individu, biarkan array kosong [].
-5. Keywords ('keywords'): WAJIB ekstrak 6-10 kata kunci teknis/konsep domain utama terpenting dari Abstrak dan teks dokumen. DILARANG menggunakan kata umum seperti 'Laporan Teknis' atau 'Analisis Data'.
-6. Entitas ('entities_involved'): Ekstrak seluruh entitas organisasi/perusahaan, platform software, hardware/teknologi, atau lembaga yang disebut dalam dokumen dengan 'type' yang sesuai (Organization, SoftwareApplication, Hardware, EducationalOrganization). DILARANG nama placeholder generik.
-Jawab HANYA dalam JSON valid."""
+    p1 = f"Document Source: {file_name}\n\nTitle Page & Abstract Context:\n{ctx_1}"
+    sys_prompt_1 = """You are an expert Document Metadata, Author, Keyword, and Entity Extraction Agent.
+RULES:
+1. Document Title ('name'): Extract the official substantive title prominent on the cover page. DO NOT use the filename or .pdf extension.
+2. Alternate Title ('alternateName'): Subtitle, event name, or secondary title if present.
+3. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY').
+4. Authors ('author'): Extract real author names, IDs/NIM, and affiliations. Leave empty [] if no author exists.
+5. Keywords ('keywords'): Extract 6-10 domain technical keywords. DO NOT use generic phrases.
+6. Entities ('entities_involved'): Extract real organizations, software, hardware, or institutions mentioned.
+Respond ONLY in valid JSON."""
     
-    log(f"🧠 Mengirim {len(cover_abstract_chunks)} chunk cover/abstrak ke model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
+    log(f"🧠 Sending {len(cover_abstract_chunks)} cover/abstract chunks to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
     try:
         step1_res = run_agentic_step(sys_prompt_1, p1, Step1Overview, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
         
-        # 1. Garansi Judul tidak berupa nama file PDF
-        doc_name = strip_markdown_formatting(step1_res.get("name", "").strip())
+        # 1. Guarantee Title is not a PDF filename
+        doc_name = strip_markdown_formatting(step1_res.get("name"))
         if not doc_name or doc_name.endswith(".pdf") or doc_name == file_name or len(doc_name) < 4 or re.match(r'^\d+(\.\d+)?(v\d+)?$', doc_name):
             doc_name = extract_deterministic_title(clean_file_chunks, file_name)
         step1_res["name"] = doc_name
         
-        # 2. Garansi Bahasa (inLanguage) terdeteksi akurat
+        # 2. Guarantee Language (inLanguage)
         all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
         detected_lang = detect_document_language(ctx_1 + " " + all_doc_text)
-        step1_res["inLanguage"] = detected_lang
+        step1_res["inLanguage"] = step1_res.get("inLanguage") or detected_lang
         
-        # 3. Garansi Abstrak & Description
-        desc = step1_res.get("description", "").strip()
+        # 3. Guarantee Abstract & Description
+        desc = strip_markdown_formatting(step1_res.get("description"))
         if not desc or desc.startswith("Dokumen ") or desc == doc_name or len(desc) < 30:
             desc = extract_deterministic_abstract(clean_file_chunks, file_name)
         step1_res["description"] = strip_markdown_formatting(desc)
         
         if step1_res.get("alternateName"):
-            step1_res["alternateName"] = strip_markdown_formatting(step1_res["alternateName"])
+            step1_res["alternateName"] = strip_markdown_formatting(step1_res.get("alternateName"))
 
-        # 4. Presisi Tanggal Publikasi (Bilingual Deterministic Date Scanner)
+        # 4. Precision Publication Date (Bilingual Deterministic Date Scanner)
         exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1 + " " + all_doc_text)
         if exact_date:
             step1_res["datePublished"] = exact_date
 
-        # 5. Garansi Keywords (Agnostic Domain Keyword Fallback & Filter ArXiv/Numerics)
+        # 5. Guarantee Keywords (Filter ArXiv/Numerics & Fallback)
         keywords_out = step1_res.get("keywords", [])
         forbidden_generic_kws = {"laporan teknis", "analisis data", "dokumen digital", "indikator utama", file_name.lower()}
         clean_kws = [
@@ -1209,7 +1212,7 @@ Jawab HANYA dalam JSON valid."""
             clean_kws = extract_domain_keywords_fallback(ctx_1 + " " + all_doc_text, file_name)
         step1_res["keywords"] = clean_kws[:10]
 
-        # 6. Sanitasi Entities (Sanitasi Publikasi & Buang Generic Placeholders)
+        # 6. Sanitize Entities
         entities_out = step1_res.get("entities_involved", [])
         clean_entities = []
         forbidden_placeholders = ["institusi penerbit", "system engine", "pemilik dokumen", "institusi dokumen", "not available"]
@@ -1219,16 +1222,16 @@ Jawab HANYA dalam JSON valid."""
                 clean_entities.append(ent)
         step1_res["entities_involved"] = sanitize_entities(clean_entities)
 
-        # 7. Validasi Penulis Anti-Halusinasi & Institusi
+        # 7. Validate Authors & Affiliations
         authors_out = step1_res.get("author", [])
         verified_authors = verify_and_resolve_authors(ctx_1 + " " + all_doc_text, authors_out)
         if not verified_authors:
             verified_authors = extract_deterministic_authors(clean_file_chunks)
         step1_res["author"] = verified_authors
             
-        log(f"✅ Agent 1 Selesai ({round(time.time() - t1, 2)}s) -> Judul: `{step1_res.get('name', '')[:30]}...`, Bahasa: `{detected_lang}`, Tanggal: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} penulis/penerbit, {len(step1_res.get('entities_involved', []))} entitas, {len(clean_kws)} kata kunci.")
+        log(f"✅ Agent 1 Complete ({round(time.time() - t1, 2)}s) -> Title: `{step1_res.get('name', '')[:35]}...`, Language: `{detected_lang}`, Date: {step1_res.get('datePublished', '-')}, {len(step1_res.get('author', []))} authors, {len(step1_res.get('entities_involved', []))} entities, {len(clean_kws)} keywords.")
     except Exception as e:
-        log(f"⚠️ Agent 1 Fallback Activated ({e}) -> Menggunakan Deterministic Academic Metadata Extractor.")
+        log(f"⚠️ Agent 1 Notice: ({e}) -> Using Deterministic Academic Metadata Extractor.")
         all_doc_text = " ".join([c.get("text", "") for c in clean_file_chunks[:10]])
         det_lang = detect_document_language(ctx_1 + " " + all_doc_text)
         det_title = extract_deterministic_title(clean_file_chunks, file_name)
@@ -1250,59 +1253,55 @@ Jawab HANYA dalam JSON valid."""
 
     # STEP 2: Agnostic Structural Outline & Heading Detection (Agent 2)
     t2 = time.time()
-    log("📖 Agent 2/5: Heading Detection & Struktur Bab Agnostik (Outline Context)...")
+    log("📖 Agent 2/5: Structural Outline & Agnostic Heading Detection (Outline Context)...")
     
-    # 1. Pindai outline kandidat heading di seluruh dokumen
+    # 1. Scan candidate headings across document
     heading_candidates = extract_agnostic_structural_outline(clean_file_chunks)
     outline_context = ""
     if heading_candidates:
-        outline_context = "STRUKTUR HEADING DOKUMEN YANG DITEMUKAN DARI TEKS:\n"
+        outline_context = "DOCUMENT SECTION HEADINGS DETECTED FROM TEXT:\n"
         for pg, hname in heading_candidates:
-            outline_context += f"- [Halaman {pg}] {hname}\n"
+            outline_context += f"- [Page {pg}] {hname}\n"
             
-    # 2. Ambil contekan isi bab
-    ctx_2 = get_contekan("Tujuan latar belakang metodologi gagasan implementasi analisis kesimpulan bab pembahasan recent developments outlook", limit=4, exclude_end=True)
-    p2 = f"Dokumen: {file_name}\n\n{outline_context}\n\nKonteks Isi Dokumen:\n{ctx_2}"
-    sys_prompt_2 = """Kamu adalah Agentic Extractor spesialis Heading Detection & Struktur Bab Dokumen Agnostik.
-ATURAN SEKSI DOKUMEN AGNOSTIK:
-1. Ekstrak HANYA nama bab/seksi UTAMA dokumen yang literally ada pada dokumen (seperti 'Key conditions and challenges', 'Recent developments', 'Outlook', 'I. Latar Belakang', 'BAB I', 'Section 1', dll).
-2. DILARANG menggunakan template bab generik skripsi ('Latar Belakang', 'Metodologi', 'Hasil Penelitian') jika dokumen aslinya tidak memuat kata-kata tersebut.
-3. Tentukan 'page_start' (halaman bab dimulai) dan 'page_end' (halaman bab berakhir sebelum bab berikutnya) dari tag [Halaman: X].
-4. DILARANG mengambil sub-paragraf atau potongan kalimat narasi biasa sebagai section_name.
-5. DILARANG memasukkan bab Daftar Pustaka, Bibliografi, atau Referensi ke dalam 'sections'.
-6. 'summary' harus berupa penjelasan ringkas 2-3 kalimat mengenai ide/tujuan/gagasan bab tersebut. JANGAN menyalin teks sitasi DOI/URL.
-Jawab HANYA dalam JSON valid."""
+    # 2. Retrieve section context
+    ctx_2 = get_contekan("Objectives background methodology framework implementation analysis conclusion discussion recent developments outlook", limit=4, exclude_end=True)
+    p2 = f"Document: {file_name}\n\n{outline_context}\n\nDocument Section Context:\n{ctx_2}"
+    sys_prompt_2 = """You are an expert Document Structural Outline & Heading Detection Agent.
+RULES:
+1. Extract ONLY major official document section names literally present in the document.
+2. Set 'page_start' and 'page_end' from [Page: X] tags.
+3. 'summary' must be a concise 2-3 sentence overview of the section. DO NOT copy bibliography or DOI citations.
+Respond ONLY in valid JSON."""
     
-    log(f"🧠 Mengirim kandidat outline bab ke model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
+    log(f"🧠 Sending candidate section outlines to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
     try:
         step2_res = run_agentic_step(sys_prompt_2, p2, Step2Sections, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
         raw_sections = filter_sections_negative_constraints(step2_res.get("sections", []))
         filtered_sections = resolve_section_pages(raw_sections, heading_candidates)
-        log(f"✅ Agent 2 Selesai ({round(time.time() - t2, 2)}s) -> Ditemukan {len(filtered_sections)} seksi bab resmi ber-halaman.")
+        log(f"✅ Agent 2 Complete ({round(time.time() - t2, 2)}s) -> Discovered {len(filtered_sections)} official document sections with page ranges.")
     except Exception as e:
-        log(f"⚠️ Agent 2 Error: {e}")
+        log(f"⚠️ Agent 2 Notice: {e}")
         filtered_sections = []
 
-    # STEP 3: Presisi Metrik & Pemetaan Nomor Halaman Agnostik
+    # STEP 3: Quantitative Metrics & Precision Page Mapping
     t3 = time.time()
-    log("📊 Agent 3/5: Ekstraksi Metrik Kuantitatif & Pemetaan Halaman Presisi...")
-    ctx_3 = get_contekan("metrik angka statistik persentase target proyeksi nilai rasio kapasitas toleransi biaya penghematan akurasi latensi daya", limit=3)
-    p3 = f"Dokumen: {file_name}\n\nKonteks Dokumen Metrik:\n{ctx_3}"
-    sys_prompt_3 = """Kamu adalah Agentic Extractor spesialis Metrik Kuantitatif & Parameter Agnostik.
-ATURAN METRİK DOKUMEN AGNOSTIK:
-1. Ekstrak seluruh parameter kuantitatif, angka, rasio, persentase, biaya, performa, atau metrik spesifik dari dokumen.
-2. Setiap metrik harus memiliki nama ('name'), nilai ('value'), satuan ukuran ('unit_text', contoh: %, ms, Watt, IDR, KB, GW, hari/tahun, dll), dan kondisi/konteks berlakunya.
-3. Pertumbuhan ekonomi / GDP growth / Inflation / Poverty Rate satuannya adalah %, BUKAN $. GDP per capita satuannya adalah US$ / IDR.
-4. WAJIB memetakan nomor halaman dari tag '[Halaman: X]' di dalam konteks ke dalam field 'page_number' (berupa angka int). FIELD 'page_number' TIDAK BOLEH NULL.
-Jawab HANYA dalam JSON valid."""
+    log("📊 Agent 3/5: Quantitative Metrics & Precision Page Mapping...")
+    ctx_3 = get_contekan("metrics numbers statistics percentages targets projections ratios capacity cost accuracy latency power", limit=3)
+    p3 = f"Document: {file_name}\n\nMetric Context:\n{ctx_3}"
+    sys_prompt_3 = """You are an expert Quantitative Metric & Parameter Extraction Agent.
+RULES:
+1. Extract quantitative parameters, metrics, statistics, percentages, ratios, and measurements.
+2. Provide 'name', 'value', 'unit_text' (e.g. %, ms, W, $, kg), and context.
+3. Map the exact page number into 'page_number' from [Page: X] tags.
+Respond ONLY in valid JSON."""
     
-    log(f"🧠 Mengirim parameter konteks metrik ke model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
+    log(f"🧠 Sending metric context parameters to model ({llm_model or Config.OLLAMA_MODEL_NAME})...")
     props_list = []
     try:
         step3_res = run_agentic_step(sys_prompt_3, p3, Step3Metrics, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
         props_list = step3_res.get("properties_and_metrics", [])
         
-        # Post-processing: Koreksi satuan ukuran dan garansi page_number
+        # Post-processing: Correct metric units and guarantee page_number
         props_list = correct_metric_units(props_list)
         for prop in props_list:
             if not prop.get("page_number"):
@@ -1315,17 +1314,17 @@ Jawab HANYA dalam JSON valid."""
                 if not prop.get("page_number"):
                     prop["page_number"] = 1
                     
-        log(f"✅ Agent 3 Selesai ({round(time.time() - t3, 2)}s) -> Ditemukan {len(props_list)} metrik kuantitatif ber-halaman & terkalibrasi.")
+        log(f"✅ Agent 3 Complete ({round(time.time() - t3, 2)}s) -> Extracted {len(props_list)} calibrated quantitative metrics with page references.")
     except Exception as e:
-        log(f"⚠️ Agent 3 Error: {e}")
+        log(f"⚠️ Agent 3 Notice: {e}")
         step3_res = {"properties_and_metrics": []}
         props_list = []
 
     # STEP 4: Pre-computed Table Catalog & Targeted Formatting (Agent 4 - Ultra Fast Deterministic)
     t4 = time.time()
-    log("📋 Agent 4/5: Pre-computed Table Catalog & Targeted Formatting (Deterministic Engine)...")
+    log("📋 Agent 4/5: Pre-computed Table Catalog & Deterministic Formatting Engine...")
     
-    # 1. Ambil seluruh chunk tabel terdaftar dan urutkan secara sekuensial
+    # 1. Fetch all registered table chunks
     table_chunks = sorted(
         [c for c in clean_file_chunks if c.get("metadata", {}).get("chunk_type") == "table" or c.get("metadata", {}).get("is_table") is True],
         key=lambda x: (x.get("metadata", {}).get("page_number") or x.get("metadata", {}).get("pdf_page_index", 0), x.get("metadata", {}).get("table_id", 0))
@@ -1334,7 +1333,7 @@ Jawab HANYA dalam JSON valid."""
     direct_parsed_tables = []
     seen_table_captions = set()
     
-    # Strategi A: Parse langsung dari table chunks yang sudah diidentifikasi parser/stitcher
+    # Strategy A: Direct parse from identified table chunks
     for i, tc in enumerate(table_chunks):
         m = tc.get("metadata", {})
         p_num = m.get("page_number") or m.get("pdf_page_index", 1)
@@ -1342,7 +1341,7 @@ Jawab HANYA dalam JSON valid."""
         t_text = tc.get("text", "")
         dt = parse_markdown_table_direct(t_text, page_number=p_num)
         
-        # Fallback space/tab-delimited jika tidak ada markdown pipe
+        # Fallback space/tab-delimited if not markdown pipe
         if not dt:
             raw_lines = [l.strip() for l in t_text.strip().split('\n') if l.strip()]
             data_lines = []
@@ -1353,8 +1352,7 @@ Jawab HANYA dalam JSON valid."""
                 if len(cols) >= 2:
                     data_lines.append(cols)
             if len(data_lines) >= 2:
-                # Synthesize caption from headers if cap_hint is invalid or raw pipe
-                fallback_cap = cap_hint if (cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint) else f"Tabel {' - '.join(data_lines[0][:2])} (Halaman {p_num})"
+                fallback_cap = cap_hint if (cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint) else f"Table {' - '.join(data_lines[0][:2])} (Page {p_num})"
                 dt = {
                     "caption": fallback_cap,
                     "page_number": p_num,
@@ -1364,22 +1362,21 @@ Jawab HANYA dalam JSON valid."""
                 
         if dt:
             curr_cap = dt.get("caption", "")
-            if cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and ("Tabel Data" in curr_cap or "|" in curr_cap):
+            if cap_hint and "|" not in cap_hint and "Tabel #" not in cap_hint and ("Tabel Data" in curr_cap or "Table Data" in curr_cap or "|" in curr_cap):
                 dt["caption"] = cap_hint
             elif "|" in curr_cap or "Tabel #" in curr_cap:
                 valid_h = [h for h in dt.get("headers", []) if h and not re.match(r'^[\-\:\s]+$', h)]
                 if valid_h:
-                    dt["caption"] = f"Tabel {' - '.join(valid_h[:2])} (Halaman {p_num})"
+                    dt["caption"] = f"Table {' - '.join(valid_h[:2])} (Page {p_num})"
             cap_key = dt.get("caption", "").strip().lower()
             if cap_key not in seen_table_captions:
                 seen_table_captions.add(cap_key)
                 direct_parsed_tables.append(dt)
 
-    # Strategi B: Pindai seluruh tabel bernomor (Tabel 1, Tabel 2, Tabel 3, ..., Tabel 20) di seluruh chunk
+    # Strategy B: Scan all numbered tables across chunks
     for c in clean_file_chunks:
         pg = c.get("metadata", {}).get("pdf_page_index", 1)
         txt = c.get("text", "")
-        # Temukan semua blok Tabel X di dalam teks
         matches = re.finditer(r'((?:Table|Tabel)\s+\d+[^\n]*)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section)\s+\d+|\nSource:|\Z))', txt, re.IGNORECASE)
         for m in matches:
             cap = m.group(1).strip()
@@ -1387,7 +1384,6 @@ Jawab HANYA dalam JSON valid."""
             cap_key = cap.lower()
             if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Gambar|Bagan|Chart)\s+\d+', cap, re.IGNORECASE):
                 b_lines = [l.strip() for l in body.split('\n') if l.strip()]
-                # Coba parse markdown pipe atau space delimiter
                 if any('|' in l for l in b_lines):
                     dt = parse_markdown_table_direct(body, page_number=pg)
                     if dt:
@@ -1415,19 +1411,18 @@ Jawab HANYA dalam JSON valid."""
                             "rows": d_rows
                         })
 
-    # Konsolidasi dan pembersihan
+    # Consolidation and cleanup
     consolidated_tbls = consolidate_tables(direct_parsed_tables)
     consolidated_tbls = [
         t for t in consolidated_tbls 
         if not re.match(r'^(?:Figure|Gambar|Bagan|Chart|Grafik)\s+\d+', t.get("caption", "").strip(), re.IGNORECASE)
     ]
-    log(f"✅ Agent 4 Selesai ({round(time.time() - t4, 3)}s) -> Berhasil memformat {len(consolidated_tbls)} tabel dokumen secara deterministik instan.")
+    log(f"✅ Agent 4 Complete ({round(time.time() - t4, 3)}s) -> Formatted {len(consolidated_tbls)} document tables via deterministic engine.")
 
-    # STEP 5: Dedicated References / Bibliography Extraction (Instant Deterministic strictly from DAFTAR PUSTAKA)
+    # STEP 5: Dedicated Bibliography & References Extraction (Instant Deterministic)
     t5 = time.time()
-    log("📚 Agent 5/5: Dedicated Bibliography & References Extraction...")
+    log("📚 Agent 5/5: Dedicated Bibliography & Reference Citation Extraction...")
     
-    # 1. Pindai strictly seksi DAFTAR PUSTAKA dari chunk halaman-halaman akhir
     sorted_file_chunks = sorted(clean_file_chunks, key=lambda x: x.get("metadata", {}).get("pdf_page_index", 0))
     bib_start_idx = -1
     for idx, c in enumerate(sorted_file_chunks):
@@ -1448,33 +1443,32 @@ Jawab HANYA dalam JSON valid."""
         raw_t = sanitize_text_for_extraction(c.get("text", ""))
         ctx_5_refs += f"\n{raw_t}\n"
         
-    # Buang teks badan naskah sebelum kata DAFTAR PUSTAKA / REFERENCES jika ada
     m_split = re.search(r'(?:DAFTAR\s+PUSTAKA|REFERENCES|BIBLIOGRAPHY|RUJUKAN)', ctx_5_refs, re.IGNORECASE)
     if m_split:
         ctx_5_refs = ctx_5_refs[m_split.start():]
     
-    # 2. Deterministic instant extraction via Regex / State Machine (0.001 detik)
+    # Deterministic instant extraction via Regex / State Machine (0.001s)
     regex_refs = extract_references_regex_fallback(ctx_5_refs)
     refs_out = []
     if len(regex_refs) > 0:
         refs_out = regex_refs
-        log(f"✅ Agent 5 Selesai ({round(time.time() - t5, 3)}s) -> Ditemukan {len(refs_out)} sitasi rujukan resmi dari Daftar Pustaka secara deterministik.")
+        log(f"✅ Agent 5 Complete ({round(time.time() - t5, 3)}s) -> Found {len(refs_out)} official reference citations from Bibliography.")
     else:
-        # 3. LLM fallback jika dokumen menggunakan format narasi non-standar
-        p5_refs = f"Dokumen: {file_name}\n\nKonteks Seksi Daftar Pustaka:\n{truncate_context(ctx_5_refs, max_chars=3000)}"
-        sys_prompt_5 = """Kamu adalah Agentic Extractor spesialis Daftar Pustaka & Bibliografi.
-ATURAN REFERENSI:
-1. Ekstrak SELURUH daftar pustaka/rujukan sitasi resmi (berformat '[1] ...', '[2] ...', atau 'Penulis (Tahun) ...') yang ada pada konteks seksi Daftar Pustaka ke dalam array 'references_or_sources'.
-2. DILARANG mengekstrak kalimat kutipan di dalam teks isi/naskah bab.
-Jawab HANYA dalam JSON valid."""
+        # LLM fallback
+        p5_refs = f"Document: {file_name}\n\nReferences Section Context:\n{truncate_context(ctx_5_refs, max_chars=3000)}"
+        sys_prompt_5 = """You are an expert Bibliography & Citation Extraction Agent.
+RULES:
+1. Extract ALL official scientific references and citations from the References/Bibliography section into 'references_or_sources'.
+2. DO NOT extract in-text narrative citations from body paragraphs.
+Respond ONLY in valid JSON."""
         
         try:
             step5_refs_res = run_agentic_step(sys_prompt_5, p5_refs, Step5References, num_ctx=4096, llm_provider=llm_provider, llm_model=llm_model, api_key=api_key, base_url=base_url)
             raw_refs = step5_refs_res.get("references_or_sources", [])
             refs_out = reconcile_references(raw_refs, ctx_5_refs)
-            log(f"✅ Agent 5 Selesai ({round(time.time() - t5, 2)}s) -> Ditemukan {len(refs_out)} sitasi rujukan.")
+            log(f"✅ Agent 5 Complete ({round(time.time() - t5, 2)}s) -> Found {len(refs_out)} reference citations.")
         except Exception as e:
-            log(f"⚠️ Agent 5 Error: {e}")
+            log(f"⚠️ Agent 5 Notice: {e}")
             refs_out = regex_refs
 
     total_duration = round(time.time() - start_total, 2)
@@ -1510,8 +1504,8 @@ Jawab HANYA dalam JSON valid."""
     for t in consolidated_tbls:
         t_obj = {
             "@type": "Table",
-            "name": t.get("caption", "Tabel Data"),
-            "description": f"Tabel data kuantitatif terstruktur ({len(t.get('rows', []))} baris)"
+            "name": t.get("caption", "Table Data"),
+            "description": f"Structured quantitative data table ({len(t.get('rows', []))} rows)"
         }
         clean_t = prune_empty_fields(t_obj)
         if clean_t:
@@ -1562,7 +1556,7 @@ Jawab HANYA dalam JSON valid."""
         "@type": ["Article", "ScholarlyArticle"],
         "headline": step1_res.get("name") or file_name,
         "name": step1_res.get("name") or file_name,
-        "description": step1_res.get("description") or f"Dokumen {file_name}",
+        "description": step1_res.get("description") or f"Document {file_name}",
         "inLanguage": step1_res.get("inLanguage", "id"),
         "keywords": step1_res.get("keywords", []),
         "author": schema_authors,
