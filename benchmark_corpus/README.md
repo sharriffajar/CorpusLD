@@ -1,15 +1,24 @@
 # Benchmark Corpus Directory
 
-Tempatkan file PDF yang ingin Anda uji/evaluasi ke dalam folder ini.
+Place target PDF documents that you want to evaluate and benchmark into this folder.
 
-### Cara Penggunaan:
-1. Salin (copy) file PDF yang ingin Anda benchmark ke dalam folder ini (`benchmark_corpus/`).
-2. Jalankan skrip runner:
+### Usage Instructions:
+
+1. **Add Target Documents**: Copy the PDF files you wish to benchmark into this directory (`benchmark_corpus/`).
+2. **Run the Benchmark Suite**:
    ```bash
+   # Benchmark all documents in the corpus
    python benchmark_runner.py
+
+   # Or benchmark a specific file (recommended to conserve API quota)
+   python benchmark_runner.py --file "sample_document.pdf"
+
+   # Clean reset and benchmark the entire corpus from scratch
+   python benchmark_runner.py --clean
    ```
-   Atau untuk menguji satu file tertentu secara spesifik:
-   ```bash
-   python benchmark_runner.py --file nama_dokumen.pdf
-   ```
-3. Hasil ekstraksi JSON-LD dan laporan evaluasi otomatis (*Quality Invariants Check*) akan tersimpan di folder `benchmark_results/`.
+3. **Inspect Output & Visual Dashboard**:
+   - Extracted Schema.org JSON-LD files and Google Scholar meta tags will be saved in `benchmark_results/`.
+   - Open the Master-Detail Visual Studio dashboard in your browser:
+     ```text
+     benchmark_results/dashboard.html
+     ```

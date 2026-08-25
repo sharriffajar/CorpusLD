@@ -73,7 +73,7 @@
 
 ### 7. ⚡ Lightweight On-Demand Local Ollama & Flexible BYOK Support
 - **RAM-Efficient On-Demand Inference**: Runs local Ollama models on-demand without memory hogging, releasing RAM automatically when idle.
-- **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
+- **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash-lite`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
 - **Privacy First**: API keys reside solely in your browser's local memory (`localStorage`).
 
 ### 8. 🔬 Multi-Style Document Benchmark Suite & Visual Studio
