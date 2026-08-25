@@ -6,7 +6,7 @@ import time
 import warnings
 import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from config import Config
@@ -21,42 +21,49 @@ warnings.filterwarnings("ignore", module="pypdf")
 # ---------------------------------------------------------
 
 class EducationalOrganization(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     type: str = Field(default="EducationalOrganization", alias="@type")
-    name: str = Field(description="Nama institusi / universitas / organisasi afiliasi")
+    name: str = Field(default="", description="Nama institusi / universitas / organisasi afiliasi")
     address: Optional[str] = Field(None, description="Alamat, kota, atau lokasi institusi")
 
 class Author(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     type: str = Field(default="Person", alias="@type", description="'Person' atau 'Organization'")
-    name: str = Field(description="Nama asli orang atau penyusun dokumen")
+    name: str = Field(default="", description="Nama asli orang atau penyusun dokumen")
     identifier: Optional[str] = Field(None, description="Nomor identitas resmi (misal NIM atau NIP) jika tertulis")
-    affiliation: Optional[Union[EducationalOrganization, str]] = Field(None, description="Nama institusi atau perguruan tinggi jika tertulis")
+    affiliation: Optional[Union[EducationalOrganization, str, Dict[str, Any]]] = Field(None, description="Nama institusi atau perguruan tinggi jika tertulis")
 
 class UniversalEntity(BaseModel):
-    type: str = Field(description="Tipe entitas Schema.org: 'Person', 'Organization', 'EducationalOrganization', 'SoftwareApplication', 'Hardware', atau 'Place'")
-    name: str = Field(description="Nama resmi entitas/organisasi/tools/brand ASLI dari dokumen (DILARANG placeholder generic)")
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    type: str = Field(default="Organization", alias="@type", description="Tipe entitas Schema.org: 'Person', 'Organization', 'EducationalOrganization', 'SoftwareApplication', 'Hardware', atau 'Place'")
+    name: str = Field(default="", description="Nama resmi entitas/organisasi/tools/brand ASLI dari dokumen (DILARANG placeholder generic)")
     role_or_description: Optional[str] = Field(None, description="Peran atau deskripsi kaitan entitas dalam dokumen")
 
 class DocumentSection(BaseModel):
-    section_name: str = Field(description="Judul bab/seksi utama resmi dokumen (misal: 'I. Latar Belakang', 'BAB I', 'Section 1', etc.)")
-    summary: str = Field(description="Ringkasan ide/gagasan bab (JANGAN menyalin teks sitasi bibliografi/DOI)")
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    section_name: str = Field(default="Section", description="Judul bab/seksi utama resmi dokumen (misal: 'I. Latar Belakang', 'BAB I', 'Section 1', etc.)")
+    summary: str = Field(default="", description="Ringkasan ide/gagasan bab (JANGAN menyalin teks sitasi bibliografi/DOI)")
     key_points: List[str] = Field(default_factory=list, description="Poin-poin utama bab")
     page_start: Optional[int] = Field(None, description="Halaman awal seksi")
     page_end: Optional[int] = Field(None, description="Halaman akhir seksi")
 
 class UniversalProperty(BaseModel):
-    name: str = Field(description="Nama parameter, metrik, atau indikator")
-    value: Union[str, float, int] = Field(description="Nilai atau besaran metrik")
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    name: str = Field(default="Parameter", description="Nama parameter, metrik, atau indikator")
+    value: Union[str, float, int] = Field(default="", description="Nilai atau besaran metrik")
     unit_text: Optional[str] = Field(None, description="Satuan ukuran (misal: %, ms, Watt, IDR, GW, kg, etc.)")
     context_or_condition: Optional[str] = Field(None, description="Kondisi atau konteks berlakunya nilai")
     page_number: Optional[int] = Field(None, description="Nomor halaman ditemukannya metrik (diambil dari tag [Halaman: X])")
 
 class UniversalTable(BaseModel):
-    caption: str = Field(description="Judul/deskripsi tabel yang bersih (tanpa prefix parser)")
-    page_number: int = Field(description="Nomor halaman tabel")
-    headers: List[str] = Field(description="Daftar header kolom tabel")
-    rows: List[List[str]] = Field(description="Gabungan seluruh baris data tabel")
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    caption: str = Field(default="Tabel Data", description="Judul/deskripsi tabel yang bersih (tanpa prefix parser)")
+    page_number: int = Field(default=1, description="Nomor halaman tabel")
+    headers: List[str] = Field(default_factory=list, description="Daftar header kolom tabel")
+    rows: List[List[str]] = Field(default_factory=list, description="Gabungan seluruh baris data tabel")
 
 class UniversalJSONLD(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     context: str = Field(default="https://schema.org", alias="@context")
     type: str = Field(
         default="DigitalDocument", 
@@ -82,6 +89,7 @@ class UniversalJSONLD(BaseModel):
 # ---------------------------------------------------------
 
 class Step1Overview(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     type: str = Field(default="DigitalDocument", alias="@type", description="ScholarlyArticle, TechArticle, Report, atau DigitalDocument")
     name: str = Field(default="", description="Judul lengkap resmi dokumen (DILARANG menggunakan nama file PDF)")
     alternateName: Optional[str] = Field(None, description="Judul alternatif / sub-judul / event jika ada")
@@ -93,15 +101,19 @@ class Step1Overview(BaseModel):
     entities_involved: List[UniversalEntity] = Field(default_factory=list, description="Entitas ASLI dari dokumen (DILARANG placeholder generic)")
 
 class Step2Sections(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     sections: List[DocumentSection] = Field(default_factory=list, description="HANYA judul bab utama resmi. Summary berupa ide bab (Bukan sitasi DOI).")
 
 class Step3Metrics(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     properties_and_metrics: List[UniversalProperty] = Field(default_factory=list, description="Ekstrak metrik lengkap dengan page_number dari tag [Halaman: X].")
 
 class Step4Tables(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     tables: List[UniversalTable] = Field(default_factory=list, description="Gabungkan semua baris relevan ke dalam SATU objek UniversalTable per tabel.")
 
 class Step5References(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
     references_or_sources: List[str] = Field(default_factory=list, description="Sitasi rujukan resmi ([1] ..., [2] ..., Penulis (Tahun) ...)")
 
 # ---------------------------------------------------------
@@ -999,7 +1011,20 @@ def run_agentic_step(
         elif "sources" in raw_json and "references_or_sources" not in raw_json:
             raw_json["references_or_sources"] = raw_json.pop("sources")
 
-    parsed = pydantic_schema.model_validate(raw_json)
+    def _sanitize_for_pydantic(item: Any) -> Any:
+        if isinstance(item, dict):
+            clean = {}
+            for k, v in item.items():
+                if k == "@type" and "type" not in item:
+                    clean["type"] = _sanitize_for_pydantic(v)
+                clean[k] = _sanitize_for_pydantic(v)
+            return clean
+        elif isinstance(item, list):
+            return [_sanitize_for_pydantic(x) for x in item]
+        return item
+
+    clean_raw_json = _sanitize_for_pydantic(raw_json)
+    parsed = pydantic_schema.model_validate(clean_raw_json)
     return parsed.model_dump(by_alias=True)
 
 # ---------------------------------------------------------
