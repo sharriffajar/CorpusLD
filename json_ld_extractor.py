@@ -434,11 +434,12 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
     """
     Normalisasi tanggal publikasi dari berbagai format teks alfabet bilingual (Indonesian/English)
     atau numerik ke format standar resmi ISO-8601 (YYYY-MM-DD) yang valid untuk Schema.org & Google Rich Results.
-    Mendukung deteksi prioritas header penerbitan (Published, Received, Accepted, Submitted, Copyright).
+    Jika naskah/PDF tidak memuat tanggal terbit resmi yang eksplisit, fungsi ini mengembalikan None (null),
+    sehingga tidak terjadi halusinasi tahun sembarangan dari sitasi.
     """
     month_names_regex = "|".join(sorted(MONTH_MAP_BILINGUAL.keys(), key=len, reverse=True))
 
-    # 0. Deteksi prioritas metadata eksplisit di header dokumen (Published / Accepted / Received / Submitted / Copyright)
+    # 1. Deteksi prioritas metadata eksplisit di header dokumen (Published / Accepted / Received / Submitted / Copyright)
     if fallback_text:
         explicit_patterns = [
             r'(?:Published|Diterbitkan|Publication\s+Date|Accepted|Received|Submitted\s+on|Submission\s+Date|Copyright|\(C\)|©)[\s\:\.\-]+([^\n\r]{4,50})',
@@ -449,7 +450,6 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
             m_exp = re.search(ep, fallback_text, re.IGNORECASE)
             if m_exp:
                 candidate_str = m_exp.group(1).strip()
-                # Coba ekstrak tanggal valid dari candidate_str
                 # DD Month YYYY
                 m_dmy = re.search(rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
                 if m_dmy:
@@ -479,88 +479,44 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
                 if m_yr:
                     return f"{m_yr.group(1)}-01-01"
 
-    candidate_texts = []
+    # 2. Validasi input raw jika diberikan model LLM
     if raw_input and str(raw_input).strip():
-        candidate_texts.append(str(raw_input).strip())
-    if fallback_text and fallback_text.strip():
-        candidate_texts.append(fallback_text.strip())
+        raw_clean = str(raw_input).strip()
+        if raw_clean.lower() not in ["none", "null", "unknown", "n/a", "not specified", "not identified"]:
+            # Format ISO YYYY-MM-DD
+            m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', raw_clean)
+            if m_iso:
+                y = m_iso.group(1)
+                if not fallback_text or y in fallback_text:
+                    return m_iso.group(0)
 
-    for text in candidate_texts:
-        # 1. Format ISO lengkap: YYYY-MM-DD
-        m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', text)
-        if m_iso:
-            return m_iso.group(0)
+            # Format DD Month YYYY
+            m_dmy = re.search(rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', raw_clean, re.IGNORECASE)
+            if m_dmy:
+                d = f"{int(m_dmy.group(1)):02d}"
+                m = MONTH_MAP_BILINGUAL[m_dmy.group(2).lower()]
+                y = m_dmy.group(3)
+                if not fallback_text or y in fallback_text:
+                    return f"{y}-{m}-{d}"
 
-        # 2. Tanggal Bulan Tahun Alfabet (misal: '24 Agustus 2026', '15th March 2024', '5-Mei-2023')
-        m_dmy = re.search(
-            rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(?:of\s+)?({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b',
-            text,
-            re.IGNORECASE
-        )
-        if m_dmy:
-            d = f"{int(m_dmy.group(1)):02d}"
-            m = MONTH_MAP_BILINGUAL[m_dmy.group(2).lower()]
-            y = m_dmy.group(3)
-            return f"{y}-{m}-{d}"
+            # Format Month DD, YYYY
+            m_mdy = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', raw_clean, re.IGNORECASE)
+            if m_mdy:
+                m = MONTH_MAP_BILINGUAL[m_mdy.group(1).lower()]
+                d = f"{int(m_mdy.group(2)):02d}"
+                y = m_mdy.group(3)
+                if not fallback_text or y in fallback_text:
+                    return f"{y}-{m}-{d}"
 
-        # 3. Bulan Tanggal, Tahun (misal: 'August 24, 2026', 'March 15th, 2024')
-        m_mdy = re.search(
-            rf'\b({month_names_regex})[\s\-\/\,]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b',
-            text,
-            re.IGNORECASE
-        )
-        if m_mdy:
-            m = MONTH_MAP_BILINGUAL[m_mdy.group(1).lower()]
-            d = f"{int(m_mdy.group(2)):02d}"
-            y = m_mdy.group(3)
-            return f"{y}-{m}-{d}"
+            # Format Month YYYY
+            m_my = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', raw_clean, re.IGNORECASE)
+            if m_my:
+                m = MONTH_MAP_BILINGUAL[m_my.group(1).lower()]
+                y = m_my.group(2)
+                if not fallback_text or y in fallback_text:
+                    return f"{y}-{m}-01"
 
-        # 4. Bulan Tahun (misal: 'Agustus 2026', 'August 2026', 'Okt 2024', 'September 2024')
-        m_my = re.search(
-            rf'\b({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b',
-            text,
-            re.IGNORECASE
-        )
-        if m_my:
-            m = MONTH_MAP_BILINGUAL[m_my.group(1).lower()]
-            y = m_my.group(2)
-            return f"{y}-{m}-01"
-
-        # 5. Tahun Bulan (misal: '2026 Agustus', '2024 March')
-        m_ym = re.search(
-            rf'\b(19\d{2}|20[0-3]\d)[\s\-\/\,]+({month_names_regex})\b',
-            text,
-            re.IGNORECASE
-        )
-        if m_ym:
-            y = m_ym.group(1)
-            m = MONTH_MAP_BILINGUAL[m_ym.group(2).lower()]
-            return f"{y}-{m}-01"
-
-        # 6. Format numerik DD/MM/YYYY atau DD-MM-YYYY
-        m_num_dmy = re.search(r'\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](19\d{2}|20[0-3]\d)\b', text)
-        if m_num_dmy:
-            d = f"{int(m_num_dmy.group(1)):02d}"
-            m = f"{int(m_num_dmy.group(2)):02d}"
-            y = m_num_dmy.group(3)
-            return f"{y}-{m}-{d}"
-
-        # 7. Format ISO YYYY-MM
-        m_ym_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])\b', text)
-        if m_ym_iso:
-            return f"{m_ym_iso.group(1)}-{m_ym_iso.group(2)}-01"
-
-        # 8. Tahun saja: YYYY
-        m_year = re.search(r'\b(19\d{2}|20[0-3]\d)\b', text)
-        if m_year:
-            matched_year = m_year.group(1)
-            # Jika raw_input memberikan tahun yang sama sekali tidak ada di dokumen teks, cari tahun yang ada di teks
-            if fallback_text and matched_year not in fallback_text:
-                years_in_text = re.findall(r'\b(19\d{2}|20[0-3]\d)\b', fallback_text)
-                if years_in_text:
-                    matched_year = years_in_text[0]
-            return f"{matched_year}-01-01"
-
+    # Tidak ditemukan tanggal publikasi eksplisit -> Kembalikan None (null)
     return None
 
 def extract_accurate_date(text: str) -> Optional[str]:
@@ -1236,7 +1192,7 @@ def extract_json_ld_agentic_rag(
 RULES:
 1. Document Title ('name'): Extract the official substantive title prominent on the cover page. DO NOT use the filename or .pdf extension.
 2. Alternate Title ('alternateName'): Subtitle, event name, or secondary title if present.
-3. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY'). Extract ONLY the real publication date/year written in the document. DO NOT guess the date from the arXiv filename. If no explicit date exists, extract the most recent research year (e.g. 2024/2025) or null.
+3. Language & Date: 'inLanguage' ('en', 'id', etc.) and 'datePublished' ('YYYY-MM-DD' or 'YYYY-MM' or 'YYYY'). Extract ONLY the official explicit publication date/year printed on the document cover/header. If no explicit publication date exists in the document, set 'datePublished' to null. DO NOT guess the date from references, citations, or filenames.
 4. Authors ('author'): Extract real author names, IDs/NIM, and affiliations. Leave empty [] if no author exists.
 5. Keywords ('keywords'): Extract 6-10 domain technical keywords. DO NOT use generic phrases.
 6. Entities ('entities_involved'): Extract real organizations, software, hardware, or institutions mentioned.
@@ -1266,10 +1222,9 @@ Respond ONLY in valid JSON."""
         if step1_res.get("alternateName"):
             step1_res["alternateName"] = strip_markdown_formatting(step1_res.get("alternateName"))
 
-        # 4. Precision Publication Date (Bilingual Deterministic Date Scanner)
-        exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1 + " " + all_doc_text)
-        if exact_date:
-            step1_res["datePublished"] = exact_date
+        # 4. Precision Publication Date (Bilingual Deterministic Date Scanner - Returns None if no explicit date)
+        exact_date = normalize_publication_date(step1_res.get("datePublished"), fallback_text=ctx_1)
+        step1_res["datePublished"] = exact_date
 
         # 5. Guarantee Keywords (Filter ArXiv/Numerics & Fallback)
         keywords_out = step1_res.get("keywords", [])
@@ -1747,6 +1702,8 @@ def generate_google_scholar_meta_tags(data: Dict[str, Any], pdf_url: Optional[st
         date_slash = str(date).replace("-", "/")
         lines.append(f'<meta name="citation_publication_date" content="{html.escape(date_slash)}">')
         lines.append(f'<meta name="citation_online_date" content="{html.escape(date_slash)}">')
+    else:
+        lines.append('<!-- <meta name="citation_publication_date" content="YYYY/MM/DD"> (Date not identified in PDF, fill manually if needed) -->')
 
     lang = data.get("inLanguage", "id")
     if lang:

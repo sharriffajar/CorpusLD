@@ -683,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroLang) heroLang.textContent = `🌐 ${data.inLanguage || 'en'}`;
 
     const heroDate = document.getElementById('hero-badge-date');
-    if (heroDate) heroDate.textContent = `📅 ${data.datePublished || '-'}`;
+    if (heroDate) heroDate.textContent = data.datePublished ? `📅 ${data.datePublished}` : '📅 Date: null';
 
     const heroAuthors = document.getElementById('hero-badge-authors');
     if (heroAuthors) heroAuthors.textContent = `👥 ${data.author?.length || 0} Authors`;
@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authors = data.author || [];
     let html = `
       <p><strong>Language (<code>inLanguage</code>):</strong> <code>${data.inLanguage || 'en'}</code></p>
-      <p><strong>Date Published (<code>datePublished</code>):</strong> <code>${data.datePublished || '-'}</code></p>
+      <p><strong>Date Published (<code>datePublished</code>):</strong> <code>${data.datePublished || 'null (Not identified in document)'}</code></p>
       <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
       <h4>Official Author List:</h4>
     `;
@@ -967,6 +967,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dateSlash = String(data.datePublished).replace(/-/g, '/');
       lines.push(`<meta name="citation_publication_date" content="${escapeHtml(dateSlash)}">`);
       lines.push(`<meta name="citation_online_date" content="${escapeHtml(dateSlash)}">`);
+    } else {
+      lines.push('<!-- <meta name="citation_publication_date" content="YYYY/MM/DD"> (Date not identified in PDF, fill manually if needed) -->');
     }
 
     if (data.inLanguage) {
