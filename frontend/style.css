@@ -1116,8 +1116,9 @@ html, body {
 .validator-banner {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  padding: 18px 20px;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 18px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -1125,9 +1126,10 @@ html, body {
 
 .validator-left {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  flex: 1;
+  gap: 14px;
+  align-items: center;
+  flex: 0 0 380px;
+  min-width: 0;
 }
 
 .score-box {
@@ -1135,16 +1137,17 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 68px;
-  height: 68px;
+  min-width: 62px;
+  height: 62px;
   background-color: var(--bg-surface-raised);
   border: 2px solid var(--accent-emerald-border);
   border-radius: var(--radius-md);
+  flex-shrink: 0;
 }
 
 .score-number {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: #34d399;
   line-height: 1;
@@ -1159,6 +1162,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .badge-tag {
@@ -1168,6 +1173,7 @@ html, body {
   padding: 2px 8px;
   border-radius: var(--radius-xs);
   width: fit-content;
+  white-space: nowrap;
 }
 
 .badge-ready {
@@ -1178,29 +1184,45 @@ html, body {
 
 .validator-badge-info h3 {
   font-family: var(--font-brand);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .validator-badge-info p {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .validator-checks-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px 16px;
-  min-width: 320px;
+  gap: 8px 14px;
+  flex: 1;
+  min-width: 0;
 }
 
 .check-item {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
+  line-height: 1.3;
 }
 
 /* Sub-tabs */
