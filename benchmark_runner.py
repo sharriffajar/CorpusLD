@@ -592,6 +592,7 @@ def main():
     parser.add_argument("--model", type=str, default=Config.GEMINI_MODEL_NAME, help=f"Model name (default: {Config.GEMINI_MODEL_NAME}; e.g. gemini-2.5-flash, gpt-4o-mini, qwen2.5:7b)")
     parser.add_argument("--api-key", type=str, default=None, help="API Key opsional (atau gunakan env GEMINI_API_KEY)")
     parser.add_argument("--clean", action="store_true", help="Reset riwayat benchmark dan jalankan ulang seluruh korpus dari awal")
+    parser.add_argument("--delay", type=float, default=0.0, help="Jeda detik antar dokumen untuk menghindari rate-limit API (mis. 20)")
     args = parser.parse_args()
 
     CORPUS_DIR.mkdir(parents=True, exist_ok=True)
@@ -640,7 +641,9 @@ def main():
 
     print(f"🚀 CorpusLD Benchmark Suite Starting ({len(target_pdfs)} file target)...")
     current_run_results = []
-    for pdf in target_pdfs:
+    for i, pdf in enumerate(target_pdfs):
+        if args.delay and i > 0:
+            time.sleep(args.delay)
         res = run_single_benchmark(pdf, provider=args.provider, model=args.model, api_key=api_key)
         current_run_results.append(res)
 
