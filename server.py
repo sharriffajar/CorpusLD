@@ -36,11 +36,12 @@ from sentence_transformers import SentenceTransformer
 
 from config import Config
 from json_ld_extractor import (
-    extract_json_ld_agentic_rag, 
+    extract_json_ld_agentic_rag,
     validate_json_ld_rich_results,
     get_clean_schema_org_jsonld,
     sanitize_text_for_extraction,
-    strip_markdown_formatting
+    strip_markdown_formatting,
+    parse_markdown_table_direct
 )
 
 # ---------------------------------------------------------
@@ -106,6 +107,81 @@ def get_qdrant():
 # PARSERS & STATEFUL TABLE STITCHER
 # ---------------------------------------------------------
 TABLE_CAPTION_RE = re.compile(r'^#*\s*(?:Tabel|Table)\s+\d+', re.IGNORECASE)
+TABLE_CAPTION_STRICT_RE = re.compile(r'^#*\s*(?:Tabel|Table)\s+\d+\s*[\.\:\-\—]', re.IGNORECASE)
+FIGURE_CAPTION_RE = re.compile(r'^#*\s*(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', re.IGNORECASE)
+NUMBERED_HEADING_RE = re.compile(r'^\d+(?:\.\d+)*\.?\s+[A-Z]')
+
+def _collect_running_headers(pages_data: List[tuple]) -> set:
+    """
+    Kumpulkan baris running-header jurnal yang berulang di posisi awal >=3
+    halaman berbeda (cek dua baris pertama tiap halaman, karena header ganjil/
+    genap sering bergantian posisi).
+    """
+    line_pages: Dict[str, set] = {}
+    for pnum, t in pages_data:
+        ls = [l.strip() for l in (t or "").strip().splitlines() if l.strip()]
+        for lead in ls[:2]:
+            key = " ".join(lead.upper().split())
+            if len(key) >= 6:
+                line_pages.setdefault(key, set()).add(pnum)
+    return {k for k, v in line_pages.items() if len(v) >= 3}
+
+_VOL_HEADER_RE = re.compile(r'^(?:v\s?ol\.|vol\.|n[ºo°]\s*\d|iss\.|issue)', re.IGNORECASE)
+_PAGE_NUM_RE = re.compile(r'^\d{1,4}$')
+
+def _extract_inline_tables_from_flat_block(block_text: str) -> List[str]:
+    """
+    Untuk halaman tanpa pemisah blok (pypdf menghasilkan satu blok raksasa),
+    potong region tabel ber-caption langsung dari deretan baris agar tabel
+    resmi tetap tertangkap. Baris prosa panjang tanpa digit menandakan tabel
+    sudah selesai.
+    """
+    lines = [l.strip() for l in block_text.splitlines()]
+    out: List[str] = []
+    i, n = 0, len(lines)
+    while i < n:
+        s = lines[i]
+        if s and TABLE_CAPTION_STRICT_RE.match(s):
+            buf = [s]
+            j = i + 1
+            digit_lines = 0
+            while j < n and len(buf) <= 60:
+                ts = lines[j].strip()
+                if not ts:
+                    j += 1
+                    continue
+                if TABLE_CAPTION_STRICT_RE.match(ts) or FIGURE_CAPTION_RE.match(ts):
+                    break
+                m_num = NUMBERED_HEADING_RE.match(ts)
+                if m_num:
+                    tail = ts[len(m_num.group(0)):]
+                    if len(re.findall(r'\b\d+(?:[.,]\d+)?\b', tail)) >= 2:
+                        break
+                wc = len(ts.split())
+                has_digit = bool(re.search(r'\d', ts))
+                if wc > 11 and not has_digit:
+                    break  # prosa melanjutkan -> tabel selesai di baris sebelumnya
+                if has_digit:
+                    digit_lines += 1
+                buf.append(ts)
+                j += 1
+            body_lines = [l for l in buf[1:] if l.strip()]
+            if len(body_lines) >= 2 and digit_lines >= 2:
+                out.append("\n".join(buf))
+            else:
+                out.append("\n".join(buf))
+            i = j
+            continue
+        buf2 = []
+        j = i
+        while j < n and not (lines[j].strip() and TABLE_CAPTION_STRICT_RE.match(lines[j].strip())):
+            if lines[j].strip():
+                buf2.append(lines[j].strip())
+            j += 1
+        if buf2:
+            out.append("\n".join(buf2))
+        i = max(j, i + 1)
+    return out
 
 def _merge_caption_blocks(blocks: List[str]) -> List[str]:
     """
@@ -135,11 +211,25 @@ def _merge_caption_blocks(blocks: List[str]) -> List[str]:
         i += 1
     return merged
 
-def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used: str) -> List[Dict[str, Any]]:
+def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used: str, page_labels: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    """
+    page_labels: nomor halaman TERCETAK di dokumen (bisa beda dari urutan fisik,
+    misal jurnal 200-211). Disimpan sebagai metadata['page_label'] berdampingan
+    dengan metadata['pdf_page_index'] (urutan mesin) agar sitasi mengikuti
+    angka yang dilihat manusia.
+    """
+    def _label(idx: int):
+        if page_labels and 0 < idx <= len(page_labels):
+            return page_labels[idx - 1]
+        return None
+
     chunks = []
     table_lines_buffer = []
     table_pages_buffer = []
     table_count = 0
+    flat_table_texts: set = set()
+
+    running_headers = _collect_running_headers(pages_data)
 
     def flush_table():
         nonlocal table_count
@@ -176,6 +266,7 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                     "source": file_name,
                     "pdf_page_index": start_page,
                     "page_number": start_page,
+                    "page_label": _label(start_page),
                     "page_span": page_span,
                     "parser_used": parser_used,
                     "chunk_type": "table",
@@ -191,12 +282,40 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
         if not page_text or not page_text.strip():
             continue
 
+        # Buang running-header jurnal di awal halaman (maks 5 baris pertama);
+        # termasuk baris volume/edisi dan nomor halaman mentah
+        kept_lines = []
+        stripped_count = 0
+        for l in page_text.strip().splitlines():
+            s = l.strip()
+            norm = " ".join(s.upper().split())
+            is_meta = bool(_VOL_HEADER_RE.match(s) or _PAGE_NUM_RE.match(s))
+            if s and stripped_count < 5 and (norm in running_headers or is_meta):
+                stripped_count += 1
+                continue
+            kept_lines.append(l)
+        page_text = "\n".join(kept_lines).strip()
+        if not page_text:
+            continue
+
         # Normalisasi pemisah blok: parser lokal (pypdf) sering memakai baris
         # ber-spasi ("\n \n") alih-alih baris kosong ("\n\n") sebagai pemisah
         # paragraf. Tanpa ini, satu halaman utuh menjadi satu blok raksasa dan
         # deteksi tabel/batas seksi gagal total.
-        normalized = re.sub(r'\n[ \t]*\n[ \t\n]*', '\n\n', page_text.strip())
+        normalized = re.sub(r'\n[ \t]*\n[ \t\n]*', '\n\n', page_text)
         blocks = [b.strip() for b in normalized.split('\n\n') if b.strip()]
+        if len(blocks) <= 2:
+            # Halaman flat (tanpa pemisah sama sekali): potong region tabel
+            # ber-caption langsung dari alur baris. Teks hasil potongan dicatat
+            # sebagai penanda asal-usul layout (flat_capture).
+            expanded: List[str] = []
+            for blk in blocks:
+                expanded.extend(_extract_inline_tables_from_flat_block(blk))
+            for t in expanded:
+                first = next((l for l in t.splitlines() if l.strip()), "")
+                if TABLE_CAPTION_STRICT_RE.match(first.strip()):
+                    flat_table_texts.add(t)
+            blocks = expanded or blocks
         blocks = _merge_caption_blocks(blocks)
         for block in blocks:
             b_clean = block.strip()
@@ -234,6 +353,7 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                             "source": file_name,
                             "pdf_page_index": page_idx,
                             "page_number": page_idx,
+                            "page_label": _label(page_idx),
                             "page_span": [page_idx],
                             "parser_used": parser_used,
                             "chunk_type": "paragraph"
@@ -241,15 +361,31 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                     })
                     
     flush_table()
+
+    # Tandai chunk tabel yang berasal dari jalur flat-capture (layout tanpa
+    # pemisah) — konsumen seperti mode hybrid memakai ini sebagai sinyal
+    # bahwa grid kemungkinan tidak ter-rekonstruksi lokal.
+    for c in chunks:
+        if c.get("metadata", {}).get("chunk_type") != "table":
+            continue
+        t = c.get("text", "")
+        body = t.split("\n", 1)[1] if t.upper().startswith("DATA TABEL") else t
+        if any(ft and ft in body for ft in flat_table_texts):
+            c["metadata"]["flat_capture"] = True
+
     return chunks
 
 def parse_with_pypdf(file_path: str, file_name: str) -> List[Dict[str, Any]]:
     reader = PdfReader(file_path)
+    try:
+        page_labels = [str(l) for l in (reader.page_labels or [])]
+    except Exception:
+        page_labels = []
     pages_data = []
     for idx, page in enumerate(reader.pages):
         text = page.extract_text() or ""
         pages_data.append((idx + 1, text))
-    return stateful_table_stitcher(pages_data, file_name, "pypdf_local")
+    return stateful_table_stitcher(pages_data, file_name, "pypdf_local", page_labels=page_labels)
 
 def parse_with_llamaparse(file_path: str, file_name: str, api_key: str) -> List[Dict[str, Any]]:
     try:
@@ -302,12 +438,126 @@ def parse_with_unstructured(file_path: str, file_name: str, api_key: str, server
             })
     return chunks
 
+def _detect_problem_table_pages(chunks: List[Dict[str, Any]]) -> Dict[int, set]:
+    """
+    Deteksi halaman yang TIDAK bisa direkonstruksi grid-nya oleh pypdf
+    (tabel landscape/rotasi dengan aliran kolom-per-kolom).
+    Ground truth-nya ASAL-USUL LAYOUT: chunk tabel ber-flag flat_capture lahir
+    dari halaman tanpa pemisah blok — domain persis masalah ini. Tabel dari
+    halaman terstruktur (meski wrapped) tidak ikut di-eskalasi agar hemat biaya.
+    Returns {pdf_page_index: {nomor_tabel}}.
+    """
+    problems: Dict[int, set] = {}
+    for c in chunks:
+        m = c.get("metadata", {})
+        if m.get("chunk_type") != "table" or not m.get("flat_capture"):
+            continue
+        lines_ = [l.strip() for l in c.get("text", "").splitlines() if l.strip()]
+        cap_line = ""
+        for l in lines_:
+            if not l.upper().startswith("DATA TABEL"):
+                cap_line = l
+                break
+        num_m = re.match(r'^#*\s*(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—]', cap_line, re.IGNORECASE)
+        if not num_m:
+            continue
+        pg = int(m.get("pdf_page_index", 1) or 1)
+        if parse_markdown_table_direct(c.get("text", ""), page_number=pg) is None:
+            problems.setdefault(pg, set()).add(int(num_m.group(1)))
+    return problems
+
+# Kalibrasi empiris (26/08/2026): LlamaParse target_pages memperlakukan nomor
+# sebagai indeks 0-based fisik. Minta "5" menghasilkan halaman fisik 6.
+LLAMA_TARGET_PAGES_OFFSET = -1
+
+def parse_hybrid_pypdf_llamaparse(file_path: str, file_name: str, api_key: str) -> List[Dict[str, Any]]:
+    """
+    Escalation parsing hemat biaya:
+    1) pypdf mem-parsing SEMUA halaman (gratis) + membaca page_label tercetak.
+    2) Halaman yang tabelnya gagal direkonstruksi dideteksi otomatis.
+    3) HANYA halaman itu dikirim ke LlamaParse (target_pages), lalu hasil
+       markdown pipa-nya dipasangkan kembali via pencocokan nomor tabel resmi
+       (aman terhadap perbedaan konvensi penomoran layanan eksternal).
+    """
+    reader = PdfReader(file_path)
+    try:
+        labels = [str(l) for l in (reader.page_labels or [])]
+    except Exception:
+        labels = []
+    pages_data = [(i + 1, p.extract_text() or "") for i, p in enumerate(reader.pages)]
+    chunks = stateful_table_stitcher(pages_data, file_name, "pypdf_local", page_labels=labels)
+
+    problems = _detect_problem_table_pages(chunks)
+    if not problems:
+        print(f"🔗 [Hybrid] Semua tabel ter-parse lokal — LlamaParse tidak dipanggil (0 halaman ditagih).")
+        return chunks
+
+    targets = sorted(problems)
+    lp_targets = ",".join(str(max(1, p + LLAMA_TARGET_PAGES_OFFSET)) for p in targets)
+    label_str = {p: (labels[p-1] if 0 < p <= len(labels) else '?') for p in targets}
+    print(f"🔗 [Hybrid] Halaman problem idx={targets} (tercetak {label_str}) -> target_pages='{lp_targets}'")
+    try:
+        from llama_cloud_services import LlamaParse
+    except ImportError:
+        from llama_parse import LlamaParse
+    parser = LlamaParse(api_key=api_key, result_type="markdown", verbose=False, target_pages=lp_targets)
+    docs = parser.load_data(file_path)
+
+    def doc_table_nums(txt: str) -> set:
+        return set(int(x) for x in re.findall(r'(?:^|\n)\s*(?:#+\s*)?(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—]', txt or "", re.IGNORECASE))
+
+    consumed_pages = set()
+    unmatched_docs = 0
+    for d in docs:
+        txt = (d.text or "").strip()
+        if not txt:
+            continue
+        nums = doc_table_nums(txt)
+        # Pemetaan halaman via KONTEN (kebal perbedaan konvensi penomoran API):
+        # pasangkan doc ini ke halaman problem yang memuat nomor tabel yang sama.
+        target_pg = next((pg for pg, ks in sorted(problems.items()) if ks & nums), None)
+        if target_pg is None:
+            unmatched_docs += 1
+            continue  # jangan tambahkan chunk yatim tanpa atribusi halaman
+        meta = {
+            "source": file_name,
+            "chunk_type": "table",
+            "parser": "llamaparse",
+            "is_table": True,
+            "pdf_page_index": target_pg,
+            "page_number": target_pg,
+            "page_label": labels[target_pg - 1] if 0 < target_pg <= len(labels) else None,
+        }
+        chunks.append({"text": txt, "metadata": meta})
+        consumed_pages.add(target_pg)
+    if unmatched_docs:
+        print(f"🔗 [Hybrid] {unmatched_docs} doc LP dilewati (nomor tabel tidak dikenali di halaman problem mana pun).")
+
+    before = len(chunks)
+    chunks = [
+        c for c in chunks
+        if not (c["metadata"].get("chunk_type") == "table"
+                and c["metadata"].get("parser") != "llamaparse"
+                and c["metadata"].get("pdf_page_index") in consumed_pages)
+    ]
+    print(f"🔗 [Hybrid] LP docs={len(docs)}; chunk tabel pypdf digantikan: {before - len(chunks)}; halaman tertangani: {sorted(consumed_pages)}")
+    return chunks
+
 def parse_document(file_path: str, file_name: str, parser_choice: str = "pypdf", llamaparse_key: str = "", unstructured_key: str = "") -> List[Dict[str, Any]]:
     if parser_choice == "llamaparse" and (llamaparse_key or Config.LLAMAPARSE_API_KEY):
         try:
             return parse_with_llamaparse(file_path, file_name, llamaparse_key or Config.LLAMAPARSE_API_KEY)
         except Exception as e:
             print(f"LlamaParse fallback: {e}")
+    elif parser_choice == "hybrid":
+        key = llamaparse_key or Config.LLAMAPARSE_API_KEY
+        if key:
+            try:
+                return parse_hybrid_pypdf_llamaparse(file_path, file_name, key)
+            except Exception as e:
+                print(f"Hybrid fallback ke pypdf murni: {e}")
+        else:
+            print("Hybrid: LLAMAPARSE key tidak tersedia -> pypdf murni")
     elif parser_choice == "unstructured" and (unstructured_key or Config.UNSTRUCTURED_API_KEY):
         try:
             return parse_with_unstructured(file_path, file_name, unstructured_key or Config.UNSTRUCTURED_API_KEY, Config.UNSTRUCTURED_SERVER_URL)
@@ -578,12 +828,17 @@ async def chat_rag(req: ChatRequest):
     
     context_text = ""
     sources = []
+    def _hal(meta: dict) -> str:
+        lbl = meta.get("page_label")
+        idx = meta.get("pdf_page_index", "?")
+        return f"Hal. {lbl}" if lbl else f"Hal. {idx}"
+
     for idx, point in enumerate(search_results, start=1):
         payload = point.payload or {}
         meta = payload.get("metadata", {}) or {}
-        context_text += f"\n--- CONTEKAN #{idx} [Dokumen: {meta.get('source')} | Hal. {meta.get('pdf_page_index', '?')} | Tipe: {meta.get('chunk_type', 'paragraph')}] ---\n"
+        context_text += f"\n--- CONTEKAN #{idx} [Dokumen: {meta.get('source')} | {_hal(meta)} | Tipe: {meta.get('chunk_type', 'paragraph')}] ---\n"
         context_text += payload.get("text", "") + "\n"
-        sources.append(f"📄 {meta.get('source')} (Hal. {meta.get('pdf_page_index')})")
+        sources.append(f"📄 {meta.get('source')} ({_hal(meta)})")
         
     if not has_table:
         refined_query = f"{req.query} tabel metrik angka statistik proyeksi"
@@ -596,9 +851,9 @@ async def chat_rag(req: ChatRequest):
         for idx, point in enumerate(extra_pts, start=len(search_results) + 1):
             p = point.payload or {}
             m = p.get("metadata", {}) or {}
-            context_text += f"\n--- CONTEKAN TABEL #{idx} [Dokumen: {m.get('source')} | Hal. {m.get('pdf_page_index')}] ---\n"
+            context_text += f"\n--- CONTEKAN TABEL #{idx} [Dokumen: {m.get('source')} | {_hal(m)}] ---\n"
             context_text += p.get("text", "") + "\n"
-            sources.append(f"📊 Tabel: {m.get('source')} (Hal. {m.get('pdf_page_index')})")
+            sources.append(f"📊 Tabel: {m.get('source')} ({_hal(m)})")
 
     prompt = f"""Kamu adalah Asisten Peneliti AI Spesialis Analisis Dokumen Ilmiah & Teknis.
 Gunakan HANYA konteks terverifikasi berikut untuk menjawab pertanyaan pengguna. Sertakan nomor halaman dan bukti kutipan.
