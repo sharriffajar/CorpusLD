@@ -110,7 +110,23 @@ def generate_google_scholar_meta_tags(data: Dict[str, Any], pdf_url: Optional[st
     if desc:
         lines.append(f'<meta name="citation_abstract" content="{html.escape(str(desc))}">')
 
-    lines.append('<meta name="citation_publisher" content="CorpusLD">')
+    # Publisher ASLI dokumen bila terdeteksi; jangan pernah mengklaim penerbit palsu.
+    pub = data.get("publisher")
+    if isinstance(pub, dict) and pub.get("name"):
+        lines.append(f'<meta name="citation_publisher" content="{html.escape(str(pub["name"]))}">')
+
+    # DOI resmi dokumen -> citation_doi (tag bernilai tinggi utk Scholar indexing)
+    doi_val = ""
+    for ident in (data.get("identifier") or []):
+        if isinstance(ident, dict) and str(ident.get("propertyID", "")).upper() == "DOI" and ident.get("value"):
+            doi_val = str(ident["value"]).strip()
+            break
+    if not doi_val and data.get("sameAs"):
+        m_same = re.match(r'https?://(?:dx\.)?doi\.org/(10\.\S+)', str(data["sameAs"]))
+        if m_same:
+            doi_val = m_same.group(1)
+    if doi_val:
+        lines.append(f'<meta name="citation_doi" content="{html.escape(doi_val)}">')
 
     # Outbound references (for Scholar citation graphs)
     citations = data.get("citation", []) or data.get("references_or_sources", [])

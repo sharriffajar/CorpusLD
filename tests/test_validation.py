@@ -42,3 +42,22 @@ class TestValidation(unittest.TestCase):
     def test_scholar_meta_tags(self):
         tags = generate_google_scholar_meta_tags({"name": "My Title", "author": [{"name": "A"}]})
         self.assertIn('citation_title', tags)
+
+    def test_scholar_meta_emits_real_doi(self):
+        doc = {"name": "T",
+               "identifier": [{"@type": "PropertyValue", "propertyID": "DOI", "value": "10.47307/GMC.2026.134.1.17"}]}
+        tags = generate_google_scholar_meta_tags(doc)
+        self.assertIn('name="citation_doi" content="10.47307/GMC.2026.134.1.17"', tags)
+
+    def test_scholar_meta_doi_from_sameas_fallback(self):
+        tags = generate_google_scholar_meta_tags({"name": "T", "sameAs": "https://doi.org/10.1000/xyz"})
+        self.assertIn('name="citation_doi" content="10.1000/xyz"', tags)
+
+    def test_scholar_meta_never_fabricates_publisher(self):
+        tags = generate_google_scholar_meta_tags({"name": "T"})
+        self.assertNotIn('name="citation_publisher"', tags)
+
+    def test_scholar_meta_uses_detected_publisher(self):
+        doc = {"name": "T", "publisher": {"@type": "Organization", "name": "Gac Méd Caracas"}}
+        tags = generate_google_scholar_meta_tags(doc)
+        self.assertIn('content="Gac Méd Caracas"', tags)
