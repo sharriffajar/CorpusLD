@@ -6,7 +6,7 @@
   ],
   "headline": "The effectiveness of implementing case-based learning in improving clinical skills, critical thinking, problem solving, motivation, and satisfaction of nursing students: Systematic Review",
   "name": "The effectiveness of implementing case-based learning in improving clinical skills, critical thinking, problem solving, motivation, and satisfaction of nursing students: Systematic Review",
-  "description": "Objectives: This study aimed to identify and analyze the effectiveness of implementing case-based learning in improving nursing students’ clinical skills, critical thinking, problem-solving, motivation, and satisfaction. Methods: A systematic review was employed. This article has been compiled in accordance with the PRISMA method. Article searches were conducted using PubMed, EBSCOhost, ProQuest, ScienceDirect, the Cochrane Library, and Scopus. Structured research questions using the PICO method, and search",
+  "description": "Objectives: This study aimed to identify and analyze in improving nursing students’ clinical skills, critical thinking, problem-solving, motivation, and satisfaction. Methods: A systematic review was employed. This article has been compiled in accordance with the PRISMA method. Article searches were conducted using PubMed, EBSCOhost, ProQuest, ScienceDirect, the Cochrane Library, and Scopus. Structured research questions using the PICO method, and search keywords based on Boolean combinations. A total of 590 articles were identified, and 6 were included based on the research question. The included articles were assessed using the Critical Appraisal Skills Programme and the Mixed Methods Appraisal Tool. To determine the article’ s quality, the Effective Public Health Practice Project was used. Results: There were 6 articles included in this study. Regarding the results of the critical assessment, the implementation of case-based learning can significantly improve nursing students’ clinical skills, critical thinking, problem-solving, motivation, and learning satisfaction. Conclusion: Implementing case-based learning for nursing students can improve clinical skills, critical thinking, problem-solving, motivation, and student satisfaction with learning. Therefore, the CBL method is recommended for nursing education.",
   "inLanguage": "en",
   "keywords": [
     "Case-based learning",
@@ -87,27 +87,22 @@
     {
       "@type": "CreativeWork",
       "name": "Introduction",
-      "description": "This section provides background information on the use of case-based learning in nursing education and establishes the objectives of the systematic review to evaluate its effectiveness."
+      "description": "This section introduces the background and rationale for implementing case-based learning in nursing education. It highlights the importance of enhancing clinical skills, critical thinking, problem-solving, motivation, and student satisfaction."
     },
     {
       "@type": "CreativeWork",
       "name": "Results",
-      "description": "This section details the findings from the selected studies regarding the impact of case-based learning on nursing students' clinical skills, critical thinking, problem-solving, motivation, and satisfaction."
+      "description": "This section details the findings from the systematic review of selected articles. It evaluates the impact of case-based learning interventions on nursing students' academic and clinical performance."
     },
     {
       "@type": "CreativeWork",
       "name": "Discussion",
-      "description": "This section interprets the findings, comparing them with existing literature and discussing the implications of implementing case-based learning in nursing curricula."
+      "description": "This section interprets the findings in the context of existing literature and educational frameworks. It discusses the implications, benefits, and potential challenges of integrating case-based learning into nursing curricula."
     },
     {
       "@type": "CreativeWork",
       "name": "Conclusion",
-      "description": "This section summarizes the overall findings of the review, highlighting the positive effects of case-based learning on nursing students and suggesting directions for future practice and research."
-    },
-    {
-      "@type": "Table",
-      "name": "Table 3. The result of Case-Based Learning Implementation on Nursing Students. No.",
-      "description": "Structured quantitative data table (2 rows)"
+      "description": "This section summarizes the primary findings of the review regarding case-based learning. It highlights the overall positive effects on nursing students and provides recommendations for future educational practices."
     }
   ],
   "additionalProperty": [
@@ -152,7 +147,7 @@
     "23. Gholami M, Changaee F, Karami K, Shahsavaripour Z, Veiskaramian A, Birjandi M. Effects of multiepisode case-based learning (CBL) on problem-solving ability and learning motivation of nursing students in an emergency care course. J Prof Nurs. 2021;37(3):612-",
     "24. Chan AW-K, Chair S-Y , Sit JW-H, Wong EM-L, Lee DT-F, Fung OW-M. Case-Based Web Learning Versus Face-to-Face Learning. J Nurs Res. 2016;24(1):31-",
     "25. Ha H, Lopez T. Developing health literacy knowledge and skills through case-based learning. Am J Pharm Educ. 2014;78(1):1-7.",
-    "26. Sapeni MAAR, Said S. The effectiveness of case- based learning in increasing critical thinking of nursing students: A literature review. Enferm Clin. 2020;30:182-185. AL-AMIN R SAPENE M, ET AL Gac Méd Caracas 211",
+    "26. Sapeni MAAR, Said S. The effectiveness of case- based learning in increasing critical thinking of nursing students: A literature review. Enferm Clin. 2020;30:182-185.",
     "27. Bi M, Zhao Z, Yang J, Wang Y . Comparison of case- based learning and traditional method in teaching postgraduate students of medical oncology. Med Teach. 2019;41(10):1124-1128.",
     "28. Simonsohn AB, Fischer MR. Evaluation eines fallbasierten computergestützten lernsystems (CASUS) im klinischen studienabschnitt. Dtsch Medizinische Wochenschrift. 2004;129(11):552-556.",
     "29. Haley CM, Brown B, Koerber A, Nicholas CL, Belcher A. Comparing Case-Based with Team-Based Learning: Dental Students’ Satisfaction, Level of Learning, and Resources Needed. J Dent Educ. 2020;84(4):486-494.",
@@ -170,5 +165,14 @@
     "url": "https://github.com/sharriffajar/CorpusLD",
     "softwareVersion": "2.0"
   },
-  "alternateName": "La efectividad de implementar el aprendizaje basado en casos para mejorar las habilidades clínicas, el pensamiento crítico, la resolución de problemas, la motivación y la satisfacción de los estudiantes de enfermería: Revisión Sistemática"
+  "identifier": [
+    {
+      "@type": "PropertyValue",
+      "propertyID": "DOI",
+      "value": "10.47307/GMC.2026.134.1.17"
+    }
+  ],
+  "sameAs": "https://doi.org/10.47307/GMC.2026.134.1.17",
+  "alternateName": "La efectividad de implementar el aprendizaje basado en casos para mejorar las habilidades clínicas, el pensamiento crítico, la resolución de problemas, la motivación y la satisfacción de los estudiantes de enfermería: Revisión Sistemática",
+  "@id": "corpusld:undated/the-effectiveness-of-implementing-case-based-learn"
 }
