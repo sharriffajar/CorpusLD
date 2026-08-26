@@ -639,7 +639,9 @@ Respond ONLY in valid JSON."""
 
     # Deterministik tambahan: DOI, genre, publisher (backport enhancement dari port v2.6)
     doc_doi = extract_doi_deterministic(ctx_1, all_doc_text)
-    doc_genre = classify_genre(all_doc_text.lower(), [s.get("section_name", "") for s in filtered_sections])
+    # Genre dibaca dari konteks SAMPUL saja: badan/pustaka dokumen apa pun bisa
+    # memuat kata 'thesis'/'proceedings' secara insidental (mis. di related work).
+    doc_genre = classify_genre(ctx_1.lower(), [s.get("section_name", "") for s in filtered_sections])
     doc_publisher = detect_publisher_deterministic(all_doc_text, exclude_title=step1_res.get("name") or "")
 
     # 4. Pure 100% Valid Schema.org Document JSON-LD (Optimal untuk Google Rich Results Test & Schema.org)

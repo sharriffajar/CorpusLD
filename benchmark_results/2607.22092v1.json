@@ -6,58 +6,92 @@
   ],
   "headline": "Designing Eco-Efficint Biowaste Valorisation Systems: Effects of Transport Distance and Facility Scale",
   "name": "Designing Eco-Efficint Biowaste Valorisation Systems: Effects of Transport Distance and Facility Scale",
-  "description": "The increasing deployment of separate biowaste collection across Europe raises questions regarding environmentally and economically  optimal treatment strategies . From this perspective, the balance between decentralised and centralised infrastructure is a potential lever to consider. The choice of technologies is another . Composting and anaerobic digestion (AD) offer viable circular bioeconomy pathways, but their performance depends on transport distance, facility size, seasonal waste fluctuations, and technological efficiency. Threshold distances and scale -dependent interactions affecting the environmental and economic performance of treatment plants remain poorly characterised. This study develops a unified techno -economic and life  cycle assessment framework to quantify how transport constraints and treatment capacities shape biowaste valorisation systems. Three facility scales for composting and AD are evaluated across a range of transport distances and compared with local incineration in terms of environmental and economic performance . Transport burdens are modelled using vehicle life  cycle assessment (LCA) and realistic heavy -duty truck data for electric -, gas-, and diesel -powered vehicles. Results reveal non-linear trade-offs between scale and transport, with zero-distance composting yielding the lowest combined impacts. Across all scenarios, 45 configurations outperform local incineration economically and environmentally, while 111 remain environmentally preferable despite higher costs, thus providing quantitative guidance for infrastructure planning.",
+  "description": "The increasing deployment of separate biowaste collection across Europe raises questions regarding environmentally and economically optimal treatment strategies . From this perspective, the balance between decentralised and centralised infrastructure is a potential lever to consider. The choice of technologies is another . Composting and anaerobic digestion (AD) offer viable circular bioeconomy pathways, but their performance depends on transport distance, facility size, seasonal waste fluctuations, and technological efficiency. Threshold distances and scale -dependent interactions affecting the environmental and economic performance of treatment plants remain poorly characterised. This study develops a unified techno -economic and life cycle assessment framework to quantify how transport constraints and treatment capacities shape biowaste valorisation systems. Three facility scales for composting and AD are evaluated across a range of transport distances and compared with local incineration in terms of environmental and economic performance . Transport burdens are modelled using vehicle life cycle assessment (LCA) and realistic heavy -duty truck data for electric -, gas-, and diesel -powered vehicles. Results reveal non-linear trade-offs between scale and transport, with zero-distance composting yielding the lowest combined impacts. Across all scenarios, 45 configurations outperform local incineration economically and environmentally, while 111 remain environmentally preferable despite higher costs, thus providing quantitative guidance for infrastructure planning.",
   "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Christian Ottini",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Gwenola Yannou-Le Bris",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Sandra Domenek",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Felipe Buendia",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    }
+  ],
   "hasPart": [
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "This section introduces the context of biowaste valorisation, highlighting the challenges of separate collection and the balance between centralised and decentralised infrastructures. It outlines the study's objective to develop a unified techno-economic and life cycle assessment framework for evaluating treatment strategies."
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Methodology",
-      "description": "This section details the methodological approach used to evaluate biowaste valorisation systems, covering environmental modelling, techno-economic analysis, and scenario construction. It defines the system boundaries, assumptions, and performance metrics for comparing composting, anaerobic digestion, and incineration."
+      "description": "Detailed analysis, methodology, and findings presented under section '2. Methodology'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 Environmental modelling and system boundaries",
-      "description": "This subsection establishes the system boundaries and environmental modelling parameters for evaluating the life cycle impacts of the different biowaste treatment configurations and transport modes."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Environmental modelling and system boundaries'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Techno-Economic Analysis",
-      "description": "This subsection describes the financial framework utilized to calculate capital and operational expenditures, as well as revenue streams associated with the different facility scales and transport scenarios."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Techno-Economic Analysis'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3 Scenario construction and assumptions",
-      "description": "This subsection outlines the specific operational scenarios, facility scales, and key assumptions regarding waste inputs, transport distances, and technology efficiencies tested within the framework."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Scenario construction and assumptions'."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Results",
-      "description": "This section presents the findings of the techno-economic and environmental assessments, highlighting the performance of various centralised and decentralised configurations. It details the cost implications, environmental impacts, and trade-offs identified across the modelled scenarios."
+      "description": "Detailed analysis, methodology, and findings presented under section '3. Results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 Cost Implications of a Centralised versus Decentralised System",
-      "description": "This subsection analyzes how facility scale and transport distances influence the economic viability and overall costs of centralised versus decentralised biowaste treatment systems."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Cost Implications of a Centralised versus Decentralised System'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Environmental assessment of the configurations",
-      "description": "This subsection evaluates the environmental burdens and benefits of the different treatment configurations, focusing on greenhouse gas emissions, energy recovery, and transport-related impacts."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Environmental assessment of the configurations'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations",
-      "description": "This subsection identifies the optimal configurations by examining the balance between economic costs and environmental benefits, highlighting solutions that outperform baseline incineration."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations'."
     },
     {
       "@type": "CreativeWork",
       "name": "4. Conclusions",
-      "description": "This section summarizes the main findings of the study, emphasizing the non-linear trade-offs between facility scale and transport distance. It provides strategic insights for municipal infrastructure planning and biowaste management."
+      "description": "Detailed analysis, methodology, and findings presented under section '4. Conclusions'."
     },
     {
       "@type": "Table",
@@ -78,7 +112,7 @@
       "name": "environmentally preferable configurations",
       "value": 111,
       "unitText": "configurations",
-      "description": "remain environmentally preferable despite higher costs across all scenarios"
+      "description": "configurations remain environmentally preferable despite higher costs across all scenarios"
     }
   ],
   "citation": [
@@ -106,5 +140,6 @@
     "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
     "url": "https://github.com/sharriffajar/CorpusLD",
     "softwareVersion": "2.0"
-  }
+  },
+  "@id": "corpusld:undated/designing-eco-efficint-biowaste-valorisation-syste"
 }

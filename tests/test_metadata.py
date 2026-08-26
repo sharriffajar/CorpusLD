@@ -42,6 +42,10 @@ class TestGenre(unittest.TestCase):
     def test_none_for_plain(self):
         self.assertIsNone(classify_genre("random notes", ["Notes"]))
 
+    def test_bibliography_mentions_do_not_classify(self):
+        body = "This paper presents X.\nREFERENCES\n[1] Someone. Master thesis, Univ. 2020."
+        self.assertIsNone(classify_genre(body, []))
+
 
 class TestDocumentId(unittest.TestCase):
     def test_format(self):

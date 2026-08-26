@@ -87,22 +87,22 @@
     {
       "@type": "CreativeWork",
       "name": "Introduction",
-      "description": "This section introduces the background and rationale for implementing case-based learning in nursing education. It highlights the importance of enhancing clinical skills, critical thinking, problem-solving, motivation, and student satisfaction."
+      "description": "This section introduces the background and rationale for implementing case-based learning in nursing education. It outlines the study's objective to identify and analyze the effectiveness of this educational approach on students' clinical skills and critical thinking."
     },
     {
       "@type": "CreativeWork",
       "name": "Results",
-      "description": "This section details the findings from the systematic review of selected articles. It evaluates the impact of case-based learning interventions on nursing students' academic and clinical performance."
+      "description": "This section details the findings from the selected articles following the systematic review process. It presents the outcomes related to how case-based learning impacts nursing students' problem-solving abilities, motivation, and overall satisfaction."
     },
     {
       "@type": "CreativeWork",
       "name": "Discussion",
-      "description": "This section interprets the findings in the context of existing literature and educational frameworks. It discusses the implications, benefits, and potential challenges of integrating case-based learning into nursing curricula."
+      "description": "This section interprets the findings of the systematic review in the context of existing literature. It explores the implications of case-based learning for nursing curricula and highlights the benefits and challenges observed across the included studies."
     },
     {
       "@type": "CreativeWork",
       "name": "Conclusion",
-      "description": "This section summarizes the primary findings of the review regarding case-based learning. It highlights the overall positive effects on nursing students and provides recommendations for future educational practices."
+      "description": "This section summarizes the primary insights derived from the systematic review regarding case-based learning in nursing education. It emphasizes the positive effects on clinical competence and offers recommendations for future educational practices."
     }
   ],
   "additionalProperty": [

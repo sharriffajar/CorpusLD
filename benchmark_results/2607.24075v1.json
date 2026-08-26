@@ -6,7 +6,7 @@
   ],
   "headline": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
   "name": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
-  "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues. This paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits. A key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization. Validation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
+  "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues.\n\nThis paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits.\n\nA key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization.\n\nValidation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
   "inLanguage": "en",
   "keywords": [
     "Battery Energy Storage Systems",
@@ -45,36 +45,36 @@
     {
       "@type": "CreativeWork",
       "name": "I. INTRODUCTION",
-      "description": "This section introduces the challenges of integrating Battery Energy Storage Systems (BESSs) into volatile electricity markets and presents a sequential, data-driven optimization framework. It outlines the motivation behind the study, emphasizing the need for realistic multi-market coordination across reserve and energy markets."
+      "description": "This section introduces the challenges of integrating Battery Energy Storage Systems (BESSs) into volatile electricity markets. It outlines the motivation driven by renewable energy growth in Germany and presents a data-driven sequential optimization framework to address revenue-stacking limitations."
     },
     {
       "@type": "CreativeWork",
       "name": "II. METHODOLOGY",
-      "description": "This section details the methodological approach for the sequential market optimization framework. It establishes the mathematical and operational foundations for modeling market mechanisms and timelines."
+      "description": "This section outlines the sequential optimization approach for front-of-the-meter BESS across multiple power markets. It defines the temporal framework and market structures considered in the operational model."
     },
     {
       "@type": "CreativeWork",
       "name": "III. MODELING",
-      "description": "This section provides the comprehensive mathematical formulation of the BESS optimization model across different market stages. It incorporates operational constraints, gate closure times, and opportunity-cost bidding strategies."
+      "description": "This section details the mathematical formulations and operational constraints for the BESS and the various market stages. It includes models for forecasting, market clearing, and opportunity-cost-based bidding."
     },
     {
       "@type": "CreativeWork",
       "name": "IV. VALIDATION OF SEQUENTIAL OPTIMIZATION OFBESS",
-      "description": "This section validates the proposed sequential optimization framework using data from a representative operating day. The results demonstrate the framework's ability to generate feasible schedules, adapt to updated forecasts, and minimize dispatch deviations."
+      "description": "This section presents the validation results of the proposed sequential optimization framework for a representative operating day. It demonstrates the framework's ability to generate feasible schedules, adapt to updated forecasts, and minimize dispatch deviations."
     },
     {
       "@type": "CreativeWork",
       "name": "V. CONCLUSION",
-      "description": "This section summarizes the main findings of the paper regarding the data-driven sequential market optimization for Front-of-the-Meter BESSs. It highlights the practical benefits of the opportunity-cost-based bidding strategy and realistic market sequencing."
+      "description": "This section summarizes the key contributions and findings of the paper regarding the data-driven sequential optimization framework for BESS. It highlights the effectiveness of the opportunity-cost bidding strategy in enhancing operational realism and profitability."
     }
   ],
   "additionalProperty": [
     {
       "@type": "PropertyValue",
       "name": "BESS capacity growth",
-      "value": "one-third",
-      "unitText": "%",
-      "description": "Installed BESS capacity growth in Germany in 2024"
+      "value": 1.3333,
+      "unitText": "ratio",
+      "description": "Germany's installed BESS capacity growth in 2024 (nearly one-third growth)"
     },
     {
       "@type": "PropertyValue",
@@ -88,7 +88,7 @@
       "name": "Additional BESS capacity",
       "value": 3.7,
       "unitText": "GWh",
-      "description": "Germany additional capacity"
+      "description": "Additional capacity in Germany"
     }
   ],
   "citation": [
@@ -122,5 +122,6 @@
     "softwareVersion": "2.0"
   },
   "datePublished": "2026-07-27",
-  "dateModified": "2026-07-27"
+  "dateModified": "2026-07-27",
+  "@id": "corpusld:2026-07-27/data-driven-sequential-market-optimization-for-fro"
 }

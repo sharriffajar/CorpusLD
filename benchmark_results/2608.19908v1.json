@@ -38,7 +38,7 @@
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "This section introduces the core motivation and background for probability estimation over large alphabets under log loss. It outlines the foundational questions regarding Bayesian estimators, architecture simplicity, and performance compared to classical methods like Good-Turing."
+      "description": "This section introduces the problem of probability estimation over large alphabets under log loss and outlines the motivation for developing a new Bayesian estimator. It discusses the limitations of traditional methods and sets up the foundational questions regarding simple architectures acting as effective priors."
     },
     {
       "@type": "CreativeWork",
@@ -63,17 +63,17 @@
     {
       "@type": "CreativeWork",
       "name": "3.1 Exact regret via count profiles",
-      "description": "This subsection derives exact expressions for regret by utilizing count profiles. It provides analytical tools to evaluate the performance of the proposed estimators efficiently."
+      "description": "This subsection derives the exact regret of the estimator using count profiles, providing a mathematical foundation for evaluating performance under log loss."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 The shallow end of the family is Laplace’s rule",
-      "description": "This subsection analyzes the shallow limit of the proposed family of estimators, showing that it coincides with classical Laplace's rule of succession."
+      "description": "This subsection examines the behavior of the estimator at shallow depths, demonstrating that it converges to classical approaches such as Laplace's rule."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 The deep end of the family: depth tilts the complexity spectrum",
-      "description": "This subsection examines the deep limit of the estimator family, illustrating how varying depth effectively tilts the complexity spectrum of the prior distributions."
+      "description": "This subsection analyzes the deep end of the estimator family, showing how increased depth alters the complexity spectrum and affects performance on sparse targets."
     },
     {
       "@type": "CreativeWork",
@@ -83,27 +83,27 @@
     {
       "@type": "CreativeWork",
       "name": "4.1 Three numerical tests",
-      "description": "This subsection conducts three numerical evaluations to validate the theoretical findings and showcase the empirical efficacy of the depth-averaged predictor."
+      "description": "This subsection presents three numerical tests comparing the proposed estimator's empirical performance against traditional methods on synthetic data."
     },
     {
       "@type": "CreativeWork",
       "name": "5.1 Setup",
-      "description": "This subsection outlines the experimental and computational setup used for evaluating the explicit formulas and algorithms."
+      "description": "This subsection outlines the experimental setup and parameters used for the computational evaluation of the proposed estimator."
     },
     {
       "@type": "CreativeWork",
       "name": "5.2 Findings",
-      "description": "This subsection reports the primary empirical findings resulting from the certified computation tests, confirming the accuracy and reliability of the framework."
+      "description": "This subsection details the empirical findings from the computational tests, demonstrating the accuracy and efficiency of the explicit formulas."
     },
     {
       "@type": "CreativeWork",
       "name": "5.3 Compressing the Bible",
-      "description": "This subsection applies the proposed modeling approach to a real-world text dataset, specifically compressing the text of the Bible, to evaluate practical performance."
+      "description": "This subsection applies the proposed estimation framework to compress a real-world text dataset, demonstrating practical text compression capabilities."
     },
     {
       "@type": "CreativeWork",
       "name": "5.4 Adding memory",
-      "description": "This subsection explores extensions to the architecture by incorporating memory mechanisms to handle sequential dependencies in the data."
+      "description": "This subsection explores extensions of the model that incorporate memory to handle sequential dependencies in data."
     },
     {
       "@type": "CreativeWork",
@@ -113,26 +113,12 @@
     {
       "@type": "CreativeWork",
       "name": "7. Discussion",
-      "description": "This section synthesizes the main contributions of the paper, reviews limitations, and suggests directions for future research."
+      "description": "This section provides a broader discussion of the implications of the findings, limitations of the current model, and potential avenues for future research."
     },
     {
       "@type": "CreativeWork",
       "name": "8. Conclusion",
-      "description": "This final section provides a concise summary of the layered simplex architecture, its theoretical properties, and its effectiveness in large-alphabet probability estimation."
-    }
-  ],
-  "additionalProperty": [
-    {
-      "@type": "PropertyValue",
-      "name": "Dirichlet prior parameter",
-      "value": "0.5",
-      "description": "add-half rule (Krichevsky-Trofimov) with Dirichlet prior"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Zipf target exponent",
-      "value": "1.0",
-      "description": "Zipf targets with exponent above one"
+      "description": "This section summarizes the key contributions of the paper, reiterating the effectiveness and simplicity of the layered simplex architecture for large-alphabet probability estimation."
     }
   ],
   "citation": [
@@ -146,7 +132,7 @@
     "[8] Irving John Good. The population frequencies of species and the estimation of population parameters. Biometrika, 40(3–4):237–264, 1953.",
     "[9] Geoffrey E. Hinton. Products of experts. InNinth International Conference on Artificial Neural Net- works (ICANN), volume 1, pages 1–6, 1999.",
     "[10] Marcus Hutter. Offline to online conversion. InAlgorithmic Learning Theory (ALT), pages 230–244, 2014.",
-    "[11] Ryan Jeong. A phase transition for layered multiplicative priors on the simplex. Unpublished manuscript, 2026. 29",
+    "[11] Ryan Jeong. A phase transition for layered multiplicative priors on the simplex. Unpublished manuscript, 2026.",
     "[12] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models.arXiv preprint arXiv:2001.08361, 2020.",
     "[13] Raphail Krichevsky and Victor Trofimov. The performance of universal encoding.IEEE Transactions on Information Theory, 27(2):199–207, 1981.",
     "[14] David McAllester and Robert E. Schapire. On the convergence rate of Good-Turing estimators. In Proceedings of the 13th Annual Conference on Computational Learning Theory, 2000.",
@@ -155,7 +141,7 @@
     "[17] Alon Orlitsky and Ananda Theertha Suresh. Competitive distribution estimation: Why is Good-Turing good.Advances in Neural Information Processing Systems, 28, 2015.",
     "[18] Eric Sven Ristad. A natural law of succession.Technical Report CS-TR-495-95, Princeton University, 1995. arXiv:cmp-lg/9508012.",
     "[19] Frans MJ Willems. The context-tree weighting method: Extensions.IEEE Transactions on Information Theory, 44(2):792–798, 1998.",
-    "[20] Frans MJ Willems, Yuri M Shtarkov, and Tjalling J Tjalkens. The context-tree weighting method: Basic properties.IEEE transactions on information theory, 41(3):653–664, 1995. 30"
+    "[20] Frans MJ Willems, Yuri M Shtarkov, and Tjalling J Tjalkens. The context-tree weighting method: Basic properties.IEEE transactions on information theory, 41(3):653–664, 1995."
   ],
   "sdPublisher": {
     "@type": "SoftwareApplication",
@@ -167,5 +153,6 @@
     "softwareVersion": "2.0"
   },
   "datePublished": "2026-08-20",
-  "dateModified": "2026-08-20"
+  "dateModified": "2026-08-20",
+  "@id": "corpusld:2026-08-20/a-layered-simplex-architecture-for-large-alphabets"
 }

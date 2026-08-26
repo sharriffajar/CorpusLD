@@ -15,6 +15,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from config import Config
 
+from .text_utils import strip_markdown_formatting
+
 
 class EducationalOrganization(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="ignore")

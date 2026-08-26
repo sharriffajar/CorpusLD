@@ -60,6 +60,11 @@ def classify_genre(text_lower: str, section_names: List[str]) -> Optional[str]:
     jika bukti tidak cukup spesifik. Default ScholarlyArticle tetap berlaku.
     """
     t = text_lower or ""
+    # Sitasi sering memuat kata 'thesis'/'dissertation'/'proceedings' -> potong
+    # bagian bibliografi agar genre ditentukan oleh badan dokumen saja.
+    m_bib = re.search(r'(?:^|\n)\s*(?:references?|daftar\s+pustaka|bibliography|referencias)\b', t, re.IGNORECASE)
+    if m_bib:
+        t = t[:m_bib.start()]
     sections_join = " ".join(section_names or []).lower()
     if re.search(r'\b(?:thesis|dissertation|disertasi|doctoral\b|ph\.?\s?d\b|skripsi|tesis)\b', t):
         return "Thesis"
