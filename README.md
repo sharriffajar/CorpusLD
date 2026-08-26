@@ -39,21 +39,24 @@
 
 ## 🌟 Key Features
 
-### 1. 🚀 3-Tier Layout-Aware Parser & Stateful Table Stitcher
+### 1. 🚀 4-Tier Layout-Aware Parser & Stateful Table Stitcher
 - **Tier 1 (Vision/Layout)**: LlamaParse Markdown Table & Hierarchy Parser.
 - **Tier 2 (Structured)**: Unstructured.io API Parser.
 - **Tier 3 (Local Offline)**: PyPDF standalone parser with zero internet requirement.
-- **Stateful Cross-Page Table Stitcher**: Automatically reconstructs Markdown table rows split across consecutive pages ($N \to N+1$) into a single unified table chunk.
+- **Tier 4 (Hybrid Cost-Saver)**: PyPDF parses *everything* for free; pages whose tables fail local grid reconstruction (rotated/column-major layouts) are detected automatically and **only those pages** escalate to LlamaParse via `target_pages`. Verified savings: healthy documents cost **0 API credits**, landscape-table documents dropped from 12 billed pages to 3 (**~75% cheaper**).
+- **Stateful Cross-Page Table Stitcher**: Reconstructs Markdown table rows split across consecutive pages ($N \to N+1$), carves caption-bound table regions out of separator-less flat pages, and strips repeating journal running headers automatically.
+- **Dual Page Identity**: Every chunk carries both `pdf_page_index` (machine order) and `page_label` (the number *printed* on the page, read natively from PDF `/PageLabels`) — citations speak human, e.g. *"Hal. 205"* instead of internal index 6.
 
 ### 2. 🤖 5-Agent Stepped RAG Pipeline
-- **Agent 1 (Cover Page & Metadata)**: Extracts substantive title, verified authors (`Person` with Name, Identifier/NIM, Affiliation `EducationalOrganization`), publication date (`datePublished`), and executive summary.
+- **Agent 1 (Cover Page & Metadata)**: Extracts substantive title, verified authors (`Person` with Name, Identifier/NIM, Affiliation `EducationalOrganization`), publication date (`datePublished`), and executive summary — enriched with deterministic **DOI** (`identifier` + `sameAs`, hierarchy-anchored so citation DOIs are never stolen), URN-style **`@id`**, **publisher** detection, and **genre-aware `@type`** (`Thesis`, `ConferencePaper`, `TechReport`, `Chapter`).
 - **Agent 2 (Structural Outline & Heading Detection)**: Maps agnostic document chapter hierarchies with exact page ranges (`page_start` - `page_end`).
 - **Agent 3 (Quantitative Metrics & Parameters)**: Extracts metrics, numeric figures, unit measurements (`unit_text`), and source page numbers (`page_number`).
 - **Agent 4 (Deterministic Table Engine)**: Formats multi-column tables into structured `UniversalTable` objects in **0.001s**.
 - **Agent 5 (Universal Scientific Citation Extractor)**: Deterministic state-machine reference parser supporting IEEE `[1]`, Numbered `1.`, and Harvard/APA/Chicago `Author-Year` formats in **0.004s** without narrative citation pollution.
 
 ### 3. 🌐 100% Schema.org & Google Rich Results Standard
-- Built on standard Schema.org vocabulary (`@type: ["Article", "ScholarlyArticle"]`, `hasPart`, `additionalProperty`, `PropertyValue`, `citation`, `author`, `sdPublisher`).
+- Built on standard Schema.org vocabulary (`@type: ["Article", "ScholarlyArticle"]`, `hasPart`, `additionalProperty`, `PropertyValue`, `citation`, `author`, `sdPublisher`, `identifier`, `sameAs`).
+- **Anti-Fabrication by Design**: Publication dates resolve through tiered explicit anchors (*Available online → Accepted/Received → Copyright*) and return `null` rather than inventing precision; keywords only when explicitly printed; author names verified against the document text.
 - **Recursive Dynamic Pruning**: Automatically purges empty arrays, null values, and empty keys (`mentions: []`, `pagination: ""`) for schema purity.
 - Verified **0 Errors & 0 Warnings** on [validator.schema.org](https://validator.schema.org) and identified as an **Article Rich Result** on [Google Rich Results Test](https://search.google.com/test/rich-results).
 
@@ -68,12 +71,12 @@
 - **Source Grounding**: Guarantees all sections and citations bind to original document page numbers.
 
 ### 6. 💬 Neural Chat Studio (Precision RAG with Evidence)
-- Semantic vector retrieval backed by Qdrant Vector Engine + IBM Granite Multilingual Embedding (`granite-embedding-107m-multilingual`).
-- Responses cite source evidence: `📄 Document_Name.pdf (Page X)` and `📊 Table: Document_Name.pdf (Page Y)`.
+- Semantic vector retrieval backed by Qdrant Vector Engine + IBM Granite Multilingual Embedding (`granite-embedding-107m-multilingual`), batch-encoded with a payload index for fast per-document filtering.
+- Responses cite source evidence using the page number **printed on the document**: `📄 Document_Name.pdf (Hal. 205)` and `📊 Table: Document_Name.pdf (Hal. 208)`.
 
-### 7. ⚡ Lightweight On-Demand Local Ollama & Flexible BYOK Support
-- **RAM-Efficient On-Demand Inference**: Runs local Ollama models on-demand without memory hogging, releasing RAM automatically when idle.
-- **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash-lite`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
+### 7. ⚡ Lightweight Local Ollama & Flexible BYOK Support
+- **RAM-Efficient On-Demand Inference**: Local Ollama models and the embedding model are loaded lazily, only when actually needed.
+- **BYOK Cloud Providers**: Supports Google Gemini (`gemini-3.5-flash-lite` by default, configurable via `GEMINI_MODEL_NAME`), Groq (`llama-3.3-70b-versatile`), OpenAI, DeepSeek, or **Custom OpenAI-Compatible Endpoints** (OpenRouter, LM Studio, vLLM).
 - **Privacy First**: API keys reside solely in your browser's local memory (`localStorage`).
 
 ### 8. 🔬 Multi-Style Document Benchmark Suite & Visual Studio
@@ -86,8 +89,20 @@
 
 ```text
 CorpusLD/
-├── server.py                 # FastAPI High-Performance Server & RAG Engine
-├── json_ld_extractor.py      # 5-Agent Extraction Pipeline & Schema.org Validator
+├── server.py                 # FastAPI High-Performance Server, Parsers & RAG Engine
+├── json_ld_extractor/        # Extraction Package (modular)
+│   ├── __init__.py           #   Compatibility shim — all legacy imports keep working
+│   ├── pipeline.py           #   5-Agent Orchestrator
+│   ├── schemas.py            #   Pydantic Universal Models
+│   ├── text_utils.py         #   Sanitization, Truncation & Abstract/Title Cleaners
+│   ├── tables.py             #   Table Parsing & Cross-Page Consolidation
+│   ├── outline.py            #   Agnostic Heading Scan & Monotonic Section Mapping
+│   ├── dates.py              #   Tiered Anti-Fabrication Date Normalization
+│   ├── metadata.py           #   DOI, Genre, @id, Publisher, Authors, Keywords, Metrics
+│   ├── references.py         #   Bibliography State Machine & Reconciliation
+│   ├── llm_adapters.py       #   Multi-Provider Inference Adapters
+│   └── validation.py         #   Adversarial KG Checks & Clean JSON-LD Export
+├── tests/                    # Behavioral Regression Suite (unittest, 54 tests)
 ├── benchmark_runner.py       # Multi-Style Document Benchmark Runner & Quality Suite
 ├── benchmark_corpus/         # Benchmark Test PDF Directory (User Corpus)
 ├── benchmark_results/        # Benchmark JSON-LD Outputs & Interactive Dashboard
@@ -160,6 +175,16 @@ python benchmark_runner.py --clean
 # benchmark_results/dashboard.html
 ```
 
+### 7. Run the Behavioral Test Suite
+54 regression tests lock in extraction behavior (no extra dependencies — pure `unittest`):
+```bash
+python -m unittest discover -s tests -v
+
+# Corpus integration tests auto-skip if benchmark_corpus/ PDFs are absent.
+# A live LlamaParse escalation test is opt-in to protect your credits:
+# set LLAMAPARSE_LIVE=1 before running.
+```
+
 ---
 
 ## 📖 User Workflow
@@ -177,6 +202,7 @@ python benchmark_runner.py --clean
 
 ## 🛡️ Security & Privacy
 - All documents and vector embeddings are stored locally on your machine (`./qdrant_db` and `./uploads`).
+- Uploads are validated server-side: PDF-only (extension + `%PDF` magic-byte check) with a configurable size cap (`MAX_UPLOAD_SIZE_MB`, default 50 MB).
 - BYOK API keys entered in the **⚙️ Engine Settings** modal are stored exclusively in the browser's `localStorage` and never persisted to the server disk.
 
 ---
