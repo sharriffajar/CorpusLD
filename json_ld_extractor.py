@@ -246,8 +246,12 @@ def clean_abstract_description(desc: str) -> str:
             break
         clean = stripped
 
-    # 3. Potong sebelum bagian kata kunci atau Bab 1
-    clean = re.split(r'(?:\n|##+|\b)(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+I|PENDAHULUAN|Section\s+1)\b', clean, flags=re.IGNORECASE)[0].strip()
+    # 3. Potong sebelum bagian kata kunci atau Bab 1.
+    #    PENTING: anchor harus di awal baris. Pola lama memakai \b sehingga kata
+    #     'keywords' di tengah kalimat ("search keywords based on...") ikut
+    #     terbakar dan abstrak terpotong diam-diam di situ.
+    clean = re.split(r'(?:^|\n)\s*(?:#+\s*)?(?:Keywords?\s*[:\-–—]|Kata\s+Kunci\s*[:\-–—]|Index\s+Terms?\s*[:\-–—]|Palabras\s+clave\s*[:\-–—])', clean, flags=re.IGNORECASE, maxsplit=1)[0].strip()
+    clean = re.split(r'(?:^|\n)\s*(?:##+\s*)?(?:1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+[IVX\d]+|PENDAHULUAN|Section\s+1|INTRODUCTION)\b', clean, flags=re.IGNORECASE, maxsplit=1)[0].strip()
     return clean
 
 def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -725,6 +729,10 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 p2 = stitch_continuation(m_major.group(2).strip(), idx_l)
                 if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
                     continue
+                # Tolak baris data tabel yang menyamar sebagai heading
+                # (misal "4 North Pontianak 23 87.59 21.85" -> >=3 token angka)
+                if len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 3:
+                    continue
                 if len(p2.split()) <= 14 and len(p2) >= 3:
                     h_full = f"{p1}. {p2}"
                     if h_full.lower() not in seen_names:
@@ -921,10 +929,10 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
             m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', candidate_str)
             if m_iso:
                 return m_iso.group(0)
-            # Year YYYY
-            m_yr = re.search(r'\b(19\d{2}|20[0-3]\d)\b', candidate_str)
-            if m_yr:
-                return f"{m_yr.group(1)}-01-01"
+            # Sengaja TANPA penerimaan tahun-telanjang: anchor generik seperti
+            # kata 'Published' bisa mengenai prosa biasa ("published in the last
+            # 10 years"), dan tahun di sekitarnya sering berasal dari sitasi ->
+            # fabrikasi YYYY-01-01. Tanpa bulan/tanggal eksplisit, tolak.
             return None
 
         pattern_tiers = [
@@ -990,6 +998,128 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
                     return f"{y}-{m}-01"
 
     # Tidak ditemukan tanggal publikasi eksplisit -> Kembalikan None (null)
+    return None
+
+def extract_doi_deterministic(head_text: str, full_text: str = "") -> Optional[str]:
+    """
+    Ekstrak DOI DOKUMEN (bukan DOI sitasi) secara deterministik dengan hierarki
+    anti-salah-tangkap: anchor eksplisit 'DOI:' / URL doi.org di halaman depan
+    diprioritaskan, baru kemudian seluruh teks. Pola bare-DOI sengaja TIDAK
+    dipakai untuk menebak karena hampir pasti menangkap DOI referensi daftar pustaka.
+    """
+    def _clean(candidate: str) -> Optional[str]:
+        cand = candidate.strip().rstrip('.,;)]}')
+        # Validasi bentuk dasar DOI (10.{registrant}/{suffix})
+        if re.fullmatch(r'10\.\d{4,9}/\S{2,}', cand):
+            return cand.rstrip('.')
+        return None
+
+    sources = [head_text or "", full_text or ""]
+    # Sumber full-text dipotong sebelum bagian bibliografi agar 'DOI:' milik
+    # entri referensi tidak tertangkap sebagai DOI dokumen.
+    m_bib = re.search(r'(?:^|\n)\s*(?:REFERENCES?|DAFTAR\s+PUSTAKA|BIBLIOGRAPHY|REFERENCIAS)\b', sources[1], re.IGNORECASE)
+    if m_bib:
+        sources[1] = sources[1][:m_bib.start()]
+    patterns = [
+        r'(?:doi|DOI)\s*[:\-–—]\s*(10\.\d{4,9}/[^\s"\]\[}<>]+)',
+        r'https?://(?:dx\.)?doi\.org/(10\.\d{4,9}/[^\s"\]\[}<>]+)',
+    ]
+    for src in sources:
+        for pat in patterns:
+            m_doi = re.search(pat, src)
+            if m_doi:
+                cleaned = _clean(m_doi.group(1))
+                if cleaned:
+                    return cleaned
+    return None
+
+def classify_genre(text_lower: str, section_names: List[str]) -> Optional[str]:
+    """
+    Klasifikasi genre dokumen secara konservatif untuk memperkaya @type.
+    Mengembalikan tipe tambahan (misal 'Thesis', 'ConferencePaper') atau None
+    jika bukti tidak cukup spesifik. Default ScholarlyArticle tetap berlaku.
+    """
+    t = text_lower or ""
+    sections_join = " ".join(section_names or []).lower()
+    if re.search(r'\b(?:thesis|dissertation|disertasi|doctoral\b|ph\.?\s?d\b|skripsi|tesis)\b', t):
+        return "Thesis"
+    if re.search(r'\b(?:proceedings?|conference|symposium|workshop\s+paper)\b', t):
+        return "ConferencePaper"
+    if re.search(r'\b(?:technical\s+report|techreport|research\s+report|working\s+paper|white\s+paper)\b', t):
+        return "TechReport"
+    if re.search(r'\b(?:book\s+chapter|chapter\s+\d+)\b', t):
+        return "Chapter"
+    if re.search(r'\bmethodolog|\bmethods?\b', sections_join) and re.search(r'\bresults?\b', sections_join):
+        return "ScholarlyArticle"
+    return None
+
+def generate_document_id(date_published: Optional[str], title: str, file_name: str) -> str:
+    """Hasilkan @id deterministik bergaya URN: corpusld:{tanggal}/{slug-judul}."""
+    source = (title or "").strip() or (file_name or "document").replace(".pdf", "")
+    slug = re.sub(r'[^a-z0-9]+', '-', source.lower()).strip('-')[:50].rstrip('-')
+    date_part = (date_published or "").strip() or "undated"
+    return f"corpusld:{date_part}/{slug}"
+
+def detect_publisher_deterministic(full_text: str, exclude_title: str = "") -> Optional[Dict[str, str]]:
+    """
+    Deteksi penerbit/jurnal induk dokumen secara deterministik.
+    Urutan prioritas: pernyataan eksplisit > database penerbit mayor > inferensi
+    nama jurnal. Hasil ditandai note='inferred-journal' jika berasal dari inferensi.
+    Kandidat yang merupakan bagian dari judul dokumen (misal ': Systematic Review')
+    dibuang agar tidak salah tangkap.
+    """
+    t = full_text or ""
+    if not t:
+        return None
+    title_lower = (exclude_title or "").lower().strip()
+
+    def _is_title_fragment(name: str) -> bool:
+        n = name.lower().strip()
+        return bool(title_lower) and (n in title_lower or title_lower.endswith(n))
+
+    _PUB_STOPWORDS = re.compile(
+        r'\s+(?:under|with|by|from|in\s+collaboration|license|licensed|all\s+rights|CC[-\s]?BY.*|[Tt]his\s+article)\b.*$'
+    )
+
+    def _clean_pub_name(name: str) -> str:
+        name = strip_markdown_formatting(name).split('\n')[0].strip().rstrip('.,;')
+        name = _PUB_STOPWORDS.sub('', name).strip().rstrip('.,;')
+        return name
+
+    m_explicit = re.search(
+        r'(?:Published\s+by|Publisher|Penerbit)\s*[:\-–—]+\s*([A-Z][A-Za-z0-9\s,.\'&/\-]{2,70})',
+        t
+    )
+    if m_explicit:
+        name = _clean_pub_name(m_explicit.group(1))
+        if name and len(name.split()) <= 10:
+            return {"@type": "Organization", "name": name}
+
+    # Database penerbit mayor dicek SEBELUM pola © (presisi tinggi, bebas junk)
+    major_publishers = [
+        "IEEE", "ACM", "Springer Nature", "Springer", "Elsevier", "Taylor & Francis",
+        "Wiley", "SAGE", "MDPI", "Oxford University Press", "Cambridge University Press",
+        "Routledge", "Nature Publishing Group", "AAAS", "Inderscience", "Emerald",
+    ]
+    for pub in major_publishers:
+        if re.search(rf'\b{re.escape(pub)}\b', t):
+            return {"@type": "Organization", "name": pub}
+
+    m_copyright = re.search(r'©\s*\d{4}\s+([A-Z][A-Za-z0-9\s,.\'&/\-]{2,70})', t)
+    if m_copyright:
+        name = _clean_pub_name(m_copyright.group(1))
+        if name and 1 < len(name.split()) <= 10:
+            return {"@type": "Organization", "name": name}
+
+    m_journal = re.search(
+        r'\b((?:International\s+)?Journal\s+(?:of\s+)?[A-Z][A-Za-z\s&]{3,50}|'
+        r'[A-Z][A-Za-z\s&]{3,40}\s(?:Journal|Transactions|Proceedings|Review\s+of\s+[A-Z][A-Za-z\s&]{2,40}))',
+        t
+    )
+    if m_journal:
+        name = strip_markdown_formatting(m_journal.group(1)).split('\n')[0].strip().rstrip('.,;')
+        if name and len(name.split()) >= 3 and len(name.split()) <= 8 and not _is_title_fragment(name):
+            return {"@type": "Organization", "name": name, "note": "inferred-journal"}
     return None
 
 def detect_document_language(text: str) -> str:
@@ -1060,22 +1190,32 @@ def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str)
     head_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) in [1, 2]]
     full_head = "\n".join([c.get("text", "") for c in head_chunks])
     
-    # 1. Cari explicit keyword Abstract / Abstrak sampai batas seksi 1 / keywords
-    m_abs = re.search(r'\b(?:Abstract|Abstrak|Ringkasan(?:\s+Eksekutif)?)[\s\:\.\-\—–*#]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
+    # 1. Cari explicit keyword Abstract / Abstrak / Summary / Resumen sampai batas seksi 1 / keywords
+    m_abs = re.search(r'\b(?:Abstract|Abstrak|Summary|Resumen|Ringkasan(?:\s+Eksekutif)?)[\s\:\.\-\—–*#]+([\s\S]+?)(?=(?:\n\s*(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.\s+|I\.\s+|Introduction|Pendahuluan|\d+\.\s+[A-Z]))|\Z)', full_head, re.I)
     if m_abs:
         abs_clean = clean_abstract_description(m_abs.group(1).strip())
         if len(abs_clean) > 40:
             return abs_clean[:4000]
-            
+
     # 2. Cari paragraf isi utama halaman 1 setelah baris afiliasi & email sampai sebelum Introduction
     p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
     p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
-    
+
     body_start = 0
-    for i, l in enumerate(raw_lines[:15]):
-        if '@' in l or any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'agroparistech', 'sayfood', 'email:']):
+    for i, l in enumerate(raw_lines[:30]):
+        ll = l.lower()
+        if '@' in l or any(w in ll for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'agroparistech', 'sayfood', 'email:', 'corresponding']):
             body_start = i + 1
+            continue
+        # Label abstrak terstruktur (Objectives:/Methods:/Results: ...) atau
+        # heading SUMMARY/RESUMEN menandai awal abstrak secara langsung
+        if re.match(r'^(?:objectives?|methods?|materials?\s+and\s+methods?|results?|conclusions?|background|purpose|design|hypothesis)\s*:\s*\S', ll):
+            body_start = i
+            break
+        if l.rstrip(':').upper() in ('SUMMARY', 'RESUMEN', 'ABSTRACT', 'ABSTRAK'):
+            body_start = i + 1
+            break
             
     if body_start > 0 and body_start < len(raw_lines):
         abstract_lines = []
@@ -1084,7 +1224,7 @@ def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str)
                 break
             # Lewati baris metadata editorial jurnal (Received/Revised/Accepted/
             # Available online/Copyright) agar tidak tercampur ke abstrak
-            if re.match(r'^(?:received|revised|accepted|published|available\s+online|copyright|©|license|open\s+access)', l, re.I):
+            if re.match(r'^(?:received|revised|accepted|published|available\s+online|copyright|©|license|open\s+access|recibido|aceptado|orcid)', l, re.I):
                 continue
             if not re.match(r'^(?:arxiv|doi|https?://|table|tabel|figure|gambar)', l, re.I):
                 abstract_lines.append(l)
@@ -1172,6 +1312,13 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
                 authors.append(auth_obj)
     return authors
 
+# Pola noise keyword dikompilasi sekali di level modul (sebelumnya rebuild per panggilan)
+_KW_NOISE_RES = [
+    re.compile(r'\b(?:recibido|received|aceptado|accepted|published|article|articles|total\s+of|boolean|combinations|study|aimed|methods|results|conclusion|prisma)\b', re.IGNORECASE),
+    re.compile(r'^\d+$'),
+    re.compile(r'\.\s+[A-Z]'),
+]
+
 def extract_explicit_document_keywords(text: str) -> List[str]:
     """
     Ekstrak kata kunci HANYA jika tercetak eksplisit di dalam dokumen
@@ -1197,23 +1344,17 @@ def extract_explicit_document_keywords(text: str) -> List[str]:
     
     items = re.split(r'[,;•·\|–—]|\n+', raw_kw_block)
     cleaned_kws = []
-    
-    noise_kw_patterns = [
-        r'\b(?:recibido|received|aceptado|accepted|published|article|articles|total\s+of|boolean|combinations|study|aimed|methods|results|conclusion|prisma)\b',
-        r'^\d+$',
-        r'\.\s+[A-Z]'  # Sentence boundary inside keyword
-    ]
-    
+
     for it in items:
         it_clean = it.strip().strip('.').strip()
         if len(it_clean) < 2 or len(it_clean) > 45:
             continue
         if len(it_clean.split()) > 6:
             continue
-        if any(re.search(pat, it_clean, re.I) for pat in noise_kw_patterns):
+        if any(p.search(it_clean) for p in _KW_NOISE_RES):
             continue
         cleaned_kws.append(it_clean)
-            
+
     return cleaned_kws[:10]
 
 def verify_and_resolve_authors(text: str, proposed_authors: list) -> list:
@@ -1233,7 +1374,7 @@ def verify_and_resolve_authors(text: str, proposed_authors: list) -> list:
         
         if substantive and all(t in text_lower for t in substantive):
             id_a = a.get("identifier")
-            if id_a and any(dummy in str(id_a).lower() for dummy in ["0000", "nim/nip", "not available", "none", "n/a"]):
+            if id_a and any(dummy in str(id_a).lower() for dummy in ["0000", "orcid:0000", "nim/nip", "not available", "none", "n/a"]):
                 a["identifier"] = None
             a["name"] = name
             verified.append(a)
@@ -1832,6 +1973,20 @@ Respond ONLY in valid JSON."""
         if not desc or desc.startswith("Dokumen ") or desc == doc_name or len(desc) < 30:
             desc = extract_deterministic_abstract(clean_file_chunks, file_name)
         step1_res["description"] = strip_markdown_formatting(desc)
+
+        # 3b. Rekonsiliasi abstrak terpotong: konteks Agent-1 dibatasi karakter,
+        #     sehingga LLM kadang mereproduksi abstrak yang menggantung di tengah
+        #     kalimat. Jika versi LLM tak berakhir rapi tapi versi deterministik
+        #     utuh tersedia, pakai versi deterministik.
+        det_abs = extract_deterministic_abstract(clean_file_chunks, file_name)
+        cur_abs = (step1_res.get("description") or "").strip()
+        if det_abs and len(det_abs) > 150 and len(cur_abs) > 30:
+            ends_clean = cur_abs[-1:] in ('.', '!', '?')
+            if not ends_clean:
+                log("🩹 Abstract reconciliation: LLM output truncated -> using deterministic verbatim abstract.")
+                step1_res["description"] = det_abs
+            elif det_abs.startswith(cur_abs[:100]) and len(det_abs) >= len(cur_abs) * 1.15:
+                step1_res["description"] = det_abs
         
         if step1_res.get("alternateName"):
             step1_res["alternateName"] = strip_markdown_formatting(step1_res.get("alternateName"))
@@ -2274,10 +2429,26 @@ Respond ONLY in valid JSON."""
     raw_date = step1_res.get("datePublished")
     normalized_date = normalize_publication_date(raw_date, fallback_text=ctx_1 + " " + all_doc_text)
 
+    # Deterministik tambahan: DOI, genre, publisher (backport enhancement dari port v2.6)
+    doc_doi = extract_doi_deterministic(ctx_1, all_doc_text)
+    doc_genre = classify_genre(all_doc_text.lower(), [s.get("section_name", "") for s in filtered_sections])
+    doc_publisher = detect_publisher_deterministic(all_doc_text, exclude_title=step1_res.get("name") or "")
+
     # 4. Pure 100% Valid Schema.org Document JSON-LD (Optimal untuk Google Rich Results Test & Schema.org)
+    schema_types = ["Article", "ScholarlyArticle"]
+    if doc_genre and doc_genre not in schema_types:
+        if doc_genre == "ScholarlyArticle":
+            pass  # sudah menjadi default
+        elif doc_genre == "ConferencePaper":
+            # Tetap ScholarlyArticle karena paper konferensi adalah artikel ilmiah
+            schema_types = ["Article", "ConferencePaper", "ScholarlyArticle"]
+        else:
+            # Thesis / TechReport / Chapter menggantikan klaim ScholarlyArticle
+            schema_types = ["Article", doc_genre]
+
     raw_schema_json_ld = {
         "@context": "https://schema.org",
-        "@type": ["Article", "ScholarlyArticle"],
+        "@type": schema_types,
         "headline": step1_res.get("name") or file_name,
         "name": step1_res.get("name") or file_name,
         "description": step1_res.get("description") or f"Document {file_name}",
@@ -2298,11 +2469,27 @@ Respond ONLY in valid JSON."""
         }
     }
 
+    if doc_doi:
+        raw_schema_json_ld["identifier"] = [{
+            "@type": "PropertyValue",
+            "propertyID": "DOI",
+            "value": doc_doi
+        }]
+        raw_schema_json_ld["sameAs"] = f"https://doi.org/{doc_doi}"
+    if doc_publisher:
+        raw_schema_json_ld["publisher"] = doc_publisher
+
     if normalized_date:
         raw_schema_json_ld["datePublished"] = normalized_date
         raw_schema_json_ld["dateModified"] = normalized_date
     if step1_res.get("alternateName"):
         raw_schema_json_ld["alternateName"] = step1_res["alternateName"]
+
+    raw_schema_json_ld["@id"] = generate_document_id(
+        normalized_date,
+        step1_res.get("name") or "",
+        file_name
+    )
 
     # Prune any empty arrays, empty strings, or nulls
     pure_schema_json_ld = prune_empty_fields(raw_schema_json_ld)
@@ -2338,7 +2525,7 @@ def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
         "description", "inLanguage", "datePublished", "dateModified",
         "keywords", "author", "creator", "publisher", "sdPublisher", "about", "hasPart",
         "additionalProperty", "citation", "action", "potentialAction",
-        "mainEntity", "encodingFormat", "url"
+        "mainEntity", "encodingFormat", "url", "identifier", "sameAs"
     }
     
     def _prune(val: Any) -> Any:
