@@ -1,0 +1,106 @@
+# -*- coding: utf-8 -*-
+"""CorpusLD Extraction Package.
+
+Shim kompatibilitas penuh: semua `from json_ld_extractor import X` lama
+tetap berfungsi tanpa perubahan pada konsumen (server, benchmark_runner).
+"""
+import logging
+import warnings
+
+# Redam pesan teknis internal CMap font decoding dari PyPDF (dipindah dari monolit)
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+logging.getLogger("pypdf._cmap").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", module="pypdf")
+
+from .schemas import (
+    EducationalOrganization,
+    Author,
+    UniversalEntity,
+    DocumentSection,
+    UniversalProperty,
+    UniversalTable,
+    UniversalJSONLD,
+    Step1Overview,
+    Step2Sections,
+    Step3Metrics,
+    Step4Tables,
+    Step5References,
+)
+from .text_utils import (
+    strip_markdown_formatting,
+    MAX_CONTEXT_CHARS,
+    MAX_CONTEXT_CHARS_AGENT1,
+    truncate_context,
+    sanitize_text_for_extraction,
+    fix_concatenated_title_spacing,
+    clean_document_title,
+    clean_abstract_description,
+    is_mathematical_formula,
+)
+from .tables import (
+    consolidate_tables,
+    is_valid_tabular_data,
+    parse_markdown_table_direct,
+)
+from .outline import (
+    filter_sections_negative_constraints,
+    filter_monotonic_outline_headings,
+    extract_agnostic_structural_outline,
+    resolve_section_pages,
+)
+from .dates import (
+    MONTH_MAP_BILINGUAL,
+    normalize_publication_date,
+)
+from .metadata import (
+    extract_doi_deterministic,
+    classify_genre,
+    generate_document_id,
+    detect_publisher_deterministic,
+    detect_document_language,
+    extract_deterministic_title,
+    extract_deterministic_abstract,
+    extract_deterministic_authors,
+    extract_explicit_document_keywords,
+    verify_and_resolve_authors,
+    normalize_author_affiliations,
+    sanitize_entities,
+    refine_and_deduplicate_metrics,
+    correct_metric_units,
+)
+from .references import (
+    extract_references_regex_fallback,
+    reconcile_references,
+)
+from .llm_adapters import (
+    run_agentic_step,
+)
+from .validation import (
+    ANTONYM_PAIRS_BILINGUAL,
+    NEGATION_PATTERNS_BILINGUAL,
+    validate_knowledge_graph_adversarial,
+    validate_json_ld_rich_results,
+    get_clean_schema_org_jsonld,
+    generate_google_scholar_meta_tags,
+)
+from .pipeline import (
+    extract_json_ld_agentic_rag,
+    extract_json_ld_from_chunks,
+)
+
+__all__ = [
+    'EducationalOrganization', 'Author', 'UniversalEntity', 'DocumentSection',
+    'UniversalProperty', 'UniversalTable', 'UniversalJSONLD', 'Step1Overview',
+    'Step2Sections', 'Step3Metrics', 'Step4Tables', 'Step5References',
+    'strip_markdown_formatting', 'MAX_CONTEXT_CHARS', 'MAX_CONTEXT_CHARS_AGENT1', 'truncate_context',
+    'sanitize_text_for_extraction', 'fix_concatenated_title_spacing', 'clean_document_title', 'clean_abstract_description',
+    'is_mathematical_formula', 'consolidate_tables', 'is_valid_tabular_data', 'parse_markdown_table_direct',
+    'filter_sections_negative_constraints', 'filter_monotonic_outline_headings', 'extract_agnostic_structural_outline', 'resolve_section_pages',
+    'MONTH_MAP_BILINGUAL', 'normalize_publication_date', 'extract_doi_deterministic', 'classify_genre',
+    'generate_document_id', 'detect_publisher_deterministic', 'detect_document_language', 'extract_deterministic_title',
+    'extract_deterministic_abstract', 'extract_deterministic_authors', 'extract_explicit_document_keywords', 'verify_and_resolve_authors',
+    'normalize_author_affiliations', 'sanitize_entities', 'refine_and_deduplicate_metrics', 'correct_metric_units',
+    'extract_references_regex_fallback', 'reconcile_references', 'run_agentic_step', 'ANTONYM_PAIRS_BILINGUAL',
+    'NEGATION_PATTERNS_BILINGUAL', 'validate_knowledge_graph_adversarial', 'validate_json_ld_rich_results', 'get_clean_schema_org_jsonld',
+    'generate_google_scholar_meta_tags', 'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
+]
