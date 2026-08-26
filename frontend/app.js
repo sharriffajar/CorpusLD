@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settings: {
       provider: 'ollama',
       ollamaModel: 'qwen2.5:3b',
-      cloudModel: 'gemini-3.5-flash',
+      cloudModel: 'gemini-3.5-flash-lite',
       apiKey: '',
       baseUrl: '',
       parser: 'pypdf',
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settingProvider.value = appState.settings.provider || 'ollama';
     settingOllamaModel.value = appState.settings.ollamaModel || 'qwen2.5:3b';
     if (settingBaseUrl) settingBaseUrl.value = appState.settings.baseUrl || '';
-    settingCloudModel.value = appState.settings.cloudModel || 'gemini-3.5-flash';
+    settingCloudModel.value = appState.settings.cloudModel || 'gemini-3.5-flash-lite';
     settingApiKey.value = appState.settings.apiKey || '';
     settingParser.value = appState.settings.parser || 'pypdf';
     settingLlamaparseKey.value = appState.settings.llamaparseKey || '';
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     appState.settings = {
       provider: 'ollama',
       ollamaModel: 'qwen2.5:3b',
-      cloudModel: 'gemini-3.5-flash',
+      cloudModel: 'gemini-3.5-flash-lite',
       apiKey: '',
       baseUrl: '',
       parser: 'pypdf',
@@ -300,9 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       updateIndexStatus(data.is_indexed);
-      if (data.model_warmed_up) {
-        updateModelStatus('ready');
-      }
     } catch (e) {
       console.error('Status fetch failed:', e);
     }
@@ -432,10 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
     syncStatusText.textContent = 'Uploading files...';
 
     try {
-      await fetch('/api/upload', {
+      const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       });
+      const data = await res.json();
+      if (data.rejected && data.rejected.length) {
+        const reasons = data.rejected.map(r => `${r.file}: ${r.reason}`).join('\n');
+        alert('Some files were rejected:\n' + reasons);
+      }
       await fetchDocuments();
       updateIndexStatus(false);
     } catch (e) {

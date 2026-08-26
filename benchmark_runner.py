@@ -589,7 +589,7 @@ def main():
     parser = argparse.ArgumentParser(description="CorpusLD Multi-Style Document Benchmark Runner")
     parser.add_argument("--file", type=str, help="Nama file PDF spesifik dalam folder benchmark_corpus/ (untuk hemat kuota API)")
     parser.add_argument("--provider", type=str, default="gemini", help="LLM Provider: gemini, ollama, openai, groq, openrouter")
-    parser.add_argument("--model", type=str, default="gemini-3.5-flash-lite", help="Model name (e.g. gemini-3.5-flash-lite, gemini-2.5-flash, gpt-4o-mini, qwen2.5:7b)")
+    parser.add_argument("--model", type=str, default=Config.GEMINI_MODEL_NAME, help=f"Model name (default: {Config.GEMINI_MODEL_NAME}; e.g. gemini-2.5-flash, gpt-4o-mini, qwen2.5:7b)")
     parser.add_argument("--api-key", type=str, default=None, help="API Key opsional (atau gunakan env GEMINI_API_KEY)")
     parser.add_argument("--clean", action="store_true", help="Reset riwayat benchmark dan jalankan ulang seluruh korpus dari awal")
     args = parser.parse_args()

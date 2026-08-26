@@ -15,13 +15,15 @@ class Config:
     UNSTRUCTURED_API_KEY = os.getenv("UNSTRUCTURED_API_KEY", "")
     UNSTRUCTURED_SERVER_URL = os.getenv("UNSTRUCTURED_SERVER_URL", "https://api.unstructured.io/general/v0/general")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    
+
     # Vector DB & LLM Config
     QDRANT_URL = os.getenv("QDRANT_URL", "./qdrant_db")
     QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "corpusld_workspace")
     OLLAMA_MODEL_NAME = os.getenv("OLLAMA_MODEL_NAME", "qwen2.5:3b")
+    GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-3.5-flash-lite")
     EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "ibm-granite/granite-embedding-107m-multilingual")
     EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "384"))
+    MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
 
     @classmethod
     def validate_keys(cls):
