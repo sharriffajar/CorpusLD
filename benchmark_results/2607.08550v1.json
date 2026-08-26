@@ -38,212 +38,212 @@
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "Introduces the context of open-source PLCs and highlights the deployment gap between idealized verification models and resource-constrained hardware execution. It details the core contributions of the paper and outlines the scope of the research."
+      "description": "Introduces the context of open-hardware PLCs and the problem of the deployment gap between abstract formal verification models and physical microcontroller execution constraints. It highlights the risks this gap poses to industrial control systems and outlines the motivation for the proposed research."
     },
     {
       "@type": "CreativeWork",
       "name": "1.1 The Deployment Gap",
-      "description": "Explains the discrepancies that arise when transitioning from abstract verification models to physical microcontrollers with finite data widths and sensor resolutions."
+      "description": "Discusses the specific discrepancies between ideal verification models, such as unbounded integer semantics, and actual MCU execution realities like finite bit-widths and ADC resolution limits."
     },
     {
       "@type": "CreativeWork",
       "name": "1.2 Contributions",
-      "description": "Summarizes the primary technical advancements, tools, and formal methods introduced to bridge the deployment gap for open-hardware PLCs."
+      "description": "Summarizes the core technical contributions of the paper, including hardware-faithful verification techniques and the evaluation of industrial open-hardware PLCs."
     },
     {
       "@type": "CreativeWork",
       "name": "1.3 Scope",
-      "description": "Defines the boundaries of the study, specifying the types of hardware targets and verification frameworks considered in the evaluation."
+      "description": "Defines the operational boundaries and target environments covered by the proposed approach, focusing on Arduino-class devices and specific IEC 61131-3 languages."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Background",
-      "description": "Provides foundational concepts regarding the PLC scan cycle, open-hardware toolchains, PLCopen XML standards, and machine models for Arduino-class targets. It also reviews bounded model checking and k-induction techniques."
+      "description": "Provides foundational background on programmable logic controllers, the PLC scan cycle, open-hardware toolchains, and bounded model checking principles."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 The PLC Scan Cycle",
-      "description": "Describes the standard operational loop of Programmable Logic Controllers, involving input reading, logic execution, and output updating."
+      "description": "Explains the cyclic nature of PLC execution, detailing the phases of reading inputs, executing logic, and writing outputs."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Open-Hardware PLCs and the OpenPLC Toolchain",
-      "description": "Reviews open-source industrial hardware alternatives and the software toolchain used to compile IEC 61131-3 code into executable binaries."
+      "description": "Overview of open-hardware industrial controllers and how the OpenPLC ecosystem compiles IEC 61131-3 code into deployable binaries."
     },
     {
       "@type": "CreativeWork",
       "name": "2.4 PLCopen XML",
-      "description": "Outlines the XML-based exchange format used to represent PLC programs, configurations, and function blocks across different engineering tools."
+      "description": "Describes the XML-based standard format used to represent PLC programs, configurations, and function blocks across diverse engineering tools."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain",
-      "description": "Details the compilation pipeline that transforms high-level PLCopen XML representations into target-specific C/C++ code and machine binaries."
+      "description": "Details the compilation pipeline translating high-level PLCopen XML representations into executable C code and target-specific binaries."
     },
     {
       "@type": "CreativeWork",
       "name": "2.6 Machine Models of Arduino-Class Targets",
-      "description": "Examines the hardware architecture and memory constraints of microcontroller targets, focusing on word sizes and fixed-width data types."
+      "description": "Examines the hardware architectures and integer bit-width limitations characteristic of Arduino-class microcontrollers used in industrial settings."
     },
     {
       "@type": "CreativeWork",
       "name": "2.7 Bounded Model Checking andk-Induction for PLCs",
-      "description": "Explains how formal verification algorithms like bounded model checking and k-induction are applied to verify safety properties in PLC software."
+      "description": "Reviews formal verification techniques, specifically bounded model checking and k-induction, as applied to verifying safety properties in PLC programs."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Related Work",
-      "description": "Surveys existing literature on the verification of IEC 61131-3 code, target-faithful analysis of embedded software, and code-generation correctness."
+      "description": "Surveys existing literature and toolchains related to the formal verification of IEC 61131-3 programs and target-faithful analysis of embedded software."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 Verification of IEC 61131-3",
-      "description": "Discusses previous academic and industrial approaches aimed at verifying industrial control programs written in IEC 61131-3 languages."
+      "description": "Summarizes prior approaches and tools designed to check safety properties and functional correctness of programs written in IEC 61131-3 languages."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Target-Faithful Analysis of Embedded Software",
-      "description": "Reviews methods that ensure software analysis tools account for specific hardware behaviors, such as compiler optimizations and integer overflow rules."
+      "description": "Discusses methods that account for underlying hardware characteristics during software analysis to prevent unsound verification results."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 Code-Generation Correctness",
-      "description": "Examines research dedicated to proving that code generators and compilers preserve the semantic properties of the source specifications."
+      "description": "Reviews studies and verification techniques addressing bugs and discrepancies introduced during the automatic code generation and compilation process."
     },
     {
       "@type": "CreativeWork",
       "name": "4. The Deployment Gap, Formally",
-      "description": "Formalizes the deployment gap by defining the physical process, fault models, assumptions, and presenting motivating examples of verification unsoundness."
+      "description": "Formalizes the deployment gap mathematically, establishing the physical process, fault model, and motivating examples that demonstrate verification unsoundness."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1 Physical Process and Fault Model",
-      "description": "Defines the interaction between the physical environment and the controller, establishing the baseline fault model used for formal analysis."
+      "description": "Outlines the physical process interactions and the specific fault model used to evaluate software anomalies caused by hardware constraints."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.1 Fault model",
-      "description": "Details the specific categories of hardware and software faults considered within the formal framework."
+      "description": "Details the types of hardware-induced faults considered, such as integer overflow behavior and quantization errors from analog inputs."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.2 Assumptions",
-      "description": "Outlines the foundational assumptions regarding sensor behavior, actuator constraints, and execution environments."
+      "description": "States the formal assumptions regarding target execution environments, sensor characteristics, and environment behaviors."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.3 Motivating example",
-      "description": "Presents a concrete case study illustrating how hardware limitations cause divergences between verified models and physical execution."
+      "description": "Presents a concrete programming example where abstract verification passes successfully while the physical implementation fails due to hardware constraints."
     },
     {
       "@type": "CreativeWork",
       "name": "5. Hardware-Faithful Verification",
-      "description": "Proposes a hardware-faithful verification framework, detailing the scan-cycle execution model, faithful lowering techniques, and soundness diagnostics."
+      "description": "Introduces the core methodology for hardware-faithful verification, including the scan-cycle execution model, faithful lowering, and gap diagnosis."
     },
     {
       "@type": "CreativeWork",
       "name": "5.1 Scan-Cycle Execution Model",
-      "description": "Defines the formal semantics of the scan cycle adapted for hardware-faithful verification."
+      "description": "Formulates an accurate formal execution model that reflects how target microcontrollers handle the cyclic execution of PLC logic."
     },
     {
       "@type": "CreativeWork",
       "name": "5.3 Faithful Lowering",
-      "description": "Describes the transformation process that maps high-level control semantics into hardware-accurate representations."
+      "description": "Describes the transformation process that maps high-level specifications down to bit-accurate representations matching the target hardware."
     },
     {
       "@type": "CreativeWork",
       "name": "5.4 Soundness and Gap Diagnosis",
-      "description": "Analyzes the theoretical soundness of the proposed verification approach and introduces mechanisms to diagnose discrepancies caused by the deployment gap."
+      "description": "Proves the theoretical soundness of the proposed verification framework and explains how deployment gap discrepancies are diagnosed."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2 Implementation",
-      "description": "Details the software architecture, engineering decisions, placement of hooks, and configurability of the implemented verification framework."
+      "description": "Details the practical implementation details of the verifier tool extension, focusing on integration hooks and configurability."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.1 Where the Hook Sits",
-      "description": "Explains the architectural placement of instrumentation hooks within the compilation and verification pipeline."
+      "description": "Specifies the architectural placement of verification hooks within the compilation and analysis toolchain."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.2 What the Hook Emits",
-      "description": "Describes the specific monitoring data and assertions generated by the hooks during verification."
+      "description": "Explains the intermediate verification constraints and annotations emitted by the integration hook."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.3 Configurability and Engineering",
-      "description": "Discusses how engineers can configure verification parameters to suit different microcontroller targets and application requirements."
+      "description": "Discusses engineering considerations and user-facing configuration options available in the implemented tool."
     },
     {
       "@type": "CreativeWork",
       "name": "7. The Approach in Practice",
-      "description": "Demonstrates the practical application of the approach, contrasting the engineer's high-level view with internal execution mechanisms."
+      "description": "Demonstrates how the proposed hardware-faithful verification approach is applied from both an engineer's perspective and an internal architectural view."
     },
     {
       "@type": "CreativeWork",
       "name": "7.1.1 Engineer’s View",
-      "description": "Outlines how automation engineers interact with the tool and interpret verification outcomes in a real-world workflow."
+      "description": "Illustrates the workflow and user experience for a control engineer using the hardware-faithful verification toolchain."
     },
     {
       "@type": "CreativeWork",
       "name": "7.1.2 Under the Hood",
-      "description": "Presents an in-depth look at the internal algorithms and intermediate representations driving the practical verification tool."
+      "description": "Provides a deep dive into the internal algorithms and translation mechanisms executing beneath the user interface."
     },
     {
       "@type": "CreativeWork",
       "name": "8. Evaluation",
-      "description": "Presents experimental results evaluating setup methodology, the frequency of the deployment gap, tool scalability, cross-tool validation, and overall performance."
+      "description": "Presents experimental evaluation results addressing research questions regarding the frequency of the deployment gap, performance impacts, and soundness restoration."
     },
     {
       "@type": "CreativeWork",
       "name": "8.1 Setup and Methodology",
-      "description": "Describes the benchmarks, hardware configurations, and experimental environment used to assess the verification framework."
+      "description": "Describes the experimental setup, benchmark suites, hardware targets, and metrics used to evaluate the verification approach."
     },
     {
       "@type": "CreativeWork",
       "name": "8.2 RQ1: The Gap Is Real but Rare",
-      "description": "Evaluates research question 1, showing that while deployment gaps occur in practice, they appear infrequently across standard benchmark suites."
+      "description": "Evaluates how often deployment gaps occur in practice across real-world benchmark programs, finding them infrequent but critical when present."
     },
     {
       "@type": "CreativeWork",
       "name": "8.3 RQ2: Naive Width-Aware Verification Is Unusable",
-      "description": "Addresses research question 2 by demonstrating the computational impracticality and limitations of naive width-aware verification strategies."
+      "description": "Analyzes the computational bottlenecks and scalability issues encountered when applying naive width-aware verification techniques."
     },
     {
       "@type": "CreativeWork",
       "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
-      "description": "Examines research question 3, proving that integrating the hardware abstraction layer annotator successfully recovers verification soundness."
+      "description": "Demonstrates that utilizing the hardware abstraction layer annotator effectively eliminates false negatives and restores verification soundness."
     },
     {
       "@type": "CreativeWork",
       "name": "8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific",
-      "description": "Compares results across multiple verification engines to confirm that the deployment gap is a fundamental hardware-software issue rather than an artifact of a single tool."
+      "description": "Compares results across multiple verification tools to confirm that the deployment gap is a fundamental hardware-software issue rather than an artifact of a single tool."
     },
     {
       "@type": "CreativeWork",
       "name": "10. Threats to Validity",
-      "description": "Identifies potential internal and external validity threats affecting the empirical study and discusses mitigation strategies."
+      "description": "Identifies potential internal and external validity threats to the experimental evaluation, including benchmark representativeness and tool assumptions."
     },
     {
       "@type": "CreativeWork",
       "name": "11. Future Work",
-      "description": "Proposes avenues for future research, including expanding support to more complex architectures and advanced sensor models."
+      "description": "Outlines promising future research directions, such as extending support to more complex microcontroller architectures and additional industrial protocols."
     },
     {
       "@type": "CreativeWork",
       "name": "12. Conclusion",
-      "description": "Summarizes the paper's core contributions, emphasizing the importance of hardware-faithful verification in closing the deployment gap for open-hardware PLCs."
+      "description": "Summarizes the main contributions of the paper, emphasizing the importance of hardware-faithful verification in closing the deployment gap for open-hardware PLCs."
     },
     {
       "@type": "CreativeWork",
       "name": "8.6 RQ4: Performance and Completeness",
-      "description": "Evaluates research question 4 regarding computational overhead, solving time, and completeness bounds of the proposed verification framework."
+      "description": "Evaluates the execution time, memory overhead, and completeness of the proposed hardware-faithful verification algorithm."
     },
     {
       "@type": "CreativeWork",
       "name": "9. Discussion",
-      "description": "Reflects on the broader implications of the findings for industrial control system security and formal methods in embedded systems."
+      "description": "Reflects on the broader implications of the findings for industrial automation security, limitations of the current method, and broader impacts."
     }
   ],
   "additionalProperty": [
@@ -256,45 +256,10 @@
     },
     {
       "@type": "PropertyValue",
-      "name": "false alarms",
+      "name": "false alarms eliminated",
       "value": 54,
       "unitText": "count",
-      "description": "without hardware input model on 123 real third-party programs"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "false alarms",
-      "value": 0,
-      "unitText": "count",
-      "description": "with HAL annotator on 123-program corpus"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "genuine defects found",
-      "value": 0,
-      "unitText": "count",
-      "description": "checking 16-bit arithmetic overflow without a hardware input model on 123 real third-party programs"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "real third-party programs corpus",
-      "value": 123,
-      "unitText": "count",
-      "description": "evaluation corpus"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "machine word width",
-      "value": 16,
-      "unitText": "bit",
-      "description": "resource-constrained Microcontroller Unit (MCU)"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "machine word width",
-      "value": 8,
-      "unitText": "bit",
-      "description": "AVR Arduinos"
+      "description": "on the 123-program corpus using the HAL annotator"
     }
   ],
   "citation": [

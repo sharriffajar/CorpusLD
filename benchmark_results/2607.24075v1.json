@@ -45,50 +45,56 @@
     {
       "@type": "CreativeWork",
       "name": "I. INTRODUCTION",
-      "description": "This section introduces the challenges of integrating Battery Energy Storage Systems (BESSs) into volatile electricity markets. It outlines the motivation driven by renewable energy growth in Germany and presents a data-driven sequential optimization framework to address revenue-stacking limitations."
+      "description": "This section introduces the increasing role of Battery Energy Storage Systems in managing renewable energy intermittency in Germany. It details the motivation behind coordinated multi-market participation and outlines the paper's core contributions."
     },
     {
       "@type": "CreativeWork",
       "name": "II. METHODOLOGY",
-      "description": "This section outlines the sequential optimization approach for front-of-the-meter BESS across multiple power markets. It defines the temporal framework and market structures considered in the operational model."
+      "description": "This section outlines the sequential optimization methodology designed to model real-world market operations and gate closure times for Front-of-the-Meter BESS. It establishes the foundational framework for multi-market revenue stacking."
     },
     {
       "@type": "CreativeWork",
       "name": "III. MODELING",
-      "description": "This section details the mathematical formulations and operational constraints for the BESS and the various market stages. It includes models for forecasting, market clearing, and opportunity-cost-based bidding."
+      "description": "This section details the mathematical modeling of the battery storage system, market mechanisms, and price forecasting integration. It presents the opportunity-cost-based bidding strategy used across different electricity and reserve markets."
     },
     {
       "@type": "CreativeWork",
       "name": "IV. VALIDATION OF SEQUENTIAL OPTIMIZATION OFBESS",
-      "description": "This section presents the validation results of the proposed sequential optimization framework for a representative operating day. It demonstrates the framework's ability to generate feasible schedules, adapt to updated forecasts, and minimize dispatch deviations."
+      "description": "This section validates the proposed sequential optimization framework using data from a representative operating day. Results demonstrate consistent, feasible schedules and improved adaptation to updated market forecasts."
     },
     {
       "@type": "CreativeWork",
       "name": "V. CONCLUSION",
-      "description": "This section summarizes the key contributions and findings of the paper regarding the data-driven sequential optimization framework for BESS. It highlights the effectiveness of the opportunity-cost bidding strategy in enhancing operational realism and profitability."
+      "description": "This section summarizes the key findings of the data-driven sequential market optimization framework for Front-of-the-Meter BESS. It emphasizes how the approach enhances operational realism and profitability."
     }
   ],
   "additionalProperty": [
     {
       "@type": "PropertyValue",
       "name": "BESS capacity growth",
-      "value": 1.3333,
-      "unitText": "ratio",
-      "description": "Germany's installed BESS capacity growth in 2024 (nearly one-third growth)"
+      "value": "1.333",
+      "unitText": "multiplier",
+      "description": "growth by nearly one-third in 2024 in Germany"
     },
     {
       "@type": "PropertyValue",
       "name": "Installed BESS capacity",
-      "value": 1.8,
+      "value": "1.8",
       "unitText": "GWh",
-      "description": "Germany in 2024"
+      "description": "Installed BESS capacity in Germany in 2024"
     },
     {
       "@type": "PropertyValue",
       "name": "Additional BESS capacity",
-      "value": 3.7,
+      "value": "3.7",
       "unitText": "GWh",
-      "description": "Additional capacity in Germany"
+      "description": "Additional capacity"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Grant number",
+      "value": "101096787",
+      "description": "Horizon Europe i-STENTORE Project"
     }
   ],
   "citation": [

@@ -38,7 +38,7 @@
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "This section introduces the problem of probability estimation over large alphabets under log loss and outlines the motivation for developing a new Bayesian estimator. It discusses the limitations of traditional methods and sets up the foundational questions regarding simple architectures acting as effective priors."
+      "description": "The introduction outlines the motivation for studying probability estimation over large alphabets under log loss. It introduces a new Bayesian estimator based on a layered simplex architecture and highlights its simplicity, competitiveness, and analytical tractability."
     },
     {
       "@type": "CreativeWork",
@@ -63,17 +63,17 @@
     {
       "@type": "CreativeWork",
       "name": "3.1 Exact regret via count profiles",
-      "description": "This subsection derives the exact regret of the estimator using count profiles, providing a mathematical foundation for evaluating performance under log loss."
+      "description": "This subsection derives exact expressions for the regret using count profiles. It provides the mathematical foundation for evaluating the estimator's performance under log loss."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 The shallow end of the family is Laplace’s rule",
-      "description": "This subsection examines the behavior of the estimator at shallow depths, demonstrating that it converges to classical approaches such as Laplace's rule."
+      "description": "This subsection explores the shallow limit of the layered simplex architecture. It shows that this limiting case corresponds to the classical Laplace's rule of succession."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 The deep end of the family: depth tilts the complexity spectrum",
-      "description": "This subsection analyzes the deep end of the estimator family, showing how increased depth alters the complexity spectrum and affects performance on sparse targets."
+      "description": "This subsection analyzes the deep limit of the estimator family. It explains how increasing depth alters the complexity spectrum and affects the estimator's bias-variance tradeoff."
     },
     {
       "@type": "CreativeWork",
@@ -83,27 +83,27 @@
     {
       "@type": "CreativeWork",
       "name": "4.1 Three numerical tests",
-      "description": "This subsection presents three numerical tests comparing the proposed estimator's empirical performance against traditional methods on synthetic data."
+      "description": "This subsection evaluates the proposed estimator through three numerical tests. The empirical results demonstrate its strong performance compared to specialized methods like Good-Turing across synthetic and real-world datasets."
     },
     {
       "@type": "CreativeWork",
       "name": "5.1 Setup",
-      "description": "This subsection outlines the experimental setup and parameters used for the computational evaluation of the proposed estimator."
+      "description": "This subsection outlines the experimental setup for certified computation and regret evaluations. It defines the parameter ranges and datasets used in the subsequent analysis."
     },
     {
       "@type": "CreativeWork",
       "name": "5.2 Findings",
-      "description": "This subsection details the empirical findings from the computational tests, demonstrating the accuracy and efficiency of the explicit formulas."
+      "description": "This subsection presents the primary findings from the computational experiments. It details the empirical behavior of the regret and confirms the theoretical scaling laws."
     },
     {
       "@type": "CreativeWork",
       "name": "5.3 Compressing the Bible",
-      "description": "This subsection applies the proposed estimation framework to compress a real-world text dataset, demonstrating practical text compression capabilities."
+      "description": "This subsection applies the proposed estimator to a real-text benchmark involving the compression of the Bible. The results highlight the method's effectiveness on natural language data."
     },
     {
       "@type": "CreativeWork",
       "name": "5.4 Adding memory",
-      "description": "This subsection explores extensions of the model that incorporate memory to handle sequential dependencies in data."
+      "description": "This subsection explores extensions of the architecture that incorporate memory. It discusses how Markovian or sequential dependencies can be integrated into the simplex priors."
     },
     {
       "@type": "CreativeWork",
@@ -113,12 +113,12 @@
     {
       "@type": "CreativeWork",
       "name": "7. Discussion",
-      "description": "This section provides a broader discussion of the implications of the findings, limitations of the current model, and potential avenues for future research."
+      "description": "The discussion synthesizes the main contributions of the paper. It reflects on the implications of depth-averaging, scaling laws, and potential avenues for future research."
     },
     {
       "@type": "CreativeWork",
       "name": "8. Conclusion",
-      "description": "This section summarizes the key contributions of the paper, reiterating the effectiveness and simplicity of the layered simplex architecture for large-alphabet probability estimation."
+      "description": "The conclusion summarizes the core findings regarding the layered simplex architecture for large alphabets. It reiterates the elegance, analytical tractability, and competitiveness of the proposed Bayesian estimator."
     }
   ],
   "citation": [

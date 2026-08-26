@@ -46,87 +46,87 @@
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "This section introduces the context of Power-to-X integration in biogas plants for hydrogen and e-methanol production. It outlines the motivation and structural framework of the study."
+      "description": "This section introduces the context of Power-to-X integration in biogas plants for hydrogen and e-methanol production. It outlines the motivation and structural framework of the research."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Background",
-      "description": "This section provides essential contextual background, including literature reviews, existing e-methanol projects, the legal framework, the GreenLab Skive PtX hub concept, and relevant technology inputs and cost data."
+      "description": "This section provides essential background information, reviewing existing literature, ongoing projects, legal frameworks, and technological inputs related to e-methanol and PtX hubs."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 Review previous literature",
-      "description": "This subsection reviews prior research and developments related to Power-to-X technologies, hydrogen, and e-methanol production systems."
+      "description": "This subsection reviews past academic studies and scientific literature concerning Power-to-X technologies, e-methanol production, and biogas plant integration."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Overview of existing projects for e-MeOH",
-      "description": "This subsection summarizes current real-world projects and initiatives focused on e-methanol production to establish an industrial baseline."
+      "description": "This subsection surveys current industrial projects and real-world implementations focusing on e-methanol production and commercial viability."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3 Legal framework",
-      "description": "This subsection outlines the regulatory and legal parameters governing renewable fuels, hydrogen integration, and carbon utilization in the studied context."
+      "description": "This subsection outlines the regulatory policies, directives, and legal frameworks governing renewable energy, green hydrogen, and e-fuels."
     },
     {
       "@type": "CreativeWork",
       "name": "2.4 Overview of GreenLab Skive PtX hub concept",
-      "description": "This subsection details the GreenLab Skive Power-to-X industrial symbiosis hub concept, serving as the primary case study infrastructure."
+      "description": "This subsection details the specific GreenLab Skive industrial symbiosis concept, highlighting its role as a regional hub for Power-to-X operations."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5 Technology inputs and costa data",
-      "description": "This subsection compiles the techno-economic parameters, technology inputs, and cost data utilized for modeling the system components."
+      "description": "This subsection compiles economic and technical parameters, including capital expenditures, operational costs, and efficiencies for the various modeled technologies."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Methodology",
-      "description": "This section outlines the modeling framework and analytical procedures used to evaluate the integrated biogas and Power-to-X system."
+      "description": "This section describes the mathematical modeling framework, optimization approach, and scenario setups used to evaluate the integrated energy systems."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 PyPSA model",
-      "description": "This subsection describes the implementation of the Python for Power System Analysis (PyPSA) modeling framework for optimal system design and dispatch."
+      "description": "This subsection explains the implementation of the Python for Power System Analysis (PyPSA) modeling framework and its customization for the studied plant."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Sensitivity analysis",
-      "description": "This subsection details the sensitivity parameters tested to evaluate the robustness of the economic and operational findings against market variations."
+      "description": "This subsection outlines the parameters varied during the sensitivity analysis to test the robustness of the economic and operational model outcomes."
     },
     {
       "@type": "CreativeWork",
       "name": "4. Results and discussion",
-      "description": "This section presents and evaluates the quantitative findings from the optimization model regarding production costs, system designs, and credits."
+      "description": "This section presents the primary findings from the optimization runs, analyzing production costs, total system expenditures, and optimal plant configurations."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1 Production cost of H2 and MeOH",
-      "description": "This subsection analyzes the calculated levelized production costs for hydrogen and e-methanol under different operational scenarios."
+      "description": "This subsection evaluates the levelized cost of hydrogen and e-methanol produced under various operational scenarios."
     },
     {
       "@type": "CreativeWork",
       "name": "4.3 Total system cost",
-      "description": "This subsection examines the overall expenditures associated with establishing and operating the integrated renewable energy system."
+      "description": "This subsection analyzes the overall economic burden of the integrated system, breaking down capital and operational expenditures across components."
     },
     {
       "@type": "CreativeWork",
       "name": "4.4 Optimal system design – H2 to grid",
-      "description": "This subsection discusses the optimal configuration and performance of the system when hydrogen is exported directly to the grid."
+      "description": "This subsection explores the optimal plant configuration when excess hydrogen is exported directly to the external grid."
     },
     {
       "@type": "CreativeWork",
       "name": "4.5 Optimal system design – MeOH standalone",
-      "description": "This subsection explores the optimal sizing and operation of the facility when configured as a standalone e-methanol production plant."
+      "description": "This subsection investigates the ideal system design when the facility operates primarily as a standalone e-methanol producer."
     },
     {
       "@type": "CreativeWork",
       "name": "4.6 Impact of DH and biochar credits",
-      "description": "This subsection assesses how district heating (DH) and biochar revenue credits influence the economic viability and optimal design of the plant."
+      "description": "This subsection quantifies how district heating (DH) integration and biochar-related revenue credits influence the overall project economics."
     },
     {
       "@type": "CreativeWork",
       "name": "6. Conclusions",
-      "description": "This section synthesizes the primary findings of the study, highlighting the economic feasibility and optimal integration strategies for hydrogen and e-methanol production in biogas plants."
+      "description": "This section summarizes the key insights derived from the study, providing final remarks on the feasibility and optimization of Power-to-X biogas integration."
     },
     {
       "@type": "Table",

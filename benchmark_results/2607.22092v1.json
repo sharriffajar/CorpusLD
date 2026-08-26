@@ -36,6 +36,7 @@
     {
       "@type": "Person",
       "name": "Felipe Buendia",
+      "identifier": "felipe.buendia@inrae.fr",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
@@ -46,52 +47,52 @@
     {
       "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
+      "description": "This section introduces the challenges and regulatory context of biowaste valorisation across Europe, highlighting the need to balance decentralised and centralised infrastructure. It outlines the study's objective to develop a unified framework combining techno-economic analysis and life cycle assessment to evaluate treatment pathways."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Methodology",
-      "description": "Detailed analysis, methodology, and findings presented under section '2. Methodology'."
+      "description": "This section details the methodological approach used to model the environmental and economic performance of biowaste valorisation systems. It establishes the overall framework for assessing facility scales, transport impacts, and scenario configurations."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 Environmental modelling and system boundaries",
-      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Environmental modelling and system boundaries'."
+      "description": "This subsection defines the system boundaries and LCA modeling parameters for evaluating the environmental impacts of biowaste treatment and transport. It accounts for vehicle emissions and facility-level processes across different technological setups."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Techno-Economic Analysis",
-      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Techno-Economic Analysis'."
+      "description": "This subsection outlines the economic assessment methods used to calculate capital, operational, and transport costs for centralised and decentralised facilities. It provides the financial framework for comparing valorisation routes against local incineration."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3 Scenario construction and assumptions",
-      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Scenario construction and assumptions'."
+      "description": "This subsection describes the specific scenarios, technological parameters, and baseline assumptions formulated for composting, anaerobic digestion, and transport modes. It establishes the variable ranges for facility capacity and hauling distances."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Results",
-      "description": "Detailed analysis, methodology, and findings presented under section '3. Results'."
+      "description": "This section presents the findings of the techno-economic and environmental assessments, highlighting the performance of various configuration scales and transport distances. It demonstrates how trade-offs manifest across different operational setups."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 Cost Implications of a Centralised versus Decentralised System",
-      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Cost Implications of a Centralised versus Decentralised System'."
+      "description": "This subsection evaluates the economic impact of facility scale and transport distances, comparing the financial viability of centralised plants versus smaller decentralised units. It identifies critical cost thresholds driven by logistics and plant capacity."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Environmental assessment of the configurations",
-      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Environmental assessment of the configurations'."
+      "description": "This subsection analyzes the environmental footprints of the different biowaste treatment configurations, focusing on emissions, energy recovery, and nutrient recycling benefits. It evaluates how transport burdens offset processing advantages."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations",
-      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations'."
+      "description": "This subsection synthesizes economic and environmental indicators to identify Pareto-optimal infrastructure configurations. It maps out which systems successfully outperform baseline incineration options across combined metrics."
     },
     {
       "@type": "CreativeWork",
       "name": "4. Conclusions",
-      "description": "Detailed analysis, methodology, and findings presented under section '4. Conclusions'."
+      "description": "This section summarizes the key findings of the study regarding the non-linear relationship between facility scale and transport distance. It provides final actionable insights for regional planning and biowaste infrastructure deployment."
     },
     {
       "@type": "Table",
