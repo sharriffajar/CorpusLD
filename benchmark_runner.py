@@ -22,7 +22,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
 
 from config import Config
-from server import parse_with_pypdf
+from server import parse_document
 from json_ld_extractor import (
     extract_json_ld_agentic_rag, 
     validate_json_ld_rich_results, 
@@ -511,36 +511,43 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
         f.write(html_content)
     print(f"\n✨ Generated Clean Studio Dashboard: {output_path}")
 
-def run_single_benchmark(pdf_path: Path, provider: str, model: str, api_key: str = None) -> Dict[str, Any]:
+def run_single_benchmark(pdf_path: Path, provider: str, model: str, api_key: str = None,
+                         parser: str = "pypdf", llamaparse_key: str = "") -> Dict[str, Any]:
     file_name = pdf_path.name
     print(f"\n{'='*70}")
     print(f"🔬 RUNNING BENCHMARK: {file_name}")
-    print(f"🤖 Provider: {provider} | Model: {model or 'default'}")
+    print(f"🤖 Provider: {provider} | Model: {model or 'default'} | Parser: {parser}")
     print(f"{'='*70}")
 
-    # 1. Parsing dengan Chunk Cache (Gunakan hasil parsing tersimpan agar instan tanpa re-parse)
+    # 1. Parsing dengan Chunk Cache per-parser (hasil parsing tier berbeda TIDAK boleh tertukar)
     cache_dir = RESULTS_DIR / ".chunk_cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    chunk_cache_file = cache_dir / f"{pdf_path.stem}.json"
-    
+    chunk_cache_file = cache_dir / f"{pdf_path.stem}.{parser}.json"
+
     if chunk_cache_file.exists():
         try:
             with open(chunk_cache_file, "r", encoding="utf-8") as f:
                 chunks = json.load(f)
-            print(f"📦 Loaded {len(chunks)} pre-parsed chunks from cache (0.001s)")
+            print(f"📦 Loaded {len(chunks)} pre-parsed chunks from cache[{parser}] (0.001s)")
         except Exception:
-            chunks = parse_with_pypdf(str(pdf_path), file_name)
+            chunks = parse_document(
+                file_path=str(pdf_path), file_name=file_name, parser_choice=parser,
+                llamaparse_key=llamaparse_key,
+            )
             with open(chunk_cache_file, "w", encoding="utf-8") as f:
                 json.dump(chunks, f, ensure_ascii=False)
-            print(f"✅ Parsed & cached {len(chunks)} chunks")
+            print(f"✅ Parsed & cached {len(chunks)} chunks [{parser}]")
     else:
         t0 = time.time()
-        print("📄 Parsing PDF & Stitching cross-page blocks...")
-        chunks = parse_with_pypdf(str(pdf_path), file_name)
+        print(f"📄 Parsing PDF ({parser}) & Stitching cross-page blocks...")
+        chunks = parse_document(
+            file_path=str(pdf_path), file_name=file_name, parser_choice=parser,
+            llamaparse_key=llamaparse_key,
+        )
         parse_time = round(time.time() - t0, 3)
         with open(chunk_cache_file, "w", encoding="utf-8") as f:
             json.dump(chunks, f, ensure_ascii=False)
-        print(f"✅ Parsed {len(chunks)} chunks in {parse_time}s (saved to cache)")
+        print(f"✅ Parsed {len(chunks)} chunks in {parse_time}s (saved to cache[{parser}])")
 
     # 2. Ekstraksi Multi-Agent RAG JSON-LD
     def cli_progress(msg: str):
@@ -593,12 +600,16 @@ def main():
     parser.add_argument("--api-key", type=str, default=None, help="API Key opsional (atau gunakan env GEMINI_API_KEY)")
     parser.add_argument("--clean", action="store_true", help="Reset riwayat benchmark dan jalankan ulang seluruh korpus dari awal")
     parser.add_argument("--delay", type=float, default=0.0, help="Jeda detik antar dokumen untuk menghindari rate-limit API (mis. 20)")
+    parser.add_argument("--parser", choices=["pypdf", "hybrid", "llamaparse", "unstructured"], default="pypdf",
+                        help="Parser tier: pypdf (offline, gratis) | hybrid (pypdf + LlamaParse hanya halaman tabel sulit)")
+    parser.add_argument("--llamaparse-key", type=str, default="", help="LlamaParse key opsional (fallback: env LLAMAPARSE_API_KEY / .env)")
     args = parser.parse_args()
 
     CORPUS_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     api_key = args.api_key or os.environ.get("GEMINI_API_KEY") or Config.GEMINI_API_KEY
+    lp_key = args.llamaparse_key or os.environ.get("LLAMAPARSE_API_KEY") or Config.LLAMAPARSE_API_KEY
 
     # History database file to preserve previous benchmark runs across sessions
     history_file = RESULTS_DIR / "benchmark_history.json"
@@ -639,12 +650,13 @@ def main():
             print(f"💡 Silakan salin file PDF yang ingin diuji ke dalam '{CORPUS_DIR}/'")
             sys.exit(0)
 
-    print(f"🚀 CorpusLD Benchmark Suite Starting ({len(target_pdfs)} file target)...")
+    print(f"🚀 CorpusLD Benchmark Suite Starting ({len(target_pdfs)} file target) | Parser: {args.parser}...")
     current_run_results = []
     for i, pdf in enumerate(target_pdfs):
         if args.delay and i > 0:
             time.sleep(args.delay)
-        res = run_single_benchmark(pdf, provider=args.provider, model=args.model, api_key=api_key)
+        res = run_single_benchmark(pdf, provider=args.provider, model=args.model, api_key=api_key,
+                                   parser=args.parser, llamaparse_key=lp_key)
         current_run_results.append(res)
 
     # Gabungkan history agar akumulasi benchmark tetap tersimpan

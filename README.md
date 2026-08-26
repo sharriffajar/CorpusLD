@@ -168,6 +168,9 @@ You can test and evaluate extraction quality across scientific documents:
 # Run benchmark on a specific file in benchmark_corpus/
 python benchmark_runner.py --file "sample_paper.pdf"
 
+# Hybrid parser: free PyPDF everywhere + LlamaParse ONLY on hard table pages
+python benchmark_runner.py --parser hybrid --delay 20
+
 # Run full batch benchmark across all documents
 python benchmark_runner.py --clean
 

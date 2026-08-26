@@ -29,6 +29,7 @@
     {
       "@type": "Person",
       "name": "Mariyati Mardjuky",
+      "identifier": "0009-0009-9765-2921",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Department Maternity Nursing, Nursing Study Program, Sekolah Tinggi Ilmu Kesehatan Maluku Husada, Indonesia"
@@ -61,6 +62,7 @@
     {
       "@type": "Person",
       "name": "Afni Yan Syah",
+      "identifier": "0009-0003-8411-6667",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Department of Nursing, Akademi Keperawatan Kesdam Iskandar Muda Banda Aceh, Indonesia"
@@ -69,6 +71,7 @@
     {
       "@type": "Person",
       "name": "Yunita",
+      "identifier": "0009-0002-7214-2334",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
@@ -77,6 +80,7 @@
     {
       "@type": "Person",
       "name": "Evi Gustia Kesuma",
+      "identifier": "0009-0005-4402-4447",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
@@ -87,36 +91,46 @@
     {
       "@type": "CreativeWork",
       "name": "Introduction",
-      "description": "This section introduces the background and rationale for implementing case-based learning in nursing education. It outlines the study objectives to evaluate how this teaching method impacts nursing students' clinical skills, critical thinking, problem-solving, motivation, and satisfaction."
+      "description": "This section introduces the background and rationale for implementing case-based learning in nursing education. It highlights the importance of enhancing clinical skills, critical thinking, problem-solving, motivation, and student satisfaction."
     },
     {
       "@type": "CreativeWork",
       "name": "Results",
-      "description": "This section details the findings from the systematic review of the selected articles. It discusses the outcomes related to the effectiveness of case-based learning on various educational parameters among nursing students."
+      "description": "This section details the findings retrieved from the systematic review of selected articles. It outlines the process of article selection using PRISMA and evaluates the impact of case-based learning on nursing students' educational outcomes."
     },
     {
       "@type": "CreativeWork",
       "name": "Discussion",
-      "description": "This section interprets the findings and contextualizes the impact of case-based learning within nursing curricula. It addresses the implications of the results for educators and future pedagogical practices."
+      "description": "This section interprets the findings regarding the effectiveness of case-based learning in nursing curricula. It explores the implications of the results for educators and suggests areas for future research and curriculum development."
     },
     {
       "@type": "CreativeWork",
       "name": "Conclusion",
-      "description": "This section provides a summary of the review's core conclusions regarding the value of case-based learning. It highlights its overall efficacy in enhancing core competencies and professional satisfaction in nursing students."
+      "description": "This final section summarizes the main insights of the systematic review. It affirms that case-based learning positively influences nursing students' clinical competencies, critical thinking, and overall academic satisfaction."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3. The result of Case-Based Learning Implementation on Nursing Students.",
+      "description": "Structured quantitative data table (28 rows)"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4. Critical Appraisal: Intervention and Mixed Methods.",
+      "description": "Structured quantitative data table (22 rows)"
     }
   ],
   "additionalProperty": [
     {
       "@type": "PropertyValue",
       "name": "Total identified articles",
-      "value": "590",
+      "value": 590,
       "unitText": "articles",
-      "description": "Initial article searches across PubMed, EBSCOhost, ProQuest, ScienceDirect, the Cochrane Library, and Scopus"
+      "description": "Initial article searches across databases"
     },
     {
       "@type": "PropertyValue",
       "name": "Included articles",
-      "value": "6",
+      "value": 6,
       "unitText": "articles",
       "description": "Articles included based on the research question and assessment"
     }
