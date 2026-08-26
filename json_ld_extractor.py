@@ -3,6 +3,7 @@ import json
 import logging
 import re
 import time
+import urllib.request
 import warnings
 import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
@@ -234,6 +235,17 @@ def clean_abstract_description(desc: str) -> str:
     clean = re.sub(r'^(?:#+\s*Abstract|\bAbstract\b[:\s\-\*]*)+', '', clean, flags=re.IGNORECASE).strip()
     clean = re.sub(r'^(?:Copyright|©|\(C\)|License|Received|Accepted|Published|Diterbitkan)[\s\:\.\-]+[^\n\r]+\n*', '', clean, flags=re.IGNORECASE).strip()
 
+    # 2b. Header jurnal sering menumpuk beberapa baris metadata
+    #     (Received / Revised / Accepted / Available online) secara berurutan.
+    #     Strip berulang sampai stabil, dengan guard panjang agar kalimat abstrak
+    #     sah yang kebetulan diawali kata 'Published ...' (>90 char) tidak ikut terbuang.
+    header_line_re = re.compile(r'^(?:(?:Copyright|©|\(C\)|License\b|Received\b|Revised\b|Accepted\b|Published\b|Available\s+online\b|Diterbitkan\b|Open\s+Access\b|CC\s+BY\b)[^\n\r]{0,90})(?:\n|$)', re.IGNORECASE)
+    for _ in range(8):
+        stripped = header_line_re.sub('', clean).strip()
+        if stripped == clean or not stripped:
+            break
+        clean = stripped
+
     # 3. Potong sebelum bagian kata kunci atau Bab 1
     clean = re.split(r'(?:\n|##+|\b)(?:Keywords?|Kata\s+Kunci|Index\s+Terms?|1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+I|PENDAHULUAN|Section\s+1)\b', clean, flags=re.IGNORECASE)[0].strip()
     return clean
@@ -274,8 +286,14 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
         if any(fk in name_lower for fk in forbidden_keywords):
             continue
 
-        if any(an in name_lower for an in affiliation_noise):
+        if any(an in name_lower for an in ('email', 'correspondence', '@')):
             continue
+
+        if any(an in name_lower for an in affiliation_noise):
+            # Sama seperti pemindai outline: kata 'Laboratory'/'Center' pada judul
+            # seksi sah tidak boleh dibuang; butuh bukti afiliasi nyata
+            if name.count(',') >= 2 or re.search(r'\b\d{4,7}\b', name):
+                continue
             
         if not name or name_lower in generic_placeholders:
             if summary:
@@ -332,10 +350,9 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
     
     is_en = in_language == "en"
     default_caption = "Table Data" if is_en else "Tabel Data Dokumen"
-    
-    consolidated = []
-    caption_map = {}
-    
+
+    normalized_tables: List[Dict[str, Any]] = []
+
     for tbl in tables:
         caption = strip_markdown_formatting(sanitize_text_for_extraction(tbl.get("caption", ""))).strip()
         if not caption:
@@ -353,22 +370,51 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
         headers = [strip_markdown_formatting(h) for h in tbl.get("headers", [])]
         rows = [[strip_markdown_formatting(cell) for cell in r] for r in tbl.get("rows", [])]
         page_number = tbl.get("page_number", 1)
-        
+
         headers_key = "|".join(headers).lower()
-        cap_key = f"{page_number}_{headers_key}" if headers_key else f"{page_number}_{caption.lower()[:25]}"
-        
-        if cap_key in caption_map:
-            existing_idx = caption_map[cap_key]
-            consolidated[existing_idx]["rows"].extend(rows)
-        else:
-            caption_map[cap_key] = len(consolidated)
-            consolidated.append({
-                "caption": caption,
-                "page_number": page_number,
-                "headers": headers,
-                "rows": rows
-            })
-            
+        # Kunci penggabungan TANPA nomor halaman: fragmen tabel sama yang menyambung
+        # antar halaman (header identik, caption identik setelah suffix halaman
+        # dibuang) harus menjadi SATU tabel utuh, bukan duplikat terpisah.
+        cap_norm = re.sub(r'\(?\s*(?:halaman|page)\s+\d+\s*\)?', '', caption.lower(), flags=re.IGNORECASE).strip()
+        merge_key = f"{headers_key}::{cap_norm[:40]}" if headers_key else f"nocap::{cap_norm[:40]}"
+
+        normalized_tables.append({
+            "caption": caption,
+            "page_number": page_number,
+            "headers": headers,
+            "rows": rows,
+            "merge_key": merge_key
+        })
+
+    # Kelompokkan per kunci lalu gabungkan hanya fragmen yang BERDEKATAN halamannya
+    # (gap <= 1). Tabel berbeda yang kebetulan ber-header identik namun berjauhan
+    # tetap dipertahankan terpisah.
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    group_order: List[str] = []
+    for entry in normalized_tables:
+        k = entry["merge_key"]
+        if k not in groups:
+            groups[k] = []
+            group_order.append(k)
+        groups[k].append(entry)
+
+    consolidated = []
+    for k in group_order:
+        items = sorted(groups[k], key=lambda x: x["page_number"])
+        cluster = None
+        for it in items:
+            if cluster is not None and it["page_number"] - cluster["page_number"] <= 1:
+                cluster["rows"].extend(it["rows"])
+                cluster["page_number"] = max(cluster["page_number"], it["page_number"])
+            else:
+                cluster = {
+                    "caption": it["caption"],
+                    "page_number": it["page_number"],
+                    "headers": it["headers"],
+                    "rows": list(it["rows"])
+                }
+                consolidated.append(cluster)
+
     return consolidated
 
 def is_mathematical_formula(text: str) -> bool:
@@ -512,30 +558,6 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
         "rows": rows
     }
 
-def extract_accurate_date(text: str) -> Optional[str]:
-    """Ekstrak tanggal publikasi presisi (YYYY-MM atau YYYY) dari teks dokumen."""
-    month_map = {
-        'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05', 'jun': '06',
-        'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
-        'januari': '01', 'februari': '02', 'maret': '03', 'april': '04', 'mei': '05', 'juni': '06',
-        'juli': '07', 'agustus': '08', 'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
-    }
-    m = re.search(r'\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{2,4})\b', text, re.IGNORECASE)
-    if m:
-        m_str = m.group(1).lower()[:3]
-        m_num = month_map.get(m_str, '01')
-        y_str = m.group(2)
-        if len(y_str) == 2:
-            y_str = '20' + y_str
-        return f"{y_str}-{m_num}"
-    m_y = re.search(r'\b(20\d{2})[-/](0[1-9]|1[0-2])\b', text)
-    if m_y:
-        return f"{m_y.group(1)}-{m_y.group(2)}"
-    m_yr = re.search(r'\b(20\d{2})\b', text)
-    if m_yr:
-        return m_yr.group(1)
-    return None
-
 def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
     """
     Menyaring kandidat bab secara agnostik berdasarkan konsistensi sekuensial halaman (Monotonic Structural Continuity).
@@ -657,8 +679,14 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 'centre', 'center', 'email', 'correspondence', '@', 'zip code', 'postal code',
                 'sarawak', 'pontianak', 'malaysia', 'indonesia'
             }
-            if any(an in line_clean.lower() for an in affiliation_noise):
+            low_line = line_clean.lower()
+            if any(an in low_line for an in ('email', 'correspondence', '@')):
                 continue
+            if any(an in low_line for an in affiliation_noise):
+                # Tolak hanya jika benar-benar berpola afiliasi (koma jamak / kode pos),
+                # bukan sekadar memuat kata seperti 'Laboratory' pada judul seksi sah
+                if low_line.count(',') >= 2 or re.search(r'\b\d{4,7}\b', low_line):
+                    continue
 
             # Fungsi pembantu untuk menyambung heading yang terpotong di baris berikutnya
             def stitch_continuation(text_tail: str, cur_idx: int) -> str:
@@ -860,47 +888,69 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
     """
     month_names_regex = "|".join(sorted(MONTH_MAP_BILINGUAL.keys(), key=len, reverse=True))
 
-    # 1. Deteksi prioritas metadata eksplisit di header dokumen (Available online / Published / Accepted / Received / Submitted / Copyright)
+    # 1. Deteksi prioritas metadata eksplisit di header dokumen.
+    #    Dibagi tiga tingkat: anchor tanggal terbit > anchor tanggal proses editorial
+    #    (Accepted/Received) > Copyright (paling lemah, hanya tahun).
+    #    Tanpa pemisahan ini, "Copyright: ©2026 ..." yang muncul lebih awal di teks
+    #    akan mengalahkan "Available online: 31 March 2026" dan menghasilkan
+    #    tanggal karangan YYYY-01-01.
     if fallback_text:
-        explicit_patterns = [
-            r'(?:Available\s+online|Published\s+online|Publication\s+Date|Published|Diterbitkan|Online\s+date|Accepted|Received|Revised|Submitted\s+on|Submission\s+Date|Copyright|\(C\)|©)[\s\:\.\-]+([^\n\r]{4,50})',
-            r'\bAvailable\s+online\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\b',
-            r'\[(?:Submitted\s+on\s+)?([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\]',
-            r'arXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?(?:\s*\[[^\]]*\])?\s*([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])',
-            r'\barXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?\s*.*?([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20[0-3][0-9])'
+        def _parse_date_candidate(candidate_str: str) -> Optional[str]:
+            candidate_str = candidate_str.strip()
+            # DD Month YYYY
+            m_dmy = re.search(rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
+            if m_dmy:
+                d = f"{int(m_dmy.group(1)):02d}"
+                m = MONTH_MAP_BILINGUAL[m_dmy.group(2).lower()]
+                y = m_dmy.group(3)
+                return f"{y}-{m}-{d}"
+            # Month DD, YYYY
+            m_mdy = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
+            if m_mdy:
+                m = MONTH_MAP_BILINGUAL[m_mdy.group(1).lower()]
+                d = f"{int(m_mdy.group(2)):02d}"
+                y = m_mdy.group(3)
+                return f"{y}-{m}-{d}"
+            # Month YYYY
+            m_my = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
+            if m_my:
+                m = MONTH_MAP_BILINGUAL[m_my.group(1).lower()]
+                y = m_my.group(2)
+                return f"{y}-{m}-01"
+            # ISO YYYY-MM-DD
+            m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', candidate_str)
+            if m_iso:
+                return m_iso.group(0)
+            # Year YYYY
+            m_yr = re.search(r'\b(19\d{2}|20[0-3]\d)\b', candidate_str)
+            if m_yr:
+                return f"{m_yr.group(1)}-01-01"
+            return None
+
+        pattern_tiers = [
+            # Tingkat 1: tanggal terbit resmi
+            [
+                r'(?:Available\s+online|Published\s+online|Publication\s+Date|Published|Diterbitkan|Online\s+date)[\s\:\.\-]+([^\n\r]{4,50})',
+                r'\bAvailable\s+online\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\b',
+                r'\[(?:Submitted\s+on\s+)?([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\]',
+                r'arXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?(?:\s*\[[^\]]*\])?\s*([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])',
+                r'\barXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?\s*.*?([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20[0-3][0-9])'
+            ],
+            # Tingkat 2: tanggal proses editorial (fallback jika tanggal terbit tak ditemukan)
+            [
+                r'(?:Accepted|Received|Revised|Submitted\s+on|Submission\s+Date)[\s\:\.\-]+([^\n\r]{4,50})'
+            ],
+            # Tingkat 3: Copyright / © (hanya tahun, paling tidak spesifik)
+            [
+                r'(?:Copyright|\(C\)|©)[\s\:\.\-]+([^\n\r]{4,50})'
+            ]
         ]
-        for ep in explicit_patterns:
-            m_exp = re.search(ep, fallback_text, re.IGNORECASE)
-            if m_exp:
-                candidate_str = m_exp.group(1).strip()
-                # DD Month YYYY
-                m_dmy = re.search(rf'\b(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
-                if m_dmy:
-                    d = f"{int(m_dmy.group(1)):02d}"
-                    m = MONTH_MAP_BILINGUAL[m_dmy.group(2).lower()]
-                    y = m_dmy.group(3)
-                    return f"{y}-{m}-{d}"
-                # Month DD, YYYY
-                m_mdy = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(0?[1-9]|[12]\d|3[01])(?:st|nd|rd|th)?[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
-                if m_mdy:
-                    m = MONTH_MAP_BILINGUAL[m_mdy.group(1).lower()]
-                    d = f"{int(m_mdy.group(2)):02d}"
-                    y = m_mdy.group(3)
-                    return f"{y}-{m}-{d}"
-                # Month YYYY
-                m_my = re.search(rf'\b({month_names_regex})[\s\-\/\,]+(19\d{2}|20[0-3]\d)\b', candidate_str, re.IGNORECASE)
-                if m_my:
-                    m = MONTH_MAP_BILINGUAL[m_my.group(1).lower()]
-                    y = m_my.group(2)
-                    return f"{y}-{m}-01"
-                # ISO YYYY-MM-DD
-                m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', candidate_str)
-                if m_iso:
-                    return m_iso.group(0)
-                # Year YYYY
-                m_yr = re.search(r'\b(19\d{2}|20[0-3]\d)\b', candidate_str)
-                if m_yr:
-                    return f"{m_yr.group(1)}-01-01"
+        for tier_patterns in pattern_tiers:
+            for ep in tier_patterns:
+                for m_exp in re.finditer(ep, fallback_text, re.IGNORECASE):
+                    parsed = _parse_date_candidate(m_exp.group(1))
+                    if parsed:
+                        return parsed
 
     # 2. Validasi input raw jika diberikan model LLM
     if raw_input and str(raw_input).strip():
@@ -941,10 +991,6 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
 
     # Tidak ditemukan tanggal publikasi eksplisit -> Kembalikan None (null)
     return None
-
-def extract_accurate_date(text: str) -> Optional[str]:
-    """Alias kompatibilitas untuk deteksi tanggal akurat."""
-    return normalize_publication_date(None, fallback_text=text)
 
 def detect_document_language(text: str) -> str:
     """Deteksi bahasa dokumen secara deterministik (id vs en)."""
@@ -1036,6 +1082,10 @@ def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str)
         for l in raw_lines[body_start:]:
             if re.match(r'^(?:1\.\s+|I\.\s+|Introduction|Pendahuluan|Keywords?|Kata\s+Kunci|\d+\.\s+[A-Z])', l, re.I):
                 break
+            # Lewati baris metadata editorial jurnal (Received/Revised/Accepted/
+            # Available online/Copyright) agar tidak tercampur ke abstrak
+            if re.match(r'^(?:received|revised|accepted|published|available\s+online|copyright|©|license|open\s+access)', l, re.I):
+                continue
             if not re.match(r'^(?:arxiv|doi|https?://|table|tabel|figure|gambar)', l, re.I):
                 abstract_lines.append(l)
         abs_clean = " ".join(abstract_lines)
@@ -1462,7 +1512,7 @@ def run_agentic_step(
                 "GEMINI_API_KEY belum diset. "
                 "Jalankan benchmark dengan argumen '--api-key YOUR_KEY' atau simpan GEMINI_API_KEY di file .env."
             )
-        m_name = model_to_use if "gemini" in model_to_use else "gemini-2.5-flash"
+        m_name = model_to_use if "gemini" in model_to_use else Config.GEMINI_MODEL_NAME
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={key}"
         payload = {
             "contents": [
@@ -1473,7 +1523,6 @@ def run_agentic_step(
                 "temperature": 0.1
             }
         }
-        import urllib.request
         req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=15) as resp:
             res_data = json.loads(resp.read().decode('utf-8'))
@@ -1492,7 +1541,6 @@ def run_agentic_step(
             "response_format": {"type": "json_object"},
             "temperature": 0.1
         }
-        import urllib.request
         headers = {"Content-Type": "application/json"}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
