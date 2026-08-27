@@ -353,21 +353,22 @@ def extract_explicit_document_keywords(text: str) -> List[str]:
         return []
     
     clean_t = strip_markdown_formatting(text)
-    # Cari blok keywords multi-baris hingga batas section berikutnya atau batas paragraf kosong ganda
-    m_kw = re.search(r'(?:Keywords?|Key\s*words?|Index\s*Terms?|Kata\s*Kunci)[\s\:\.\-–—]+([\s\S]+?)(?=(?:\n\s*(?:1\.?\s+|I\.\s+|Introduction|PENDAHULUAN|Section|BAB|CORRESPONDING|\*|\([A-Z]\)|©|\Z)))', clean_t, re.IGNORECASE)
+    # Cari blok keywords multi-baris hingga batas editorial date / section berikutnya / paragraf kosong ganda
+    m_kw = re.search(r'(?:Keywords?|Key\s*words?|Index\s*Terms?|Kata\s*Kunci)[\s\:\.\-–—]+([\s\S]+?)(?=(?:\n\s*(?:Paper\s+\d+|Received|Revised|Accepted|Published|Diterbitkan|1\.?\s+|I\.\s+|Introduction|PENDAHULUAN|Section|BAB|CORRESPONDING|\*|\([A-Z]\)|©|\Z)))', clean_t, re.IGNORECASE)
     if not m_kw:
         return []
         
     raw_kw_block = m_kw.group(1).strip()
     # Batasi blok keyword maksimal 400 karakter atau paragraf pertama agar tidak merembet ke seluruh dokumen
     raw_kw_block = raw_kw_block.split("\n\n")[0].strip()[:400]
-    raw_kw_block = re.split(r'(?:\n|##+|\b)(?:1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+[IVX\d]+|PENDAHULUAN|Section\s+1|ABSTRACT|ABSTRAK|Background|Metode)\b', raw_kw_block, flags=re.IGNORECASE)[0].strip()
+    raw_kw_block = re.split(r'(?:\n|##+|\b)(?:Paper\s+\w+\s+received|Received|Revised|Accepted|Published|1\.?\s+Introduction|1\.?\s+PENDAHULUAN|BAB\s+[IVX\d]+|PENDAHULUAN|Section\s+1|ABSTRACT|ABSTRAK|Background|Metode)\b', raw_kw_block, flags=re.IGNORECASE)[0].strip()
     
     # Ganti newline di dalam blok keyword dengan spasi agar frasa multi-baris menyatu
     raw_kw_block = re.sub(r'(?<![,;•·\|])\n(?![A-Z][a-z]+:)', ' ', raw_kw_block)
     
     items = re.split(r'[,;•·\|–—]|\n+', raw_kw_block)
     cleaned_kws = []
+    _KW_EDITORIAL_NOISE = re.compile(r'\b(?:received|revised|accepted|published|online|submitted|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|doi|http|\d{4})\b', re.I)
 
     for it in items:
         it_clean = it.strip().strip('.').strip()
@@ -375,7 +376,7 @@ def extract_explicit_document_keywords(text: str) -> List[str]:
             continue
         if len(it_clean.split()) > 6:
             continue
-        if any(p.search(it_clean) for p in _KW_NOISE_RES):
+        if any(p.search(it_clean) for p in _KW_NOISE_RES) or _KW_EDITORIAL_NOISE.search(it_clean):
             continue
         cleaned_kws.append(it_clean)
 
@@ -515,6 +516,9 @@ def refine_and_deduplicate_metrics(metrics: list, text_context: str = "") -> lis
         unit = strip_markdown_formatting(m.get('unit_text', '')).strip()
         ctx = strip_markdown_formatting(m.get('context_or_condition', '')).strip()
         val = m.get('value', '')
+        if isinstance(val, str) and re.match(r'^\d+,\d{1,4}$', val.strip()):
+            val = val.strip().replace(',', '.')
+        m['value'] = val
         
         m['name'] = name
         m['unit_text'] = unit

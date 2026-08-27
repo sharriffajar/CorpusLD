@@ -74,10 +74,10 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
             m_iso = re.search(r'\b(19\d{2}|20[0-3]\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b', candidate_str)
             if m_iso:
                 return m_iso.group(0)
-            # Sengaja TANPA penerimaan tahun-telanjang: anchor generik seperti
-            # kata 'Published' bisa mengenai prosa biasa ("published in the last
-            # 10 years"), dan tahun di sekitarnya sering berasal dari sitasi ->
-            # fabrikasi YYYY-01-01. Tanpa bulan/tanggal eksplisit, tolak.
+            # Single 4-digit Year from explicit anchors (e.g. Volume ... Tahun 2026)
+            m_yr = re.match(r'^\s*(19\d{2}|20[0-3]\d)\s*$', candidate_str)
+            if m_yr:
+                return f"{m_yr.group(1)}-01-01"
             return None
 
         pattern_tiers = [
@@ -86,6 +86,7 @@ def normalize_publication_date(raw_input: Optional[str] = None, fallback_text: s
                 r'(?:Available\s+online|Published\s+online|Publication\s+Date|Published|Diterbitkan|Online\s+date)[\s\:\.\-]+([^\n\r]{4,50})',
                 r'\bAvailable\s+online\s+([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\b',
                 r'\[(?:Submitted\s+on\s+)?([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])\]',
+                r'\b(?:Volume|Vol\.?)\s*\d+[\s,]+(?:Nomor|No\.?|Issue)\s*\d+[\s,]+(?:Tahun|Year)\s*(20[0-3]\d)\b',
                 r'arXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?(?:\s*\[[^\]]*\])?\s*([0-9]{1,2}\s+[A-Za-z]+\s+20[0-3][0-9])',
                 r'\barXiv\:[0-9]{4}\.[0-9]{4,5}v?[0-9]?\s*.*?([0-9]{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+20[0-3][0-9])'
             ],
