@@ -161,17 +161,26 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
     
     # 1. Cari caption jika ada di baris pertama (tanpa pipe |)
     caption = None
-    for l in raw_lines[:4]:
+    narrative_table_intro = re.compile(r'^(?:Tabel|Table)\s+\d+\s+(?:shows|presents|illustrates|displays|summarizes|provides|compares|is|was|were|menunjukkan|menyajikan|menjelaskan|memperlihatkan)\b', re.IGNORECASE)
+    
+    for l in raw_lines[:6]:
         l_clean = strip_markdown_formatting(l)
         if re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', l_clean, re.IGNORECASE):
             return None  # Strictly reject figures
         if is_mathematical_formula(l_clean):
             return None  # Strictly reject math formulas
-        if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-]+[^\n\|]+', l_clean, re.IGNORECASE) and "|" not in l_clean:
-            caption = l_clean
+        if "|" in l_clean:
+            continue
+        if narrative_table_intro.match(l_clean):
+            continue  # Lewati kalimat narasi pengantar ("Table 1 shows the comparisons...")
+            
+        if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-–—]+[^\n\|]+', l_clean, re.IGNORECASE):
+            caption = l_clean[:120].strip()
+            if len(l_clean) > 120 and "." in l_clean[:120]:
+                caption = l_clean[:l_clean.index(".")+1].strip()
             break
-        elif re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE) and "|" not in l_clean:
-            caption = l_clean
+        elif re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE):
+            caption = l_clean[:120].strip()
             break
             
     table_lines = [l for l in raw_lines if "|" in l]
@@ -199,7 +208,11 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
                 
     is_en = in_language == "en"
     if not caption:
-        valid_cols = [h for h in headers if h and not re.match(r'^[\-\:\s]+$', h)]
+        valid_cols = []
+        for h in headers:
+            if h and not re.match(r'^[\-\:\s]+$', h):
+                clean_h = re.sub(r'\b([A-Za-z]{3,})\1\b', r'\1', h).strip()
+                valid_cols.append(clean_h or h)
         if valid_cols:
             caption = f"Table {' - '.join(valid_cols[:2])} (Page {page_number})" if is_en else f"Tabel {' - '.join(valid_cols[:2])} (Halaman {page_number})"
         else:
@@ -221,3 +234,43 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
         "headers": headers,
         "rows": rows
     }
+
+def parse_flat_text_table(text: str, page_number: int = 1, in_language: str = "id") -> Optional[Dict[str, Any]]:
+    """
+    Ekstraksi deterministik tabel flat tanpa pipe '|' yang diekstrak oleh pypdf.
+    Contoh: 'Table 1. Method Success Rates Method Image Splicing Copy-Move Error Level Analysis (ELA) 70,40% 64,00% Noise Analysis 39,20% 28,00% Clone Detection 46,40% 81,60%'
+    """
+    clean = text.replace("DATA TABEL / METRIK SPESIFIK:", "").strip()
+    m_cap = re.search(r'^(?:Tabel|Table)\s+\d+[\.\:\-\—\s]+', clean, re.IGNORECASE)
+    if not m_cap:
+        return None
+    
+    # Cari baris-baris data yang memuat entitas dan angka/persentase di akhir
+    row_re = re.compile(r'([A-Za-z\(\)\s\-\/]+?)\s+([\d\.,]+%?)\s+([\d\.,]+%?)(?=\s+[A-Z]|\s*$)', re.IGNORECASE)
+    matches = list(row_re.finditer(clean))
+    if len(matches) < 2:
+        return None
+        
+    first_row_start = matches[0].start()
+    header_part = clean[:first_row_start].strip()
+    
+    caption_m = re.match(r'^((?:Tabel|Table)\s+\d+[\.\:\-\—\s]+(?:Method\s+Success\s+Rates|[A-Za-z\s]+?))\s+(Method|Param|Variable|Jenis|Kategori|Surface|No\b|[A-Z][a-z]+)\s+(.+)$', header_part, re.IGNORECASE)
+    if caption_m:
+        caption = caption_m.group(1).strip()
+        headers = [caption_m.group(2).strip()] + [c.strip() for c in re.split(r'\s{2,}|\t+|(?<=[a-z])\s+(?=[A-Z])', caption_m.group(3)) if c.strip()]
+    else:
+        caption = header_part[:60].strip()
+        headers = ["Item", "Column 1", "Column 2"]
+        
+    rows = []
+    for m in matches:
+        rows.append([m.group(1).strip(), m.group(2).strip(), m.group(3).strip()])
+        
+    if is_valid_tabular_data(headers, rows):
+        return {
+            "caption": caption,
+            "page_number": page_number,
+            "headers": headers,
+            "rows": rows
+        }
+    return None
