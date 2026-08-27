@@ -478,11 +478,31 @@ html, body {
 }
 
 .sources-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.btn-clear-workspace {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.btn-clear-workspace:hover {
+  background-color: var(--accent-rose-subtle);
+  border-color: var(--accent-rose-border);
+  color: var(--accent-rose);
 }
 
 .sources-list {
@@ -512,11 +532,16 @@ html, body {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  transition: background-color var(--duration-fast);
+  transition: background-color var(--duration-fast), border-color var(--duration-fast);
+  cursor: pointer;
 }
 .source-item:hover {
   background-color: var(--bg-surface-raised);
   border-color: var(--border-default);
+}
+.source-item.active-source {
+  border-color: var(--accent-primary);
+  background-color: var(--accent-primary-subtle);
 }
 
 .source-info {
@@ -556,13 +581,116 @@ html, body {
   color: var(--accent-rose);
 }
 
-/* Sidebar Footer & Sync */
+/* Sidebar Footer & Co-located Sync Widget */
 .sidebar-footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-sidebar);
+}
+
+.sync-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.sync-status-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.sync-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sync-badge.badge-warning {
+  background-color: var(--accent-amber-subtle);
+  color: #fbbf24;
+  border: 1px solid var(--accent-amber-border);
+}
+
+.sync-badge.badge-success {
+  background-color: var(--accent-emerald-subtle);
+  color: #34d399;
+  border: 1px solid var(--accent-emerald-border);
+}
+
+.sync-badge.badge-rose {
+  background-color: var(--accent-rose-subtle);
+  color: #f87171;
+  border: 1px solid var(--accent-rose-border);
+}
+
+.btn-sync {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-sync .sync-icon {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.btn-sync:hover:not(:disabled) .sync-icon {
+  transform: rotate(45deg);
+}
+
+/* Red / Attention state when unsynced / needs sync */
+.btn-sync.btn-sync-needed {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #ffffff;
+  border: 1px solid #ef4444;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-sync.btn-sync-needed:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Green / Synced calm state when index is up to date */
+.btn-sync.btn-sync-synced {
+  background-color: var(--bg-surface-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.btn-sync.btn-sync-synced:hover:not(:disabled) {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--accent-emerald-border);
+  color: var(--text-primary);
+}
+
+.btn-sync:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-dim);
+  box-shadow: none;
+  transform: none;
 }
 
 .sync-status {
@@ -571,6 +699,7 @@ html, body {
   gap: 8px;
   font-size: 12px;
   color: var(--text-secondary);
+  padding: 4px 2px;
 }
 
 /* Spinner */
@@ -657,6 +786,71 @@ html, body {
   flex-direction: column;
   height: 100%;
   position: relative;
+}
+
+/* Chat Scope Selector Bar */
+.chat-scope-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 12px;
+}
+.scope-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.scope-icon {
+  font-size: 14px;
+}
+.scope-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.select-chat-scope {
+  padding: 5px 10px;
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  max-width: 420px;
+  width: 100%;
+  cursor: pointer;
+}
+.select-chat-scope:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+}
+.chat-scope-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--accent-primary-subtle);
+  border: 1px solid var(--accent-primary-border);
+  color: #60a5fa;
+  white-space: nowrap;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scope-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
 }
 
 .chat-messages {

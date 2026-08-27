@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 import urllib.request
 import uuid
@@ -41,7 +42,8 @@ from json_ld_extractor import (
     get_clean_schema_org_jsonld,
     sanitize_text_for_extraction,
     strip_markdown_formatting,
-    parse_markdown_table_direct
+    parse_markdown_table_direct,
+    merge_and_enrich_json_ld
 )
 
 # ---------------------------------------------------------
@@ -49,13 +51,35 @@ from json_ld_extractor import (
 # ---------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Cek apakah flag 'fresh' diberikan di command-line (misal: python server.py fresh)
+    is_fresh = any(arg.lower() in ("fresh", "--fresh", "-f") for arg in sys.argv)
+    if is_fresh:
+        print("[Startup] Flag 'fresh' terdeteksi: Mensucikan database Qdrant & folder uploads...")
+        # Bersihkan uploads
+        if os.path.exists(UPLOAD_DIR):
+            for f in os.listdir(UPLOAD_DIR):
+                if f.endswith(".pdf"):
+                    try:
+                        os.remove(os.path.join(UPLOAD_DIR, f))
+                    except Exception:
+                        pass
+        # Bersihkan koleksi Qdrant
+        try:
+            qdrant = get_qdrant()
+            colls = qdrant.get_collections().collections
+            for c in colls:
+                qdrant.delete_collection(c.name)
+                print(f"[Startup] Koleksi Qdrant '{c.name}' berhasil disucikan.")
+        except Exception as e:
+            print(f"[Startup Notice] Pembersihan koleksi: {e}")
+
     # Lightweight Startup Initialization (On-Demand Loading to conserve RAM)
     async def init_pipeline():
         try:
             get_embedder()
             get_qdrant()
         except Exception as e:
-            print(f"⚠️ [Startup Notice] Vector engine: {e}")
+            print(f"[Startup Notice] Vector engine: {e}")
 
     asyncio.create_task(init_pipeline())
     yield
@@ -298,6 +322,10 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
         if not page_text:
             continue
 
+        # Pisahkan caption tabel/gambar yang menempel di tengah kalimat tanpa newline
+        page_text = re.sub(r'(?<=[a-z0-9\.\)\]])\s+((?:Table|Tabel)\s+\d+[\.\:\-\—])', r'\n\n\1', page_text, flags=re.IGNORECASE)
+        page_text = re.sub(r'(?<=[a-z0-9\.\)\]])\s+((?:Figure|Fig\.|Gambar|Bagan)\s+\d+[\.\:\-\—])', r'\n\n\1', page_text, flags=re.IGNORECASE)
+
         # Normalisasi pemisah blok: parser lokal (pypdf) sering memakai baris
         # ber-spasi ("\n \n") alih-alih baris kosong ("\n\n") sebagai pemisah
         # paragraf. Tanpa ini, satu halaman utuh menjadi satu blok raksasa dan
@@ -440,30 +468,65 @@ def parse_with_unstructured(file_path: str, file_name: str, api_key: str, server
 
 def _detect_problem_table_pages(chunks: List[Dict[str, Any]]) -> Dict[int, set]:
     """
-    Deteksi halaman yang TIDAK bisa direkonstruksi grid-nya oleh pypdf
-    (tabel landscape/rotasi dengan aliran kolom-per-kolom).
-    Ground truth-nya ASAL-USUL LAYOUT: chunk tabel ber-flag flat_capture lahir
-    dari halaman tanpa pemisah blok — domain persis masalah ini. Tabel dari
-    halaman terstruktur (meski wrapped) tidak ikut di-eskalasi agar hemat biaya.
+    Deteksi halaman problem tabel untuk eskalasi selective LlamaParse (mode hybrid):
+    1) Tabel flat-capture yang gagal direkonstruksi grid-nya oleh pypdf (landscape/rotasi).
+    2) Tabel berbasis gambar/bitmap: halaman memuat baris caption 'Tabel N' / 'Table N'
+       tetapi tidak ada tabel terstruktur yang berhasil diekstrak lokal karena isi tabel berupa gambar/screenshot.
     Returns {pdf_page_index: {nomor_tabel}}.
     """
     problems: Dict[int, set] = {}
+    parsed_tables_by_page: Dict[int, set] = {}
+    
+    # Catat tabel-tabel yang berhasil di-parse secara lokal
     for c in chunks:
         m = c.get("metadata", {})
-        if m.get("chunk_type") != "table" or not m.get("flat_capture"):
-            continue
-        lines_ = [l.strip() for l in c.get("text", "").splitlines() if l.strip()]
-        cap_line = ""
-        for l in lines_:
-            if not l.upper().startswith("DATA TABEL"):
-                cap_line = l
-                break
-        num_m = re.match(r'^#*\s*(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—]', cap_line, re.IGNORECASE)
-        if not num_m:
-            continue
         pg = int(m.get("pdf_page_index", 1) or 1)
-        if parse_markdown_table_direct(c.get("text", ""), page_number=pg) is None:
-            problems.setdefault(pg, set()).add(int(num_m.group(1)))
+        txt = c.get("text", "")
+        if m.get("chunk_type") == "table":
+            dt = parse_markdown_table_direct(txt, page_number=pg)
+            if dt and len(dt.get("rows", [])) >= 1 and len(dt.get("headers", [])) >= 2:
+                cap_num = re.search(r'(?:Tabel|Table)\s+(\d+)', m.get("caption_hint", "") or txt, re.I)
+                if cap_num:
+                    parsed_tables_by_page.setdefault(pg, set()).add(int(cap_num.group(1)))
+
+    cap_strict_re = re.compile(r'(?:^|\n)\s*(?:#+\s*)?(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—\s]', re.IGNORECASE)
+    caption_line_re = re.compile(r'^\s*(?:#+\s*)?(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—\s]', re.IGNORECASE)
+    
+    for c in chunks:
+        m = c.get("metadata", {})
+        pg = int(m.get("pdf_page_index", 1) or 1)
+        txt = c.get("text", "")
+        ctype = m.get("chunk_type")
+        
+        # Jalur A: Chunk bertipe 'table' ber-flag flat_capture (tabel teks landscape/rotasi)
+        if ctype == "table" and m.get("flat_capture"):
+            lines_ = [l.strip() for l in txt.splitlines() if l.strip()]
+            cap_line = ""
+            for l in lines_:
+                if not l.upper().startswith("DATA TABEL"):
+                    cap_line = l
+                    break
+            num_m = cap_strict_re.search(cap_line)
+            if num_m:
+                num = int(num_m.group(1))
+                if parse_markdown_table_direct(txt, page_number=pg) is None:
+                    problems.setdefault(pg, set()).add(num)
+                    
+        # Jalur B: Chunk paragraf yang memuat caption tabel tetapi tanpa tabel terstruktur (tabel gambar/screenshot/inline)
+        elif ctype == "paragraph":
+            for m_cap in re.finditer(r'(?:^|\n|\b)(?:#+\s*)?(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—]', txt, re.IGNORECASE):
+                num = int(m_cap.group(1))
+                if num not in parsed_tables_by_page.get(pg, set()):
+                    start_pos = max(0, m_cap.start() - 30)
+                    prefix_context = txt[start_pos:m_cap.start()]
+                    if not re.search(r'\b(?:pada|lihat|seperti|dalam|in|see|as\s+shown\s+in|according\s+to|to)\s*$', prefix_context, re.I):
+                        problems.setdefault(pg, set()).add(num)
+
+    for pg in list(problems.keys()):
+        problems[pg] = problems[pg] - parsed_tables_by_page.get(pg, set())
+        if not problems[pg]:
+            del problems[pg]
+            
     return problems
 
 # Kalibrasi empiris (26/08/2026): LlamaParse target_pages memperlakukan nomor
@@ -646,6 +709,33 @@ async def delete_document(file_name: str):
         return {"success": True, "deleted": file_name}
     raise HTTPException(status_code=404, detail="File not found")
 
+@app.post("/api/documents/clear")
+async def clear_all_documents():
+    global WORKSPACE_FILES, EXTRACTED_CHUNKS, JSON_LD_STORE, IS_INDEXED
+    WORKSPACE_FILES.clear()
+    EXTRACTED_CHUNKS.clear()
+    JSON_LD_STORE.clear()
+    IS_INDEXED = False
+    
+    # Hapus semua file PDF yang terunggah di folder uploads
+    if os.path.exists(UPLOAD_DIR):
+        for f in os.listdir(UPLOAD_DIR):
+            if f.endswith(".pdf"):
+                try:
+                    os.remove(os.path.join(UPLOAD_DIR, f))
+                except Exception:
+                    pass
+
+    # Kosongkan koleksi Qdrant
+    try:
+        qdrant = get_qdrant()
+        if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
+            qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+    except Exception as e:
+        print(f"⚠️ [Clear] Qdrant collection reset notice: {e}")
+        
+    return {"success": True, "message": "All documents and vector indices cleared."}
+
 class SyncRequest(BaseModel):
     parser: str = "pypdf"
     llamaparse_key: Optional[str] = None
@@ -759,8 +849,15 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     base_url=req.base_url
                 )
                 
-                JSON_LD_STORE[file_name] = res
-                await log_queue.put({"type": "complete", "result": res})
+                existing_record = JSON_LD_STORE.get(file_name)
+                if existing_record:
+                    final_res = merge_and_enrich_json_ld(existing_record, res)
+                    sync_logger("🔄 [Database Optimization] Menggabungkan field & struktur baru dengan data terverifikasi sebelumnya secara non-destruktif.")
+                else:
+                    final_res = res
+                
+                JSON_LD_STORE[file_name] = final_res
+                await log_queue.put({"type": "complete", "result": final_res})
             except Exception as e:
                 await log_queue.put({"type": "error", "error": str(e)})
 
@@ -800,6 +897,7 @@ async def get_extracted_jsonld(file_name: str):
 
 class ChatRequest(BaseModel):
     query: str
+    file_name: Optional[str] = None
     llm_provider: str = "ollama"
     llm_model: Optional[str] = None
     api_key: Optional[str] = None
@@ -814,10 +912,19 @@ async def chat_rag(req: ChatRequest):
     embedder = get_embedder()
     qdrant = get_qdrant()
     
+    query_filter = None
+    if req.file_name:
+        query_filter = Filter(
+            must=[
+                FieldCondition(key="metadata.source", match=MatchValue(value=req.file_name))
+            ]
+        )
+    
     query_vector = embedder.encode(req.query).tolist()
     search_results = qdrant.query_points(
         collection_name=Config.QDRANT_COLLECTION_NAME,
         query=query_vector,
+        query_filter=query_filter,
         limit=4
     ).points
     
@@ -846,6 +953,7 @@ async def chat_rag(req: ChatRequest):
         extra_pts = qdrant.query_points(
             collection_name=Config.QDRANT_COLLECTION_NAME,
             query=new_vec,
+            query_filter=query_filter,
             limit=2
         ).points
         for idx, point in enumerate(extra_pts, start=len(search_results) + 1):
@@ -855,16 +963,20 @@ async def chat_rag(req: ChatRequest):
             context_text += p.get("text", "") + "\n"
             sources.append(f"📊 Tabel: {m.get('source')} ({_hal(m)})")
 
+    doc_scope_instruction = f"Fokus analisa EKSKLUSIF pada dokumen: '{req.file_name}'. DILARANG keras menyebutkan atau mengasumsikan dokumen lain di luar dokumen ini." if req.file_name else "Fokus analisa pada dokumen-dokumen yang relevan di korpus."
+    
     prompt = f"""Kamu adalah Asisten Peneliti AI Spesialis Analisis Dokumen Ilmiah & Teknis.
+{doc_scope_instruction}
 Gunakan HANYA konteks terverifikasi berikut untuk menjawab pertanyaan pengguna. Sertakan nomor halaman dan bukti kutipan.
+Jika informasi tidak ada dalam konteks terverifikasi, nyatakan dengan jelas bahwa data tersebut tidak ditemukan pada dokumen yang sedang dianalisis.
 
 Konteks Terverifikasi:
-{context_text}
+{context_text if context_text.strip() else "[Tidak ada potongan teks yang cocok ditemukan untuk query ini pada dokumen ini]"}
 
 Pertanyaan:
 {req.query}
 
-Jawaban Profesional, Terstruktur & Kaya Fakta:"""
+Jawaban Profesional, Terstruktur & Terverifikasi:"""
 
     def run_llm_inference():
         model_to_use = req.llm_model or Config.OLLAMA_MODEL_NAME

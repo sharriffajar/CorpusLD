@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
   const privacyBadge = document.getElementById('privacy-badge');
   const privacyBadgeText = document.getElementById('privacy-badge-text');
-  const dbStatusPill = document.getElementById('db-status-pill');
-  const dbStatusText = document.getElementById('db-status-text');
   const appSidebar = document.getElementById('app-sidebar');
   const btnMobileSidebar = document.getElementById('btn-mobile-sidebar');
   const btnCloseSidebar = document.getElementById('btn-close-sidebar');
@@ -35,7 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('file-input');
   const sourcesList = document.getElementById('sources-list');
   const docCountBadge = document.getElementById('doc-count-badge');
+  const btnClearWorkspace = document.getElementById('btn-clear-workspace');
+  const syncStateBadge = document.getElementById('sync-state-badge');
   const btnSyncKb = document.getElementById('btn-sync-kb');
+  const btnSyncLabel = document.getElementById('btn-sync-label');
   const syncSpinner = document.getElementById('sync-spinner');
   const syncStatusText = document.getElementById('sync-status-text');
 
@@ -45,7 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const subtabBtns = document.querySelectorAll('.subtab-btn');
   const subtabPanels = document.querySelectorAll('.subtab-panel');
 
-  // Chat
+  // Chat & Scope
+  const selectChatScope = document.getElementById('select-chat-scope');
+  const chatScopePill = document.getElementById('chat-scope-pill');
+  const chatScopePillText = document.getElementById('chat-scope-pill-text');
   const chatMessages = document.getElementById('chat-messages');
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
@@ -307,16 +311,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateIndexStatus(isIndexed) {
     appState.isIndexed = isIndexed;
+    const hasDocs = appState.documents && appState.documents.length > 0;
+
+    if (!hasDocs) {
+      if (syncStateBadge) {
+        syncStateBadge.className = 'sync-badge badge-warning';
+        syncStateBadge.textContent = 'No Docs';
+      }
+      if (btnSyncKb) {
+        btnSyncKb.className = 'btn btn-sync btn-block';
+        btnSyncKb.disabled = true;
+      }
+      if (btnSyncLabel) btnSyncLabel.textContent = 'Sync Knowledge Base';
+      chatInput.disabled = true;
+      btnSendChat.disabled = true;
+      return;
+    }
+
     if (isIndexed) {
-      dbStatusPill.className = 'badge badge-success';
-      dbStatusText.textContent = 'Vector DB: Synced 🟢';
+      if (syncStateBadge) {
+        syncStateBadge.className = 'sync-badge badge-success';
+        syncStateBadge.textContent = 'Ready 🟢';
+      }
+      if (btnSyncKb) {
+        btnSyncKb.className = 'btn btn-sync btn-sync-synced btn-block';
+        btnSyncKb.disabled = false;
+      }
+      if (btnSyncLabel) btnSyncLabel.textContent = 'Knowledge Base Synced (Re-sync)';
       chatInput.disabled = false;
       btnSendChat.disabled = false;
     } else {
-      dbStatusPill.className = 'badge badge-warning';
-      dbStatusText.textContent = 'Vector DB: Needs Sync 🔴';
-      chatInput.disabled = !appState.documents.length;
-      btnSendChat.disabled = !appState.documents.length;
+      if (syncStateBadge) {
+        syncStateBadge.className = 'sync-badge badge-rose';
+        syncStateBadge.textContent = 'Needs Sync 🔴';
+      }
+      if (btnSyncKb) {
+        btnSyncKb.className = 'btn btn-sync btn-sync-needed btn-block';
+        btnSyncKb.disabled = false;
+      }
+      if (btnSyncLabel) btnSyncLabel.textContent = '⚡ Sync Knowledge Base';
+      chatInput.disabled = true;
+      btnSendChat.disabled = true;
     }
   }
 
@@ -327,14 +362,39 @@ document.addEventListener('DOMContentLoaded', () => {
       appState.documents = data.documents || [];
       renderSourcesList();
       populateJsonldDropdown();
+      populateChatScopeDropdown();
+      updateIndexStatus(appState.isIndexed);
     } catch (e) {
       console.error('Document list failed:', e);
     }
   }
 
+  function selectActiveDocument(name) {
+    appState.selectedDoc = name;
+    if (selectJsonldDoc) selectJsonldDoc.value = name;
+    if (selectChatScope) selectChatScope.value = name;
+    updateChatScopeUI();
+    renderSourcesList();
+    if (name) {
+      if (btnRunExtraction) btnRunExtraction.disabled = false;
+      checkExistingJsonLd(name);
+    }
+  }
+
+  function updateChatScopeUI() {
+    if (!chatScopePillText) return;
+    const currentScope = selectChatScope ? selectChatScope.value : appState.selectedDoc;
+    if (currentScope) {
+      chatScopePillText.textContent = `Scope: ${currentScope}`;
+      chatScopePillText.title = currentScope;
+    } else {
+      chatScopePillText.textContent = 'Scope: All Documents';
+      chatScopePillText.title = 'Searching across all documents';
+    }
+  }
+
   function renderSourcesList() {
     docCountBadge.textContent = appState.documents.length;
-    btnSyncKb.disabled = appState.documents.length === 0;
 
     if (appState.documents.length === 0) {
       sourcesList.innerHTML = '<div class="empty-sources">No documents yet. Upload a PDF to start analysis.</div>';
@@ -344,7 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sourcesList.innerHTML = '';
     appState.documents.forEach(doc => {
       const item = document.createElement('div');
-      item.className = 'source-item';
+      const isActive = appState.selectedDoc === doc.name;
+      item.className = `source-item ${isActive ? 'active-source' : ''}`;
       item.innerHTML = `
         <div class="source-info">
           <span class="source-icon">📄</span>
@@ -352,11 +413,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <button class="btn-del-source" data-name="${doc.name}" title="Delete Document">🗑️</button>
       `;
+      
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-del-source')) return;
+        selectActiveDocument(doc.name);
+      });
+      
       sourcesList.appendChild(item);
     });
 
     document.querySelectorAll('.btn-del-source').forEach(btn => {
       btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const name = e.currentTarget.getAttribute('data-name');
         await deleteDocument(name);
       });
@@ -380,12 +448,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  selectJsonldDoc.addEventListener('change', (e) => {
-    appState.selectedDoc = e.target.value;
-    btnRunExtraction.disabled = !appState.selectedDoc;
+  function populateChatScopeDropdown() {
+    if (!selectChatScope) return;
+    selectChatScope.innerHTML = '<option value="">🌐 All Indexed Documents (Corpus)</option>';
+    appState.documents.forEach(doc => {
+      const opt = document.createElement('option');
+      opt.value = doc.name;
+      opt.textContent = `📄 ${doc.name}`;
+      selectChatScope.appendChild(opt);
+    });
     if (appState.selectedDoc) {
-      checkExistingJsonLd(appState.selectedDoc);
-    } else {
+      selectChatScope.value = appState.selectedDoc;
+    }
+    updateChatScopeUI();
+  }
+
+  if (selectChatScope) {
+    selectChatScope.addEventListener('change', (e) => {
+      appState.selectedDoc = e.target.value;
+      if (selectJsonldDoc) selectJsonldDoc.value = e.target.value;
+      updateChatScopeUI();
+      renderSourcesList();
+    });
+  }
+
+  if (btnClearWorkspace) {
+    btnClearWorkspace.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to clear all documents and reset the workspace?')) return;
+      try {
+        await fetch('/api/documents/clear', { method: 'POST' });
+        appState.documents = [];
+        appState.selectedDoc = '';
+        appState.isIndexed = false;
+        renderSourcesList();
+        populateJsonldDropdown();
+        populateChatScopeDropdown();
+        updateIndexStatus(false);
+        if (jsonldResultsContainer) jsonldResultsContainer.classList.add('hidden');
+      } catch (e) {
+        console.error('Clear workspace failed:', e);
+      }
+    });
+  }
+
+  selectJsonldDoc.addEventListener('change', (e) => {
+    selectActiveDocument(e.target.value);
+    if (!e.target.value) {
       jsonldResultsContainer.classList.add('hidden');
     }
   });
@@ -393,6 +501,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function deleteDocument(name) {
     try {
       await fetch(`/api/documents/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      if (appState.selectedDoc === name) {
+        appState.selectedDoc = '';
+      }
       await fetchDocuments();
       updateIndexStatus(false);
     } catch (e) {
@@ -449,7 +560,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnSyncKb.addEventListener('click', async () => {
     btnSyncKb.disabled = true;
-    btnSyncKb.innerHTML = '<span class="spinner"></span> <span>Syncing...</span>';
+    btnSyncKb.className = 'btn btn-sync btn-block';
+    if (btnSyncLabel) btnSyncLabel.textContent = 'Syncing Vector DB...';
+    if (syncStateBadge) {
+      syncStateBadge.className = 'sync-badge badge-warning';
+      syncStateBadge.textContent = 'Syncing... ⏳';
+    }
     syncSpinner.classList.remove('hidden');
     syncStatusText.textContent = 'Parsing & Indexing Vector DB...';
 
@@ -474,10 +590,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       alert('Sync failed: ' + e);
       syncStatusText.textContent = '❌ Sync Failed';
+      updateIndexStatus(false);
     } finally {
-      btnSyncKb.disabled = false;
-      btnSyncKb.innerHTML = '<span>⚡ Sync & Build Knowledge Base</span>';
       syncSpinner.classList.add('hidden');
+      updateIndexStatus(appState.isIndexed);
     }
   });
 
@@ -955,9 +1071,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof auth === 'object' && auth !== null) {
         if (auth.name) {
           lines.push(`<meta name="citation_author" content="${escapeHtml(auth.name)}">`);
-          const aff = typeof auth.affiliation === 'object' ? auth.affiliation?.name : auth.affiliation;
-          if (aff) {
-            lines.push(`<meta name="citation_author_institution" content="${escapeHtml(aff)}">`);
+          const aff = auth.affiliation;
+          if (Array.isArray(aff)) {
+            aff.forEach(a => {
+              const affName = typeof a === 'object' ? a.name : a;
+              if (affName) lines.push(`<meta name="citation_author_institution" content="${escapeHtml(affName)}">`);
+            });
+          } else if (aff) {
+            const affName = typeof aff === 'object' ? aff.name : aff;
+            if (affName) lines.push(`<meta name="citation_author_institution" content="${escapeHtml(affName)}">`);
           }
         }
       } else if (typeof auth === 'string' && auth.trim()) {
@@ -973,6 +1095,54 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.push('<!-- <meta name="citation_publication_date" content="YYYY/MM/DD"> (Date not identified in PDF, fill manually if needed) -->');
     }
 
+    // Journal / Container
+    const journalTitle = data.isPartOf?.name || (data.publisher?.note === 'inferred-journal' ? data.publisher?.name : '');
+    if (journalTitle) {
+      lines.push(`<meta name="citation_journal_title" content="${escapeHtml(journalTitle)}">`);
+    }
+    const vol = data.volumeNumber || data.isPartOf?.volumeNumber;
+    if (vol) lines.push(`<meta name="citation_volume" content="${escapeHtml(vol)}">`);
+    const issue = data.issueNumber || data.isPartOf?.issueNumber;
+    if (issue) lines.push(`<meta name="citation_issue" content="${escapeHtml(issue)}">`);
+    if (data.pageStart) lines.push(`<meta name="citation_firstpage" content="${escapeHtml(data.pageStart)}">`);
+    if (data.pageEnd) lines.push(`<meta name="citation_lastpage" content="${escapeHtml(data.pageEnd)}">`);
+
+    // DOI
+    let doiVal = '';
+    if (Array.isArray(data.identifier)) {
+      const doiObj = data.identifier.find(i => String(i.propertyID || '').toUpperCase() === 'DOI');
+      if (doiObj?.value) doiVal = String(doiObj.value).trim();
+    }
+    if (!doiVal && data.sameAs) {
+      const mSame = String(data.sameAs).match(/doi\.org\/(10\.\S+)/i);
+      if (mSame) doiVal = mSame[1];
+    }
+    if (doiVal) {
+      lines.push(`<meta name="citation_doi" content="${escapeHtml(doiVal)}">`);
+    }
+
+    // ISSN
+    let issnVal = data.issn || '';
+    if (!issnVal && Array.isArray(data.identifier)) {
+      const issnObj = data.identifier.find(i => String(i.propertyID || '').toUpperCase().includes('ISSN'));
+      if (issnObj?.value) issnVal = String(issnObj.value).trim();
+    }
+    if (issnVal) {
+      lines.push(`<meta name="citation_issn" content="${escapeHtml(issnVal)}">`);
+    }
+
+    // PDF URL & Abstract Landing Page URL
+    if (data.encoding?.contentUrl) {
+      lines.push(`<meta name="citation_pdf_url" content="${escapeHtml(data.encoding.contentUrl)}">`);
+    }
+    if (data.url) {
+      lines.push(`<meta name="citation_abstract_html_url" content="${escapeHtml(data.url)}">`);
+    }
+
+    if (data.publisher?.name && data.publisher.note !== 'inferred-journal') {
+      lines.push(`<meta name="citation_publisher" content="${escapeHtml(data.publisher.name)}">`);
+    }
+
     if (data.inLanguage) {
       lines.push(`<meta name="citation_language" content="${escapeHtml(data.inLanguage)}">`);
     }
@@ -986,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.push(`<meta name="citation_abstract" content="${escapeHtml(data.description)}">`);
     }
 
-    lines.push('<meta name="citation_publisher" content="CorpusLD">');
+    lines.push('<meta name="citation_fulltext_world_readable" content="">');
 
     const refs = data.citation || data.references_or_sources || [];
     if (Array.isArray(refs)) {
@@ -1000,17 +1170,50 @@ document.addEventListener('DOMContentLoaded', () => {
     return lines.join('\n');
   }
 
-  function renderScholarTab(data) {
-    const code = document.getElementById('scholar-meta-code');
-    if (!code) return;
-    const scholarHtml = generateGoogleScholarHtml(data);
-    code.textContent = scholarHtml;
+  function generateHtmlHeadBundle(data) {
+    const escapeHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const title = escapeHtml(data.name || data.headline || 'Academic Publication');
+    const scholarMeta = generateGoogleScholarHtml(data);
+    const allowedKeys = [
+      "@context", "@type", "@id", "name", "headline",
+      "description", "inLanguage", "datePublished", "keywords", "author",
+      "hasPart", "additionalProperty", "citation", "sdPublisher", "action"
+    ];
+    const cleanObj = {};
+    allowedKeys.forEach(k => {
+      if (data[k] !== undefined && data[k] !== null && (Array.isArray(data[k]) ? data[k].length > 0 : true)) {
+        cleanObj[k] = data[k];
+      }
+    });
+    const jsonLdStr = JSON.stringify(cleanObj, null, 2);
+    const indentedJson = jsonLdStr.split('\n').map(l => '    ' + l).join('\n');
+    const indentedMeta = scholarMeta.split('\n').map(l => l ? '  ' + l : '').join('\n');
+
+    return `<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>${title}</title>\n\n${indentedMeta}\n\n  <!-- Schema.org Academic Knowledge Graph (JSON-LD) -->\n  <script type="application/ld+json">\n${indentedJson}\n  </script>\n</head>`;
   }
 
-  document.getElementById('btn-copy-raw').addEventListener('click', () => {
-    const code = document.getElementById('raw-jsonld-code').textContent;
+  function renderScholarTab(data) {
+    const scholarCode = document.getElementById('scholar-meta-code');
+    if (scholarCode) {
+      scholarCode.textContent = generateGoogleScholarHtml(data);
+    }
+    const headCode = document.getElementById('htmlhead-code');
+    if (headCode) {
+      headCode.textContent = generateHtmlHeadBundle(data);
+    }
+  }
+
+  document.getElementById('btn-copy-raw')?.addEventListener('click', () => {
+    const code = document.getElementById('raw-jsonld-code')?.textContent || '';
     navigator.clipboard.writeText(code);
     alert('JSON-LD copied to clipboard!');
+  });
+
+  document.getElementById('btn-copy-htmlhead')?.addEventListener('click', () => {
+    const code = document.getElementById('htmlhead-code')?.textContent || '';
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    alert('Complete HTML <head> bundle copied to clipboard!');
   });
 
   if (btnCopyScholar) {
@@ -1066,12 +1269,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const model = provider === 'ollama' ? appState.settings.ollamaModel : appState.settings.cloudModel;
     const apiKey = appState.settings.apiKey;
 
+    const scopeDoc = (selectChatScope && selectChatScope.value) ? selectChatScope.value : (appState.selectedDoc || undefined);
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: query,
+          file_name: scopeDoc,
           llm_provider: provider,
           llm_model: model,
           api_key: apiKey,
