@@ -61,3 +61,55 @@ class TestValidation(unittest.TestCase):
         doc = {"name": "T", "publisher": {"@type": "Organization", "name": "Gac Méd Caracas"}}
         tags = generate_google_scholar_meta_tags(doc)
         self.assertIn('content="Gac Méd Caracas"', tags)
+
+    def test_scholar_meta_full_cheat_sheet(self):
+        doc = {
+            "name": "Analysis of albedo effect in a 30-kW bifacial PV system",
+            "author": [
+                {
+                    "name": "Ersagun Türkdoğru",
+                    "affiliation": [{"name": "Yasar University"}]
+                }
+            ],
+            "datePublished": "2022-12-31",
+            "isPartOf": {"name": "Journal of Energy", "volumeNumber": "18", "issueNumber": "4"},
+            "pageStart": "248",
+            "pageEnd": "261",
+            "issn": "3025-0994",
+            "identifier": [{"propertyID": "DOI", "value": "10.31590/ejosat.685909"}],
+            "description": "Abstract text here...",
+            "keywords": ["Albedo effect", "Bifacial module"]
+        }
+        tags = generate_google_scholar_meta_tags(doc, pdf_url="https://example.com/paper.pdf", abstract_url="https://example.com/paper.html")
+        self.assertIn('name="citation_title"', tags)
+        self.assertIn('name="citation_author"', tags)
+        self.assertIn('name="citation_author_institution"', tags)
+        self.assertIn('name="citation_publication_date" content="2022/12/31"', tags)
+        self.assertIn('name="citation_journal_title" content="Journal of Energy"', tags)
+        self.assertIn('name="citation_volume" content="18"', tags)
+        self.assertIn('name="citation_issue" content="4"', tags)
+        self.assertIn('name="citation_firstpage" content="248"', tags)
+        self.assertIn('name="citation_lastpage" content="261"', tags)
+        self.assertIn('name="citation_doi" content="10.31590/ejosat.685909"', tags)
+        self.assertIn('name="citation_issn" content="3025-0994"', tags)
+        self.assertIn('name="citation_pdf_url" content="https://example.com/paper.pdf"', tags)
+        self.assertIn('name="citation_abstract_html_url" content="https://example.com/paper.html"', tags)
+        self.assertIn('name="citation_fulltext_world_readable"', tags)
+
+    def test_generate_html_head_package(self):
+        from json_ld_extractor import generate_html_head_package
+        doc = {
+            "@context": "https://schema.org",
+            "@type": ["Article", "ScholarlyArticle"],
+            "name": "Testing Head Bundle",
+            "author": [{"name": "Author One"}],
+            "datePublished": "2025-01-01"
+        }
+        html_head = generate_html_head_package(doc)
+        self.assertTrue(html_head.startswith("<head>"))
+        self.assertTrue(html_head.endswith("</head>"))
+        self.assertIn('<meta charset="UTF-8">', html_head)
+        self.assertIn('<meta name="viewport"', html_head)
+        self.assertIn('<title>Testing Head Bundle</title>', html_head)
+        self.assertIn('<meta name="citation_title"', html_head)
+        self.assertIn('<script type="application/ld+json">', html_head)
