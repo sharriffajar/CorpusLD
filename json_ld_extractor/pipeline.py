@@ -364,6 +364,8 @@ Respond ONLY in valid JSON."""
         cap_hint = m.get("caption_hint")
         t_text = tc.get("text", "")
         dt = parse_markdown_table_direct(t_text, page_number=p_num, in_language=doc_lang_agent4)
+        if not dt:
+            dt = parse_flat_text_table(t_text, page_number=p_num, in_language=doc_lang_agent4)
         
         # Strict fallback space/tab-delimited ONLY if explicit Table heading exists and data is valid tabular
         if not dt:

@@ -82,6 +82,15 @@ from .validation import (
     validate_json_ld_rich_results,
     get_clean_schema_org_jsonld,
     generate_google_scholar_meta_tags,
+    generate_html_head_package,
+)
+from .merging import (
+    merge_and_enrich_json_ld,
+    merge_authors,
+    merge_sections,
+    merge_metrics,
+    merge_tables,
+    merge_citations,
 )
 from .pipeline import (
     extract_json_ld_agentic_rag,
@@ -102,5 +111,6 @@ __all__ = [
     'normalize_author_affiliations', 'sanitize_entities', 'refine_and_deduplicate_metrics', 'correct_metric_units',
     'extract_references_regex_fallback', 'reconcile_references', 'run_agentic_step', 'ANTONYM_PAIRS_BILINGUAL',
     'NEGATION_PATTERNS_BILINGUAL', 'validate_knowledge_graph_adversarial', 'validate_json_ld_rich_results', 'get_clean_schema_org_jsonld',
-    'generate_google_scholar_meta_tags', 'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
+    'generate_google_scholar_meta_tags', 'generate_html_head_package', 'merge_and_enrich_json_ld', 'merge_authors',
+    'merge_sections', 'merge_metrics', 'merge_tables', 'merge_citations', 'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
 ]
