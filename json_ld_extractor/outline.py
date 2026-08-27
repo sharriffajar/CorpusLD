@@ -25,7 +25,7 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
         
     forbidden_keywords = {
         'daftar pustaka', 'references', 'bibliography', 'kata pengantar', 
-        'daftar isi', 'table of contents', 'abstrak', 'abstract', 
+        'daftar isi', 'table of contents', 
         'lampiran', 'appendix', 'daftar tabel', 'daftar gambar'
     }
     affiliation_noise = {
@@ -58,8 +58,6 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
             continue
 
         if any(an in name_lower for an in affiliation_noise):
-            # Sama seperti pemindai outline: kata 'Laboratory'/'Center' pada judul
-            # seksi sah tidak boleh dibuang; butuh bukti afiliasi nyata
             if name.count(',') >= 2 or re.search(r'\b\d{4,7}\b', name):
                 continue
             
@@ -68,7 +66,7 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
                 orphan_summaries.append(summary)
             continue
             
-        # Tolak poin daftar kontribusi/klausa kalimat (misal: "2. ESBMC-Arduino: an Arduino instantiation (§6).A HAL library whose...")
+        # Tolak poin daftar kontribusi/klausa kalimat
         if re.search(r'\(\s*§\s*\d+\s*\)|\b(?:whose|which\s+is|we\s+present|we\s+introduce|we\s+show|demonstrates?|instantiation)\b', name, re.I):
             continue
         if re.search(r'\.\s*[A-Z]', name) and len(name.split()) > 6:
@@ -118,8 +116,8 @@ def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
         return []
         
     major_candidates = {}  # major_num -> list of (pg, full_heading)
-    subsections = []       # subsections 1.1, 3.1, etc.
-    other_candidates = []  # unnumbered / appendices
+    subsections = []       # subsections 1.1, 3.1, 3.1.1, etc.
+    other_candidates = []  # unnumbered (Abstract) / appendices
     
     for pg, h_full in candidates:
         m_sub = re.match(r'^([1-9]|1\d|2\d)\.\d+', h_full)
@@ -145,7 +143,6 @@ def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
         entries = major_candidates[num]
         valid_entries = [e for e in entries if e[0] >= current_min_page]
         if valid_entries:
-            # Ambil kemunculan pertama yang memenuhi syarat halaman
             best_entry = valid_entries[0]
             filtered_major.append(best_entry)
             current_min_page = best_entry[0]
@@ -170,14 +167,18 @@ def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
 def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tuple]:
     """
     Memindai kandidat heading bab/seksi secara agnostik di seluruh chunk dokumen.
-    Mendukung pola Romawi (I., II.), Angka Arab (1. / 1 Introduction, 1.1, 1.2), BAB/CHAPTER/SECTION, dan standalone domain headings,
+    Mendukung Abstract/Abstrak, Angka Arab (1. / 1 Introduction, 1.1, 3.1.1), Romawi, BAB/CHAPTER/SECTION, dan standalone domain headings,
     baik pada baris tersendiri maupun pada awal blok teks.
     """
-    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'REFERENCIAS', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'ABSTRAK', 'ABSTRACT', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'FIGURE 3', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
+    noise = {'DAFTAR PUSTAKA', 'REFERENCES', 'BIBLIOGRAPHY', 'REFERENCIAS', 'KATA PENGANTAR', 'DAFTAR ISI', 'TABLE OF CONTENTS', 'DATA TABEL', 'INDONESIA', 'TABLE 1', 'TABLE 2', 'FIGURE 1', 'FIGURE 2', 'FIGURE 3', 'PERCENT', 'PERCENTAGE', 'SOURCE:', 'SOURCES:'}
     known_headings = [
+        'abstract', 'abstrak', 'ringkasan eksekutif', 'executive summary',
         'key conditions and challenges', 'recent developments', 'outlook', 
-        'executive summary', 'introduction', 'methodology', 'results', 'discussion', 'conclusion', 'conclusions',
-        'latar belakang', 'metodologi', 'hasil penelitian', 'kesimpulan', 'saran', 'related work', 'future work'
+        'introduction', 'methodology', 'results', 'discussion', 'conclusion', 'conclusions',
+        'latar belakang', 'pendahuluan', 'metode', 'metode penelitian', 'metodologi', 'metodologi penelitian',
+        'hasil dan pembahasan', 'hasil penelitian dan pembahasan', 'hasil penelitian', 'hasil', 'pembahasan',
+        'simpulan', 'kesimpulan', 'simpulan dan saran', 'kesimpulan dan saran', 'penutup',
+        'saran', 'related work', 'future work'
     ]
     candidates = []
     seen_names = set()
@@ -192,7 +193,6 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
         clean_txt = strip_markdown_formatting(txt)
         lines = [l.strip() for l in clean_txt.split('\n') if l.strip()]
         
-        # Pindai baris per baris secara deterministik
         for idx_l, line_clean in enumerate(lines):
             if len(line_clean) < 3 or len(line_clean) > 130:
                 continue
@@ -202,7 +202,6 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 in_references_section = True
                 continue
                 
-            # Jika sudah masuk halaman referensi, jangan ekstrak heading bernomor sitasi
             if in_references_section:
                 continue
                 
@@ -211,15 +210,16 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
             if re.search(r'Rp|\$|USD|EUR|€|\.000|\b(?:pages?|halaman|vol|no|table|tabel|figure|gambar|eq|equation)\b', line_clean, re.IGNORECASE):
                 continue
 
-            # Saring satuan unit fisik, simbol matematika, atau klausa sambung naratif (misal: '2. MW h MW−1, whereas')
+            # Saring satuan unit fisik atau klausa sambung naratif
             if re.search(r'\b(?:MW\s*h|MWh|kWh|GWh|kW|MW|GW|km²|m²|m³|kg|ton|ppm|mg/L)\b|[−±≈×\^/]', line_clean, re.IGNORECASE):
-                continue
+                if not re.match(r'^(?:[1-9]|1\d|2[0-5])[\.\:\s\-–—]\s*\d+[\-\w\s]+$', line_clean):
+                    continue
             if re.search(r'\b(?:whereas|while|because|although|since|therefore|moreover|furthermore|however|namely|whereby|instantiation)\b|\(\s*§\s*\d+\s*\)', line_clean, re.IGNORECASE):
                 continue
             if line_clean.endswith(',') or line_clean.endswith(';'):
                 continue
                 
-            # Saring teks sitasi bibliografi (memuat pola nama penulis berganda, tahun, jurnal, et al.)
+            # Saring teks sitasi bibliografi
             if line_clean.count(',') >= 2 or re.search(r'\b(?:et\s+al|pp\.|vol\.|no\.|doi|https?://|\b\d{4}\b)\b', line_clean, re.I) or re.search(r'\b[A-Z][a-z]+,\s+[A-Z]\b', line_clean):
                 continue
                 
@@ -233,33 +233,33 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
             if any(an in low_line for an in ('email', 'correspondence', '@')):
                 continue
             if any(an in low_line for an in affiliation_noise):
-                # Tolak hanya jika benar-benar berpola afiliasi (koma jamak / kode pos),
-                # bukan sekadar memuat kata seperti 'Laboratory' pada judul seksi sah
                 if low_line.count(',') >= 2 or re.search(r'\b\d{4,7}\b', low_line):
                     continue
 
-            # Fungsi pembantu untuk menyambung heading yang terpotong di baris berikutnya
             def stitch_continuation(text_tail: str, cur_idx: int) -> str:
                 if re.search(r'\b(?:and|of|for|in|to|with|on|the|a|an|or|as|by|from|via)\s*$', text_tail, re.I) or text_tail.endswith('-'):
                     if cur_idx + 1 < len(lines):
                         nxt = lines[cur_idx + 1].strip()
-                        if re.match(r'^[A-Za-z]', nxt) and not re.match(r'^(?:\d+\.|\d+\s+|\[\d+\]|#)', nxt) and len(nxt.split()) <= 8:
+                        if re.match(r'^[A-Za-z0-9]', nxt) and not re.match(r'^(?:\d+\.|\d+\s+|\[\d+\]|#)', nxt) and len(nxt.split()) <= 8:
                             return f"{text_tail.rstrip('-')} {nxt}".strip()
                 return text_tail
 
-            # 1. Unnumbered domain heading
+            # 1. Unnumbered domain heading (termasuk Abstract / Abstrak)
             if line_clean.lower() in known_headings:
                 if line_clean.lower() not in seen_names and len(line_clean.split()) <= 6:
                     seen_names.add(line_clean.lower())
                     candidates.append((pg, line_clean.title()))
                 continue
                 
-            # 2. Subbab Arab: 1.1 / 1.2 / 2.1 / 3.1 / 3.3 / 5.1.2 / 2.5.2
-            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)?)\s+([A-Z\xc0-\xde].+)$', line_clean)
+            # 2. Subbab & Sub-subbab Arab: 1.1 / 1.2 / 2.1 / 3.1 / 3.1.1 / 3.1.2 (termasuk tanpa spasi 3.1.1Analisis)
+            m_sub = re.match(r'^([1-9]\.\d+(?:\.\d+)*)\.?\s*([A-Za-z\xc0-\xde].+)$', line_clean)
             if m_sub:
                 p1 = m_sub.group(1).strip()
                 p2 = stitch_continuation(m_sub.group(2).strip(), idx_l)
                 if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
+                    continue
+                # Tolak jika memuat tanda persen, simbol sama dengan, atau angka berganda (bukan judul seksi)
+                if '%' in p2 or '=' in p2 or len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 2:
                     continue
                 if len(p2.split()) <= 14 and len(p2) >= 3:
                     h_full = f"{p1} {p2}"
@@ -268,16 +268,14 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                         candidates.append((pg, h_full))
                 continue
                 
-            # 3. Bab Utama Arab: 1 Introduction / 1. Introduction / 3 The LSA and Its Exact Regret / 4 Scaling Laws...
-            m_major = re.match(r'^([1-9]|1\d|2[0-5])[\.\:\s\-–—]\s*([A-Z\xc0-\xde].+)$', line_clean)
+            # 3. Bab Utama Arab: 1 Introduction / 1. Introduction / 5. 30-KW BIFACIAL...
+            m_major = re.match(r'^([1-9]|1\d|2[0-5])[\.\:\s\-–—]\s*([A-Za-z0-9\xc0-\xde].+)$', line_clean)
             if m_major:
                 p1 = m_major.group(1).strip()
                 p2 = stitch_continuation(m_major.group(2).strip(), idx_l)
                 if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
                     continue
-                # Tolak baris data tabel yang menyamar sebagai heading
-                # (misal "4 North Pontianak 23 87.59 21.85" -> >=3 token angka)
-                if len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 3:
+                if '%' in p2 or '=' in p2 or len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 3:
                     continue
                 if len(p2.split()) <= 14 and len(p2) >= 3:
                     h_full = f"{p1}. {p2}"
@@ -360,7 +358,6 @@ def resolve_section_pages(sections: List[Dict[str, Any]], heading_candidates: Li
                     break
 
         if matched_existing:
-            # Tetapkan nama bab resmi dari dokumen fisik secara otoritatif
             matched_existing["section_name"] = hname_clean
             matched_existing["page_start"] = pg
             if not matched_existing.get("summary") or "Discussion and detailed findings under section" in matched_existing.get("summary", "") or len(matched_existing.get("summary", "")) < 30:
@@ -393,7 +390,9 @@ def resolve_section_pages(sections: List[Dict[str, Any]], heading_candidates: Li
 
     # Sort sections by page_start and section number order
     def sec_sort_key(s):
-        s_name = s.get("section_name", "")
+        s_name = s.get("section_name", "").strip().lower()
+        if s_name in ("abstract", "abstrak", "executive summary", "ringkasan eksekutif"):
+            return (s.get("page_start", 1) or 1, 0, 0, 0)
         m = re.match(r'^([1-9]|1\d|2\d)(?:\.([0-9]+))?(?:\.([0-9]+))?', s_name)
         if m:
             major = int(m.group(1))
