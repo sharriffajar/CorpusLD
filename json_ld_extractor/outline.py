@@ -1,19 +1,9 @@
 # -*- coding: utf-8 -*-
 """Deteksi struktur bab agnostik: kandidat heading, filter noise, monotonic pages."""
 
-import html
-import json
-import logging
 import re
-import time
-import urllib.request
-import warnings
-import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
-from pydantic import BaseModel, Field, ConfigDict, model_validator
-from qdrant_client import QdrantClient
-from qdrant_client.models import Filter, FieldCondition, MatchValue
-from config import Config
+
 
 from .text_utils import *
 

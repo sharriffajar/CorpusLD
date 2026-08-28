@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Validasi adversarial KG, skor Rich Results, export JSON-LD murni, meta tags Google Scholar."""
+"""Validasi adversarial KG, skor Rich Results, export JSON-LD murni, meta tags Google Scholar, dan serialisasi RDF/Turtle (.ttl)."""
 
 import html
 import json
 import logging
 import re
 import time
-import urllib.request
-import warnings
-import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
-from pydantic import BaseModel, Field, ConfigDict, model_validator
-from qdrant_client import QdrantClient
-from qdrant_client.models import Filter, FieldCondition, MatchValue
-from config import Config
 
 from .schemas import *
 from .text_utils import *
@@ -55,6 +48,7 @@ def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
     if "@context" not in clean:
         clean["@context"] = "https://schema.org"
     return clean
+
 
 def generate_google_scholar_meta_tags(
     data: Dict[str, Any],
@@ -128,7 +122,7 @@ def generate_google_scholar_meta_tags(
     if last_page:
         lines.append(f'<meta name="citation_lastpage" content="{html.escape(str(last_page))}">')
 
-    # DOI resmi dokumen -> citation_doi (tag bernilai tinggi utk Scholar indexing)
+    # DOI resmi dokumen -> citation_doi
     doi_val = ""
     for ident in (data.get("identifier") or []):
         if isinstance(ident, dict) and str(ident.get("propertyID", "")).upper() == "DOI" and ident.get("value"):
@@ -162,7 +156,6 @@ def generate_google_scholar_meta_tags(
     elif data.get("url"):
         lines.append(f'<meta name="citation_abstract_html_url" content="{html.escape(str(data["url"]))}">')
 
-    # Publisher ASLI dokumen bila terdeteksi
     pub = data.get("publisher")
     if isinstance(pub, dict) and pub.get("name") and pub.get("note") != "inferred-journal":
         lines.append(f'<meta name="citation_publisher" content="{html.escape(str(pub["name"]))}">')
@@ -183,7 +176,6 @@ def generate_google_scholar_meta_tags(
     if fulltext_world_readable:
         lines.append('<meta name="citation_fulltext_world_readable" content="">')
 
-    # Outbound references (for Scholar citation graphs)
     citations = data.get("citation", []) or data.get("references_or_sources", [])
     if isinstance(citations, list):
         for ref in citations:
@@ -191,6 +183,7 @@ def generate_google_scholar_meta_tags(
                 lines.append(f'<meta name="citation_reference" content="{html.escape(ref.strip())}">')
 
     return "\n".join(lines)
+
 
 def generate_html_head_package(
     data: Dict[str, Any],
@@ -229,6 +222,7 @@ def generate_html_head_package(
 </head>"""
     return html_bundle
 
+
 ANTONYM_PAIRS_BILINGUAL = {
     # English
     "increase": "decrease", "improve": "worsen", "enable": "disable",
@@ -256,13 +250,50 @@ NEGATION_PATTERNS_BILINGUAL = [
     r"\btak\b", r"\bbelum\b", r"\btiada\b", r"\bkehilangan\b",
 ]
 
+TRADE_OFF_CONJUNCTIONS = [
+    r"\bwhile\b", r"\bwhereas\b", r"\bsedangkan\b", r"\bnamun\b", r"\btetapi\b",
+    r"\btrade-?off\b", r"\bbalance\b", r"\bmembandingkan\b", r"\bcompare[ds]?\b",
+    r"\bdespite\b", r"\balthough\b", r"\bwalaupun\b", r"\bmeskipun\b"
+]
+
+
+def _is_legitimate_tradeoff_context(text_a: str, text_b: str, word: str, antonym: str) -> bool:
+    """
+    Memeriksa apakah kemunculan antonim adalah bagian dari komparasi/trade-off wajar
+    (misal: 'meningkatkan throughput dan menurunkan latensi') dan BUKAN kontradiksi klaim.
+    """
+    combined = f"{text_a} {text_b}".lower()
+    
+    # 1. Jika teks memuat kata kunci trade-off eksplisit
+    for conj in TRADE_OFF_CONJUNCTIONS:
+        if re.search(conj, combined):
+            return True
+            
+    # 2. Periksa target entitas/metrik yang mengikuti kata antonim (subjek gramatikal)
+    # Misal: 'increase throughput' vs 'decrease latency' -> target kata beda -> trade-off valid
+    pattern_word = rf'\b{re.escape(word)}\s+([a-z]{{3,}})'
+    pattern_antonym = rf'\b{re.escape(antonym)}\s+([a-z]{{3,}})'
+    
+    match_w = re.search(pattern_word, combined)
+    match_a = re.search(pattern_antonym, combined)
+    
+    if match_w and match_a:
+        target_w = match_w.group(1).lower()
+        target_a = match_a.group(1).lower()
+        # Jika target entitas yang dimodifikasi berbeda (throughput != latency), ini trade-off
+        if target_w != target_a and target_w not in target_a and target_a not in target_w:
+            return True
+
+    return False
+
+
 def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Adversarial fact validation and deterministic reasoning verification engine
     based on the 'knowledge-graph-reasoning' skill.
     
     Performs 5 rigorous checks:
-    1. Antonym Contradiction Detection
+    1. Antonym Contradiction Detection (dengan mitigasi trade-off konteks C-7)
     2. Negation Conflict Detection
     3. Property & Range Consistency (including units & numeric delta)
     4. Source Grounding & Citation Credibility
@@ -297,10 +328,14 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
             lower_b = text_b.lower()
             for word, antonym in ANTONYM_PAIRS_BILINGUAL.items():
                 if re.search(r'\b' + re.escape(word) + r'\b', lower_a) and re.search(r'\b' + re.escape(antonym) + r'\b', lower_b):
+                    # Mitigasi C-7: Periksa apakah ini trade-off teknik wajar
+                    if _is_legitimate_tradeoff_context(text_a, text_b, word, antonym):
+                        continue
+                        
                     words_a = set(re.findall(r'\b[a-z]{4,}\b', lower_a)) - {word, antonym, "metric", "section", "table", "document"}
                     words_b = set(re.findall(r'\b[a-z]{4,}\b', lower_b)) - {word, antonym, "metric", "section", "table", "document"}
                     shared = words_a & words_b
-                    # Only flag if there is strong semantic subject overlap
+                    # Only flag if there is strong semantic subject overlap without trade-off context
                     if len(shared) >= 4:
                         antonym_conflicts.append(f"Antonym Conflict between {tag_a} ('{word}') and {tag_b} ('{antonym}') regarding: {', '.join(list(shared)[:3])}")
     
@@ -324,7 +359,6 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
 
     # 2. Negation Conflict Detection
     negation_conflicts = []
-    # Real negation detection checks opposing statements on matching section claims
     section_corpus = [(f"Section '{s.get('section_name')}'", s.get("summary", "")) for s in data.get("sections", []) if s.get("summary")]
     for i in range(len(section_corpus)):
         tag_a, text_a = section_corpus[i]
@@ -419,21 +453,24 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
     # 5. Graph Topology & Entity Density
     entities = data.get("entities_involved", [])
     keywords = data.get("keywords", [])
-    if len(entities) >= 3 and len(keywords) >= 3:
+    kg_nodes = data.get("knowledge_graph", {}).get("nodes", []) if isinstance(data.get("knowledge_graph"), dict) else []
+    total_nodes = len(entities) + len(kg_nodes)
+
+    if total_nodes >= 3 and len(keywords) >= 3:
         checks.append({
             "check_type": "graph_topology",
             "passed": True,
             "status": "PASS",
             "title": "Graph Topology & Density",
-            "details": f"Optimal entity density ({len(entities)} ontology entities, {len(keywords)} connector keywords)."
+            "details": f"Optimal entity density ({total_nodes} ontology entities/nodes, {len(keywords)} connector keywords)."
         })
-    elif len(entities) > 0 or len(keywords) > 0:
+    elif total_nodes > 0 or len(keywords) > 0:
         checks.append({
             "check_type": "graph_topology",
             "passed": True,
             "status": "WARN",
             "title": "Graph Topology & Density",
-            "details": f"Moderate density ({len(entities)} entities, {len(keywords)} keywords)."
+            "details": f"Moderate density ({total_nodes} entities, {len(keywords)} keywords)."
         })
     else:
         checks.append({
@@ -466,6 +503,7 @@ def validate_knowledge_graph_adversarial(data: Dict[str, Any]) -> Dict[str, Any]
         "warnings": warnings
     }
 
+
 def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Validator Schema.org & Google Rich Results + Adversarial Knowledge Graph Reasoning Engine.
@@ -477,7 +515,7 @@ def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
     # 1. Context & Type Check (20 pts)
     ctx = data.get("@context", "")
     dtype = data.get("@type", "")
-    valid_types = ["DigitalDocument", "TechArticle", "ScholarlyArticle", "Report", "HowTo", "Legislation", "Dataset", "Article"]
+    valid_types = ["DigitalDocument", "TechArticle", "ScholarlyArticle", "Report", "HowTo", "Legislation", "Dataset", "Article", "ConferencePaper"]
     is_valid_type = (isinstance(dtype, list) and any(t in valid_types for t in dtype)) or (isinstance(dtype, str) and dtype in valid_types)
     if ctx == "https://schema.org" and is_valid_type:
         score += 20
@@ -556,4 +594,311 @@ def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
         "recommendation": kg_report["recommendation"],
         "checks": checks,
         "kg_checks": kg_report["checks"]
+    }
+
+
+# ---------------------------------------------------------
+# RDF / TURTLE (.TTL) & JSON-LD GRAPH SERIALIZATION ENGINE
+# ---------------------------------------------------------
+
+def _escape_turtle_literal(text: str) -> str:
+    """Escapes text for RDF Turtle string literal."""
+    if not text:
+        return '""'
+    cleaned = text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '')
+    return f'"{cleaned}"'
+
+
+def export_to_turtle_rdf(data: Dict[str, Any]) -> str:
+    """
+    Serialisasi artefak ekstraksi ke format RDF Turtle (.ttl) berstandar W3C.
+    Mencakup metadata dokumen, penulis, seksi, metrik, tabel, istilah teknis,
+    prosedur, dan relasi Deep Knowledge Graph Triples.
+    """
+    lines = [
+        "# ====================================================================",
+        "# CorpusLD Studio Knowledge Graph - W3C RDF Turtle Export (.ttl)",
+        "# Generated at: " + time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        "# ====================================================================",
+        "@prefix schema: <https://schema.org/> .",
+        "@prefix kg:     <https://knowledge-graph.dev/schema/> .",
+        "@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
+        "@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .",
+        "@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .",
+        ""
+    ]
+
+    doc_id = data.get("@id") or f"kg:doc_{int(time.time())}"
+    doc_type = data.get("@type", "schema:ScholarlyArticle")
+    if isinstance(doc_type, list):
+        doc_type_str = ", ".join(f"schema:{t}" for t in doc_type)
+    else:
+        doc_type_str = f"schema:{doc_type}"
+
+    # 1. Document Primary Resource
+    lines.append(f"<{doc_id}> a {doc_type_str} ;")
+    
+    title = data.get("name") or data.get("headline") or ""
+    if title:
+        lines.append(f"    schema:name {_escape_turtle_literal(title)} ;")
+        lines.append(f"    schema:headline {_escape_turtle_literal(title)} ;")
+
+    desc = data.get("description") or ""
+    if desc:
+        lines.append(f"    schema:description {_escape_turtle_literal(desc)} ;")
+
+    lang = data.get("inLanguage") or "id"
+    lines.append(f"    schema:inLanguage {_escape_turtle_literal(lang)} ;")
+
+    pub_date = data.get("datePublished")
+    if pub_date:
+        lines.append(f'    schema:datePublished "{pub_date}"^^xsd:date ;')
+
+    keywords = data.get("keywords", [])
+    for kw in keywords:
+        lines.append(f"    schema:keywords {_escape_turtle_literal(kw)} ;")
+
+    # DOI / SameAs
+    same_as = data.get("sameAs")
+    if same_as:
+        lines.append(f"    schema:sameAs <{same_as}> ;")
+
+    # Close document base declaration with dot
+    lines[-1] = lines[-1].rstrip(" ;") + " ."
+    lines.append("")
+
+    # 2. Authors
+    authors = data.get("author", [])
+    for idx, auth in enumerate(authors):
+        auth_name = auth.get("name", "") if isinstance(auth, dict) else str(auth)
+        if not auth_name:
+            continue
+        auth_slug = re.sub(r'[^a-zA-Z0-9_]', '_', auth_name.lower())[:30]
+        auth_uri = f"kg:person_{auth_slug}_{idx+1}"
+        
+        lines.append(f"<{auth_uri}> a schema:Person ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(auth_name)} .")
+        lines.append(f"<{doc_id}> schema:author <{auth_uri}> .")
+        
+        if isinstance(auth, dict) and auth.get("affiliation"):
+            aff = auth["affiliation"]
+            aff_name = aff.get("name", "") if isinstance(aff, dict) else str(aff)
+            if aff_name:
+                aff_slug = re.sub(r'[^a-zA-Z0-9_]', '_', aff_name.lower())[:30]
+                aff_uri = f"kg:org_{aff_slug}"
+                lines.append(f"<{aff_uri}> a schema:EducationalOrganization ;")
+                lines.append(f"    schema:name {_escape_turtle_literal(aff_name)} .")
+                lines.append(f"<{auth_uri}> schema:affiliation <{aff_uri}> .")
+        lines.append("")
+
+    # 3. Sections (hasPart)
+    sections = data.get("sections", [])
+    for idx, sec in enumerate(sections):
+        sec_name = sec.get("section_name", f"Section {idx+1}")
+        sec_slug = re.sub(r'[^a-zA-Z0-9_]', '_', sec_name.lower())[:30]
+        sec_uri = f"kg:section_{sec_slug}_{idx+1}"
+        lines.append(f"<{sec_uri}> a schema:CreativeWork ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(sec_name)} ;")
+        if sec.get("summary"):
+            lines.append(f"    schema:description {_escape_turtle_literal(sec['summary'])} ;")
+        if sec.get("page_start"):
+            lines.append(f'    schema:position "{sec["page_start"]}"^^xsd:integer ;')
+        lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append(f"<{doc_id}> schema:hasPart <{sec_uri}> .")
+        lines.append("")
+
+    # 4. Quantitative Metrics (additionalProperty)
+    metrics = data.get("properties_and_metrics", [])
+    for idx, m in enumerate(metrics):
+        m_name = m.get("name", f"Metric {idx+1}")
+        m_val = str(m.get("value", ""))
+        m_unit = m.get("unit_text", "")
+        m_ctx = m.get("context_or_condition", "")
+        m_uri = f"kg:metric_{idx+1}_{re.sub(r'[^a-zA-Z0-9_]', '_', m_name.lower())[:25]}"
+        
+        lines.append(f"<{m_uri}> a schema:PropertyValue ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(m_name)} ;")
+        lines.append(f"    schema:value {_escape_turtle_literal(m_val)} ;")
+        if m_unit:
+            lines.append(f"    schema:unitText {_escape_turtle_literal(m_unit)} ;")
+        if m_ctx:
+            lines.append(f"    schema:description {_escape_turtle_literal(m_ctx)} ;")
+        lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append(f"<{doc_id}> schema:additionalProperty <{m_uri}> .")
+        lines.append("")
+
+    # 5. Tables
+    tables = data.get("tables", [])
+    for idx, tbl in enumerate(tables):
+        t_cap = tbl.get("caption", f"Table {idx+1}")
+        t_type = tbl.get("table_type", "quantitative")
+        t_uri = f"kg:table_{idx+1}"
+        lines.append(f"<{t_uri}> a schema:Table ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(t_cap)} ;")
+        lines.append(f"    schema:additionalType {_escape_turtle_literal(t_type)} ;")
+        lines.append(f'    schema:position "{tbl.get("page_number", 1)}"^^xsd:integer .')
+        lines.append(f"<{doc_id}> schema:hasPart <{t_uri}> .")
+        lines.append("")
+
+    # 6. Deep Knowledge Graph Triples (Nodes & Edges)
+    kg_obj = data.get("knowledge_graph")
+    if isinstance(kg_obj, dict):
+        nodes = kg_obj.get("nodes", [])
+        edges = kg_obj.get("edges", [])
+        
+        lines.append("# --- Deep Knowledge Graph Triples ---")
+        for node in nodes:
+            n_id = node.get("id") or node.get("@id") or "kg:concept"
+            n_type = node.get("type") or node.get("@type") or "kg:Concept"
+            n_label = node.get("label") or node.get("kg:label") or ""
+            lines.append(f"<{n_id}> a <{n_type}> ;")
+            if n_label:
+                lines.append(f"    rdfs:label {_escape_turtle_literal(n_label)} ;")
+            lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append("")
+
+        for edge in edges:
+            src = edge.get("source") or edge.get("kg:source")
+            tgt = edge.get("target") or edge.get("kg:target")
+            e_type = edge.get("type") or edge.get("kg:type") or "causes"
+            evidence = edge.get("evidence") or edge.get("kg:evidence") or ""
+            if src and tgt:
+                lines.append(f"<{src}> kg:{e_type} <{tgt}> .")
+                if evidence:
+                    edge_uri = f"kg:edge_{re.sub(r'[^a-zA-Z0-9_]', '_', str(src))[:15]}_{e_type}_{re.sub(r'[^a-zA-Z0-9_]', '_', str(tgt))[:15]}"
+                    lines.append(f"<{edge_uri}> a rdf:Statement ;")
+                    lines.append(f"    rdf:subject <{src}> ;")
+                    lines.append(f"    rdf:predicate kg:{e_type} ;")
+                    lines.append(f"    rdf:object <{tgt}> ;")
+                    lines.append(f"    kg:evidence {_escape_turtle_literal(evidence)} .")
+        lines.append("")
+
+    # 7. Defined Terms & Acronyms
+    defined_terms = data.get("defined_terms", [])
+    for idx, dt in enumerate(defined_terms):
+        t_name = dt.get("name", "")
+        t_desc = dt.get("description", "")
+        t_code = dt.get("term_code") or dt.get("termCode")
+        t_uri = f"kg:term_{idx+1}_{re.sub(r'[^a-zA-Z0-9_]', '_', t_name.lower())[:25]}"
+        lines.append(f"<{t_uri}> a schema:DefinedTerm ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(t_name)} ;")
+        if t_desc:
+            lines.append(f"    schema:description {_escape_turtle_literal(t_desc)} ;")
+        if t_code:
+            lines.append(f"    schema:termCode {_escape_turtle_literal(t_code)} ;")
+        lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append(f"<{doc_id}> schema:about <{t_uri}> .")
+        lines.append("")
+
+    # 8. Math Formulas
+    math_formulas = data.get("math_formulas", [])
+    for idx, mf in enumerate(math_formulas):
+        f_name = mf.get("name", f"Formula {idx+1}")
+        f_expr = mf.get("expression", "")
+        f_desc = mf.get("description", "")
+        f_uri = f"kg:formula_{idx+1}"
+        lines.append(f"<{f_uri}> a schema:PropertyValue ;")
+        lines.append(f"    schema:name {_escape_turtle_literal(f_name)} ;")
+        lines.append(f"    schema:value {_escape_turtle_literal(f_expr)} ;")
+        if f_desc:
+            lines.append(f"    schema:description {_escape_turtle_literal(f_desc)} ;")
+        lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append(f"<{doc_id}> schema:additionalProperty <{f_uri}> .")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+def export_to_json_ld_graph(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Menghasilkan struktur JSON-LD berformat @graph yang menggabungkan Macro Document Metadata
+    dengan Micro Knowledge Graph Triples, Procedures, dan Entities.
+    """
+    clean_macro = get_clean_schema_org_jsonld(data)
+    graph_elements = [clean_macro]
+
+    # Tambahkan Knowledge Graph Nodes & Edges jika tersedia
+    kg = data.get("knowledge_graph")
+    if isinstance(kg, dict):
+        for node in kg.get("nodes", []):
+            graph_elements.append({
+                "@id": node.get("id") or node.get("@id"),
+                "@type": node.get("type") or node.get("@type", "Concept"),
+                "label": node.get("label") or node.get("kg:label"),
+                "properties": node.get("properties") or node.get("kg:properties", {}),
+                "confidence": node.get("confidence") or node.get("kg:confidence", 1.0),
+                "sourcePage": node.get("source_page") or node.get("kg:source_page")
+            })
+
+    for term in data.get("defined_terms", []):
+        graph_elements.append({
+            "@id": f"kg:term_{re.sub(r'[^a-zA-Z0-9_]', '_', term.get('name', 'term').lower())}",
+            "@type": "DefinedTerm",
+            "name": term.get("name"),
+            "description": term.get("description"),
+            "termCode": term.get("term_code") or term.get("termCode")
+        })
+
+    for proc in data.get("procedures", []):
+        graph_elements.append({
+            "@id": f"kg:step_{proc.get('step_number', 1)}",
+            "@type": "HowToStep",
+            "name": proc.get("name"),
+            "position": proc.get("step_number"),
+            "text": proc.get("description"),
+            "itemListElement": proc.get("inputs", [])
+        })
+
+    return {
+        "@context": {
+            "@vocab": "https://schema.org/",
+            "kg": "https://knowledge-graph.dev/schema/"
+        },
+        "@graph": graph_elements
+    }
+
+
+def calculate_graph_health_metrics(kg_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Menghitung metrik kesehatan Knowledge Graph:
+    - node_count, edge_count
+    - density: edges / (nodes * (nodes - 1))
+    - average_connectivity: edges / nodes
+    - orphan_nodes: nodes dengan 0 edges
+    """
+    nodes = kg_data.get("nodes", [])
+    edges = kg_data.get("edges", [])
+    
+    n_count = len(nodes)
+    e_count = len(edges)
+    
+    density = 0.0
+    if n_count > 1:
+        density = round(e_count / (n_count * (n_count - 1)), 4)
+        
+    avg_conn = 0.0
+    if n_count > 0:
+        avg_conn = round(e_count / n_count, 2)
+        
+    connected_node_ids = set()
+    for e in edges:
+        src = e.get("source") or e.get("kg:source")
+        tgt = e.get("target") or e.get("kg:target")
+        if src:
+            connected_node_ids.add(src)
+        if tgt:
+            connected_node_ids.add(tgt)
+            
+    orphans = 0
+    for n in nodes:
+        nid = n.get("id") or n.get("@id")
+        if nid and nid not in connected_node_ids:
+            orphans += 1
+
+    return {
+        "node_count": n_count,
+        "edge_count": e_count,
+        "density": density,
+        "average_connectivity": avg_conn,
+        "orphan_nodes_count": orphans
     }

@@ -10,7 +10,14 @@ IJSDP = os.path.join(CORPUS, "ijsdp_21.03_03.pdf")
 ALAMIN = os.path.join(CORPUS, "20.+Al-Amin++M+(200-211).pdf")
 
 
-@unittest.skipUnless(os.path.exists(IJSDP), "ijsdp corpus not present")
+try:
+    import pypdf
+    HAS_PYPDF = True
+except ImportError:
+    HAS_PYPDF = False
+
+
+@unittest.skipUnless(HAS_PYPDF and os.path.exists(IJSDP), "pypdf or ijsdp corpus not present")
 class TestIjsdpCorpus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -40,7 +47,7 @@ class TestIjsdpCorpus(unittest.TestCase):
         self.assertIn("1", labels)
 
 
-@unittest.skipUnless(os.path.exists(ALAMIN), "Al-Amin corpus not present")
+@unittest.skipUnless(HAS_PYPDF and os.path.exists(ALAMIN), "pypdf or Al-Amin corpus not present")
 class TestAlaminCorpus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
