@@ -112,6 +112,7 @@ from .pipeline import (
     extract_json_ld_from_chunks,
     extract_latex_formulas_deterministic,
     extract_technical_terms_deterministic,
+    extract_quantitative_metrics_deterministic,
 )
 
 __all__ = [
@@ -137,4 +138,5 @@ __all__ = [
     'merge_sections', 'merge_metrics', 'merge_tables', 'merge_citations',
     'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
     'extract_latex_formulas_deterministic', 'extract_technical_terms_deterministic',
+    'extract_quantitative_metrics_deterministic',
 ]

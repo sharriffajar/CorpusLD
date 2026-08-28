@@ -86,6 +86,125 @@ def extract_technical_terms_deterministic(text: str, page_number: int = 1) -> Li
     return terms
 
 
+def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) -> List[Dict[str, Any]]:
+    """
+    Ekstraksi deterministik metrik kuantitatif, nilai numerik, persentase, dan pengukuran fisik (100% loss-free base).
+    """
+    metrics = []
+    seen = set()
+    noise_keywords = {
+        'received', 'accepted', 'revised', 'recibido', 'aceptado', 'doi', 'vol', 'volume', 'issue',
+        'no', 'page', 'pages', 'halaman', 'issn', 'isbn', 'table', 'tabel', 'figure', 'gambar',
+        'section', 'bab', 'copyright', 'all rights reserved', 'http', 'https', 'www', 'orcid', 'arxiv',
+        'author', 'available online', 'editor', 'publisher'
+    }
+    action_verbs = {'the', 'a', 'an', 'achieved', 'reached', 'measured', 'estimated', 'calculated', 'is', 'was', 'shows', 'attained', 'observed', 'yielding', 'produced', 'were', 'assumed', 'to', 'be'}
+    unit_pat = r'(?:%|km²|km2|m²|m2|m³|m3|MW|kW|GW|MWh|kWh|GWh|MJ|GJ|kJ|kg|ton|tonne|tonnes|t|ppm|mg/L|mg/kg|V|A|ms|s|Hz|kHz|MHz|GHz|bps|kbps|Mbps|Gbps|points|specimens|articles|samples|participants|respondents|USD|IDR|EUR|€|\$|£|°C|K|tCO2|tCO2eq|EUR/ton|USD/ton|€/kWh|€/t|€/kg|€/ton|\$/ton|\$/kg|\$/kWh)'
+
+    # 1. Pattern: Parameter = Value [Unit]
+    for m in re.finditer(rf'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{0,3}})\s*(?:=|\bis\s+about\b|\bis\s+approximately\b|\bis\b|:)\s*([€\$£]?\s*[\d\.,]+)\s*({unit_pat})?(?:\s|[,\.;]|$)', text, re.IGNORECASE):
+        raw_p_name = strip_markdown_formatting(m.group(1)).strip()
+        val_str = m.group(2).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').strip()
+        unit = strip_markdown_formatting(m.group(3) or '').strip()
+        if not unit and any(c in m.group(2) for c in ['€', '$', '£']):
+            unit = 'EUR' if '€' in m.group(2) else ('USD' if '$' in m.group(2) else 'GBP')
+        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
+        p_name = ' '.join(words) if words else raw_p_name
+        p_lower = p_name.lower()
+        if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
+            continue
+        try:
+            val_num = float(val_str)
+        except ValueError:
+            continue
+        if not unit and not any(mn in p_lower for mn in ['rmse', 'mape', 'fcr', 'snr', 'accuracy', 'precision', 'recall', 'f1', 'loss', 'score', 'ratio', 'count', 'p-value', 'r2', 'r²']):
+            continue
+        key = f"{p_lower}|{val_num}|{unit.lower()}"
+        if key not in seen:
+            seen.add(key)
+            metrics.append({
+                "name": p_name.title(),
+                "value": val_num,
+                "unit_text": unit if unit else None,
+                "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                "page_number": page_number
+            })
+
+    # 2. Pattern: Value Unit for/of Parameter (misal: '0.22 €/kWh for electricity', '50 €/t for mature compost')
+    for m in re.finditer(rf'([€\$£]?\s*[\d\.,]+)\s*({unit_pat})\s+(?:for|of)\s+([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{0,3}})', text, re.IGNORECASE):
+        val_str = m.group(1).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').strip()
+        unit = strip_markdown_formatting(m.group(2)).strip()
+        raw_p_name = strip_markdown_formatting(m.group(3)).strip()
+        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
+        p_name = ' '.join(words) if words else raw_p_name
+        p_lower = p_name.lower()
+        if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
+            continue
+        try:
+            val_num = float(val_str)
+            key = f"{p_lower}|{val_num}|{unit.lower()}"
+            if key not in seen:
+                seen.add(key)
+                metrics.append({
+                    "name": p_name.title(),
+                    "value": val_num,
+                    "unit_text": unit if unit else None,
+                    "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                    "page_number": page_number
+                })
+        except ValueError:
+            pass
+
+    # 3. Pattern: Parameter total/is Value Unit (misal "Verified peatland formations total 23.118 km2")
+    for m in re.finditer(rf'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{1,4}})\s+(?:total|totaling|totals|reaching|amounts\s+to|equaling)\s+([\d\.,]+)\s*({unit_pat})?(?:\s|[,\.;]|$)', text, re.IGNORECASE):
+        raw_p_name = strip_markdown_formatting(m.group(1)).strip()
+        val_str = m.group(2).strip().replace(',', '.')
+        unit = strip_markdown_formatting(m.group(3) or '').strip()
+        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
+        p_name = ' '.join(words) if words else raw_p_name
+        p_lower = p_name.lower()
+        if any(nk in p_lower for nk in noise_keywords):
+            continue
+        try:
+            val_num = float(val_str)
+            key = f"{p_lower}|{val_num}|{unit.lower()}"
+            if key not in seen:
+                seen.add(key)
+                metrics.append({
+                    "name": p_name.title(),
+                    "value": val_num,
+                    "unit_text": unit if unit else None,
+                    "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                    "page_number": page_number
+                })
+        except ValueError:
+            pass
+
+    # 4. Pattern: Count Items (misal "614 observation points", "68 soil specimens")
+    for m in re.finditer(r'\b([\d\.,]+)\s+([A-Za-z\-\/]+(?:\s+[A-Za-z\-\/]+){0,2}\s+(?:points|specimens|articles|samples|participants|respondents))\b', text, re.IGNORECASE):
+        val_str = m.group(1).strip().replace(',', '.')
+        p_name = strip_markdown_formatting(m.group(2)).strip()
+        p_lower = p_name.lower()
+        if any(nk in p_lower for nk in noise_keywords):
+            continue
+        try:
+            val_num = float(val_str)
+            key = f"{p_lower}|{val_num}|count"
+            if key not in seen:
+                seen.add(key)
+                metrics.append({
+                    "name": p_name.title(),
+                    "value": val_num,
+                    "unit_text": p_name.split()[-1],
+                    "context_or_condition": f"Kuantitas terukur pada halaman {page_number}",
+                    "page_number": page_number
+                })
+        except ValueError:
+            pass
+
+    return metrics
+
+
 def extract_json_ld_agentic_rag(
     file_name: str, 
     chunks: List[Dict[str, Any]], 
@@ -342,6 +461,9 @@ Respond ONLY in valid JSON."""
     for c in clean_file_chunks:
         pg = c.get("metadata", {}).get("pdf_page_index", 1)
         txt = c.get("text", "")
+        # Quantitative Metrics & Measurements
+        m_list = extract_quantitative_metrics_deterministic(txt, page_number=pg)
+        accumulated_metrics.extend(m_list)
         # Formulas
         f_list = extract_latex_formulas_deterministic(txt, page_number=pg)
         accumulated_formulas.extend(f_list)

@@ -106,5 +106,21 @@ class TestKeywordsAuthors(unittest.TestCase):
             self.assertIsNone(authors[0].get("identifier"))
 
 
+class TestQuantitativeMetrics(unittest.TestCase):
+    def test_extract_metrics_deterministic(self):
+        from json_ld_extractor import extract_quantitative_metrics_deterministic, refine_and_deduplicate_metrics
+        text = (
+            "The solar system achieved Efficiency = 94.5% at peak load. "
+            "Verified peatland formations total 23.118 km² across 614 observation points."
+        )
+        metrics = extract_quantitative_metrics_deterministic(text, page_number=2)
+        refined = refine_and_deduplicate_metrics(metrics)
+        
+        self.assertGreaterEqual(len(refined), 2)
+        names = [m["name"].lower() for m in refined]
+        self.assertTrue(any("efficiency" in n for n in names))
+        self.assertTrue(any("peatland" in n or "observation points" in n for n in names))
+
+
 if __name__ == "__main__":
     unittest.main()
