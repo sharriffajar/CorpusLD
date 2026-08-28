@@ -634,7 +634,7 @@ def _detect_problem_table_pages(chunks: List[Dict[str, Any]]) -> Dict[int, set]:
         txt = c.get("text", "")
         ctype = m.get("chunk_type")
         
-        # Jalur A: Chunk bertipe 'table' ber-flag flat_capture (tabel teks landscape/rotasi)
+        # Jalur A: Chunk bertipe 'table' ber-flag flat_capture (tabel teks landscape/rotasi/foto)
         if ctype == "table" and m.get("flat_capture"):
             lines_ = [l.strip() for l in txt.splitlines() if l.strip()]
             cap_line = ""
@@ -643,10 +643,9 @@ def _detect_problem_table_pages(chunks: List[Dict[str, Any]]) -> Dict[int, set]:
                     cap_line = l
                     break
             num_m = cap_strict_re.search(cap_line)
-            if num_m:
-                num = int(num_m.group(1))
-                if parse_markdown_table_direct(txt, page_number=pg) is None:
-                    problems.setdefault(pg, set()).add(num)
+            num = int(num_m.group(1)) if num_m else 0
+            if parse_markdown_table_direct(txt, page_number=pg) is None:
+                problems.setdefault(pg, set()).add(num)
                     
         # Jalur B: Chunk paragraf yang memuat caption tabel tetapi tanpa tabel terstruktur (tabel gambar/screenshot/inline)
         elif ctype == "paragraph":
