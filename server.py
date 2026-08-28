@@ -92,6 +92,7 @@ from json_ld_extractor import (
     generate_google_scholar_meta_tags,
     generate_html_head_package,
     is_safe_custom_endpoint,
+    resolve_and_pin_safe_endpoint,
 )
 from json_ld_extractor.storage import CorpusStorage
 
@@ -109,6 +110,19 @@ WORKSPACE_FILES: Dict[str, str] = {}  # {clean_name: file_path}
 EXTRACTED_CHUNKS: List[Dict[str, Any]] = []
 JSON_LD_STORE: Dict[str, Any] = {}
 IS_INDEXED: bool = False
+_WORKSPACE_LOCK = asyncio.Lock()
+
+
+def make_safe_attachment_header(file_name: str, ext: str) -> str:
+    """
+    Sanitasi nama file dan pembuatan header Content-Disposition sesuai RFC 5987 / RFC 6266
+    untuk mencegah celah HTTP Header Injection / CRLF splitting.
+    """
+    clean_base = re.sub(r'[^a-zA-Z0-9_.-]', '_', os.path.basename(file_name or "document")).strip('._') or "document"
+    safe_filename = f"{clean_base}_{ext}"
+    quoted_filename = urllib.parse.quote(safe_filename)
+    return f'attachment; filename="{safe_filename}"; filename*=UTF-8\'\'{quoted_filename}'
+
 
 # Lazy-loaded Embedder & Qdrant Client
 _EMBEDDER = None
@@ -806,75 +820,78 @@ async def list_documents():
 @app.post("/api/upload")
 async def upload_documents(files: List[UploadFile] = File(...)):
     global IS_INDEXED
-    uploaded = []
-    rejected = []
-    max_bytes = Config.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-    for f in files:
-        safe_name = os.path.basename(f.filename or "")
-        if not safe_name.lower().endswith(".pdf"):
-            rejected.append({"file": safe_name, "reason": "Only PDF files are allowed"})
-            continue
-        contents = await f.read()
-        if len(contents) > max_bytes:
-            rejected.append({"file": safe_name, "reason": f"File exceeds {Config.MAX_UPLOAD_SIZE_MB} MB limit"})
-            continue
-        if not contents.startswith(b"%PDF"):
-            rejected.append({"file": safe_name, "reason": "Invalid PDF file signature"})
-            continue
-        save_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4().hex[:8]}_{safe_name}")
-        with open(save_path, "wb") as out:
-            out.write(contents)
-        WORKSPACE_FILES[safe_name] = save_path
-        STORAGE.save_file(safe_name, save_path, len(contents))
-        uploaded.append(safe_name)
-    IS_INDEXED = False
-    return {"uploaded": uploaded, "rejected": rejected, "total": len(WORKSPACE_FILES)}
+    async with _WORKSPACE_LOCK:
+        uploaded = []
+        rejected = []
+        max_bytes = Config.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+        for f in files:
+            safe_name = os.path.basename(f.filename or "")
+            if not safe_name.lower().endswith(".pdf"):
+                rejected.append({"file": safe_name, "reason": "Only PDF files are allowed"})
+                continue
+            contents = await f.read()
+            if len(contents) > max_bytes:
+                rejected.append({"file": safe_name, "reason": f"File exceeds {Config.MAX_UPLOAD_SIZE_MB} MB limit"})
+                continue
+            if not contents.startswith(b"%PDF"):
+                rejected.append({"file": safe_name, "reason": "Invalid PDF file signature"})
+                continue
+            save_path = os.path.join(UPLOAD_DIR, f"{uuid.uuid4().hex[:8]}_{safe_name}")
+            with open(save_path, "wb") as out:
+                out.write(contents)
+            WORKSPACE_FILES[safe_name] = save_path
+            STORAGE.save_file(safe_name, save_path, len(contents))
+            uploaded.append(safe_name)
+        IS_INDEXED = False
+        return {"uploaded": uploaded, "rejected": rejected, "total": len(WORKSPACE_FILES)}
 
 @app.delete("/api/documents/{file_name}")
 async def delete_document(file_name: str):
     global IS_INDEXED
-    if file_name in WORKSPACE_FILES:
-        path = WORKSPACE_FILES[file_name]
-        if os.path.exists(path):
-            try:
-                os.remove(path)
-            except Exception:
-                pass
-        del WORKSPACE_FILES[file_name]
-        if file_name in JSON_LD_STORE:
-            del JSON_LD_STORE[file_name]
-        STORAGE.delete_file(file_name)
-        IS_INDEXED = False
-        return {"success": True, "deleted": file_name}
-    raise HTTPException(status_code=404, detail="File not found")
+    async with _WORKSPACE_LOCK:
+        if file_name in WORKSPACE_FILES:
+            path = WORKSPACE_FILES[file_name]
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+            del WORKSPACE_FILES[file_name]
+            if file_name in JSON_LD_STORE:
+                del JSON_LD_STORE[file_name]
+            STORAGE.delete_file(file_name)
+            IS_INDEXED = False
+            return {"success": True, "deleted": file_name}
+        raise HTTPException(status_code=404, detail="File not found")
 
 @app.post("/api/documents/clear")
 async def clear_all_documents():
     global WORKSPACE_FILES, EXTRACTED_CHUNKS, JSON_LD_STORE, IS_INDEXED
-    WORKSPACE_FILES.clear()
-    EXTRACTED_CHUNKS.clear()
-    JSON_LD_STORE.clear()
-    STORAGE.clear_all()
-    IS_INDEXED = False
-    
-    # Hapus semua file PDF yang terunggah di folder uploads
-    if os.path.exists(UPLOAD_DIR):
-        for f in os.listdir(UPLOAD_DIR):
-            if f.endswith(".pdf"):
-                try:
-                    os.remove(os.path.join(UPLOAD_DIR, f))
-                except Exception:
-                    pass
-
-    # Kosongkan koleksi Qdrant
-    try:
-        qdrant = get_qdrant()
-        if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
-            qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
-    except Exception as e:
-        print(f"⚠️ [Clear] Qdrant collection reset notice: {e}")
+    async with _WORKSPACE_LOCK:
+        WORKSPACE_FILES.clear()
+        EXTRACTED_CHUNKS.clear()
+        JSON_LD_STORE.clear()
+        STORAGE.clear_all()
+        IS_INDEXED = False
         
-    return {"success": True, "message": "All documents and vector indices cleared."}
+        # Hapus semua file PDF yang terunggah di folder uploads
+        if os.path.exists(UPLOAD_DIR):
+            for f in os.listdir(UPLOAD_DIR):
+                if f.endswith(".pdf"):
+                    try:
+                        os.remove(os.path.join(UPLOAD_DIR, f))
+                    except Exception:
+                        pass
+
+        # Kosongkan koleksi Qdrant
+        try:
+            qdrant = get_qdrant()
+            if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
+                qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+        except Exception as e:
+            print(f"⚠️ [Clear] Qdrant collection reset notice: {e}")
+            
+        return {"success": True, "message": "All documents and vector indices cleared."}
 
 class SyncRequest(BaseModel):
     parser: str = "pypdf"
@@ -884,71 +901,72 @@ class SyncRequest(BaseModel):
 @app.post("/api/sync")
 async def sync_knowledge_base(req: SyncRequest):
     global EXTRACTED_CHUNKS, IS_INDEXED
-    if not WORKSPACE_FILES:
-        raise HTTPException(status_code=400, detail="Tidak ada dokumen dalam workspace untuk di-index.")
-    
-    def _execute_sync():
-        all_chunks = []
-        for fname, fpath in list(WORKSPACE_FILES.items()):
-            chunks = parse_document(
-                file_path=fpath, 
-                file_name=fname, 
-                parser_choice=req.parser,
-                llamaparse_key=req.llamaparse_key or "",
-                unstructured_key=req.unstructured_key or ""
-            )
-            STORAGE.save_chunks(fname, chunks)
-            all_chunks.extend(chunks)
+    async with _WORKSPACE_LOCK:
+        if not WORKSPACE_FILES:
+            raise HTTPException(status_code=400, detail="Tidak ada dokumen dalam workspace untuk di-index.")
         
-        if not all_chunks:
-            return None
-        
-        # Qdrant Indexing
-        embedder = get_embedder()
-        qdrant = get_qdrant()
-        
-        if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
-            qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+        def _execute_sync():
+            all_chunks = []
+            for fname, fpath in list(WORKSPACE_FILES.items()):
+                chunks = parse_document(
+                    file_path=fpath, 
+                    file_name=fname, 
+                    parser_choice=req.parser,
+                    llamaparse_key=req.llamaparse_key or "",
+                    unstructured_key=req.unstructured_key or ""
+                )
+                STORAGE.save_chunks(fname, chunks)
+                all_chunks.extend(chunks)
             
-        qdrant.create_collection(
-            collection_name=Config.QDRANT_COLLECTION_NAME,
-            vectors_config=VectorParams(size=Config.EMBEDDING_DIMENSION, distance=Distance.COSINE)
-        )
-
-        # Batch encoding jauh lebih cepat daripada encode satu-per-satu
-        texts = [item["text"] for item in all_chunks]
-        vectors = embedder.encode(texts, batch_size=32, show_progress_bar=False).tolist()
-        points = [
-            PointStruct(id=idx + 1, vector=vec, payload=item)
-            for idx, (item, vec) in enumerate(zip(all_chunks, vectors))
-        ]
-        qdrant.upsert(collection_name=Config.QDRANT_COLLECTION_NAME, points=points)
-
-        # Payload index untuk filter per-dokumen (metadata.source) agar retrieval tetap cepat saat korpus membesar
-        try:
-            qdrant.create_payload_index(
+            if not all_chunks:
+                return None
+            
+            # Qdrant Indexing
+            embedder = get_embedder()
+            qdrant = get_qdrant()
+            
+            if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
+                qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+                
+            qdrant.create_collection(
                 collection_name=Config.QDRANT_COLLECTION_NAME,
-                field_name="metadata.source",
-                field_schema=PayloadSchemaType.KEYWORD
+                vectors_config=VectorParams(size=Config.EMBEDDING_DIMENSION, distance=Distance.COSINE)
             )
-        except Exception as e:
-            print(f"⚠️ [Sync] Payload index notice: {e}")
-            
-        return all_chunks
 
-    result_chunks = await asyncio.to_thread(_execute_sync)
-    if not result_chunks:
-        raise HTTPException(status_code=400, detail="Parsing selesai namun tidak ada konten yang bisa diekstrak dari dokumen.")
+            # Batch encoding jauh lebih cepat daripada encode satu-per-satu
+            texts = [item["text"] for item in all_chunks]
+            vectors = embedder.encode(texts, batch_size=32, show_progress_bar=False).tolist()
+            points = [
+                PointStruct(id=idx + 1, vector=vec, payload=item)
+                for idx, (item, vec) in enumerate(zip(all_chunks, vectors))
+            ]
+            qdrant.upsert(collection_name=Config.QDRANT_COLLECTION_NAME, points=points)
 
-    EXTRACTED_CHUNKS = result_chunks
-    IS_INDEXED = True
-    
-    return {
-        "success": True,
-        "total_documents": len(WORKSPACE_FILES),
-        "total_chunks": len(EXTRACTED_CHUNKS),
-        "collection": Config.QDRANT_COLLECTION_NAME
-    }
+            # Payload index untuk filter per-dokumen (metadata.source) agar retrieval tetap cepat saat korpus membesar
+            try:
+                qdrant.create_payload_index(
+                    collection_name=Config.QDRANT_COLLECTION_NAME,
+                    field_name="metadata.source",
+                    field_schema=PayloadSchemaType.KEYWORD
+                )
+            except Exception as e:
+                print(f"⚠️ [Sync] Payload index notice: {e}")
+                
+            return all_chunks
+
+        result_chunks = await asyncio.to_thread(_execute_sync)
+        if not result_chunks:
+            raise HTTPException(status_code=400, detail="Parsing selesai namun tidak ada konten yang bisa diekstrak dari dokumen.")
+
+        EXTRACTED_CHUNKS = result_chunks
+        IS_INDEXED = True
+        
+        return {
+            "success": True,
+            "total_documents": len(WORKSPACE_FILES),
+            "total_chunks": len(EXTRACTED_CHUNKS),
+            "collection": Config.QDRANT_COLLECTION_NAME
+        }
 
 class ExtractRequest(BaseModel):
     file_name: str
@@ -1152,7 +1170,13 @@ Jawaban Profesional, Terstruktur & Terverifikasi:"""
                 
         # 2. OpenAI / Groq / DeepSeek / Custom Endpoint BYOK
         elif provider in ["openai", "groq", "deepseek", "custom", "openrouter"]:
-            api_endpoint = req.base_url or ("https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1")
+            extra_headers = {}
+            if req.base_url:
+                pinned_endpoint, host_headers = resolve_and_pin_safe_endpoint(req.base_url)
+                api_endpoint = pinned_endpoint
+                extra_headers.update(host_headers)
+            else:
+                api_endpoint = "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
             url = f"{api_endpoint.rstrip('/')}/chat/completions"
             payload = {
                 "model": model_to_use,
@@ -1161,6 +1185,7 @@ Jawaban Profesional, Terstruktur & Terverifikasi:"""
                 "max_tokens": 512
             }
             headers = {"Content-Type": "application/json"}
+            headers.update(extra_headers)
             if req.api_key:
                 headers["Authorization"] = f"Bearer {req.api_key}"
             rq = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
@@ -1208,7 +1233,7 @@ async def export_jsonld_file(file_name: str):
         return JSONResponse(
             content=clean_data,
             headers={
-                "Content-Disposition": f'attachment; filename="{file_name}_schema.jsonld"'
+                "Content-Disposition": make_safe_attachment_header(file_name, "schema.jsonld")
             }
         )
     raise HTTPException(status_code=404, detail="JSON-LD belum tersedia.")
@@ -1223,7 +1248,7 @@ async def export_turtle_file(file_name: str):
             content=ttl_content,
             media_type="text/turtle; charset=utf-8",
             headers={
-                "Content-Disposition": f'attachment; filename="{file_name}_kg.ttl"'
+                "Content-Disposition": make_safe_attachment_header(file_name, "kg.ttl")
             }
         )
     raise HTTPException(status_code=404, detail="Data graf belum diekstrak untuk file ini.")
@@ -1237,7 +1262,7 @@ async def export_jsonld_graph_file(file_name: str):
         return JSONResponse(
             content=graph_obj,
             headers={
-                "Content-Disposition": f'attachment; filename="{file_name}_graph.jsonld"'
+                "Content-Disposition": make_safe_attachment_header(file_name, "graph.jsonld")
             }
         )
     raise HTTPException(status_code=404, detail="Data graf belum diekstrak untuk file ini.")
@@ -1252,7 +1277,7 @@ async def export_scholar_meta_file(file_name: str):
             content=html_head,
             media_type="text/html; charset=utf-8",
             headers={
-                "Content-Disposition": f'attachment; filename="{file_name}_head.html"'
+                "Content-Disposition": make_safe_attachment_header(file_name, "head.html")
             }
         )
     raise HTTPException(status_code=404, detail="Metadata belum tersedia.")

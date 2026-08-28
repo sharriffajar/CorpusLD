@@ -114,11 +114,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. SETTINGS & BYOK LOGIC
   // ---------------------------------------------------------
   function loadSettingsFromStorage() {
-    const saved = localStorage.getItem('corpusld_settings');
-    if (saved) {
+    // 1. Muat preferensi umum non-sensitif dari localStorage
+    const savedPrefs = localStorage.getItem('corpusld_preferences');
+    if (savedPrefs) {
       try {
-        appState.settings = { ...appState.settings, ...jsonParse(saved) };
+        const prefs = jsonParse(savedPrefs);
+        appState.settings.provider = prefs.provider || 'ollama';
+        appState.settings.ollamaModel = prefs.ollamaModel || 'qwen2.5:3b';
+        appState.settings.cloudModel = prefs.cloudModel || 'gemini-3.5-flash-lite';
+        appState.settings.baseUrl = prefs.baseUrl || '';
+        appState.settings.parser = prefs.parser || 'pypdf';
       } catch (e) {}
+    }
+    // 2. Muat kredensial sensitif secara aman dari sessionStorage (memory runtime per-tab)
+    const savedSession = sessionStorage.getItem('corpusld_session_keys');
+    if (savedSession) {
+      try {
+        const keys = jsonParse(savedSession);
+        appState.settings.apiKey = keys.apiKey || '';
+        appState.settings.llamaparseKey = keys.llamaparseKey || '';
+        appState.settings.unstructuredKey = keys.unstructuredKey || '';
+      } catch (e) {}
+    }
+    // 3. Bersihkan legacy plaintext keys dari localStorage jika pernah tersimpan
+    if (localStorage.getItem('corpusld_settings')) {
+      localStorage.removeItem('corpusld_settings');
     }
     applySettingsToUI();
     updatePrivacyIndicator();
@@ -134,7 +154,24 @@ document.addEventListener('DOMContentLoaded', () => {
     appState.settings.llamaparseKey = settingLlamaparseKey.value.trim();
     appState.settings.unstructuredKey = settingUnstructuredKey.value.trim();
 
-    localStorage.setItem('corpusld_settings', JSON.stringify(appState.settings));
+    // Preferensi umum disimpan ke localStorage
+    const generalPrefs = {
+      provider: appState.settings.provider,
+      ollamaModel: appState.settings.ollamaModel,
+      cloudModel: appState.settings.cloudModel,
+      baseUrl: appState.settings.baseUrl,
+      parser: appState.settings.parser
+    };
+    localStorage.setItem('corpusld_preferences', JSON.stringify(generalPrefs));
+
+    // Kredensial API Key disimpan HANYA di sessionStorage (memory runtime per tab)
+    const sensitiveKeys = {
+      apiKey: appState.settings.apiKey,
+      llamaparseKey: appState.settings.llamaparseKey,
+      unstructuredKey: appState.settings.unstructuredKey
+    };
+    sessionStorage.setItem('corpusld_session_keys', JSON.stringify(sensitiveKeys));
+
     updatePrivacyIndicator();
     settingsModal.classList.add('hidden');
   }
@@ -1324,7 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sources && sources.length > 0) {
       const cit = document.createElement('div');
       cit.className = 'msg-citations';
-      cit.innerHTML = `<strong>📌 Citations & Grounded Evidence (${duration}s):</strong><br>` + sources.map(s => `• ${s}`).join('<br>');
+      cit.innerHTML = `<strong>📌 Citations & Grounded Evidence (${duration}s):</strong><br>` + sources.map(s => `• ${escapeHtml(s)}`).join('<br>');
       bubble.appendChild(cit);
     }
 

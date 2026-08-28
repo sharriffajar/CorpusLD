@@ -87,6 +87,7 @@ from .llm_adapters import (
     run_agentic_step_async,
     repair_malformed_json,
     is_safe_custom_endpoint,
+    resolve_and_pin_safe_endpoint,
 )
 from .validation import (
     ANTONYM_PAIRS_BILINGUAL,
@@ -137,7 +138,7 @@ __all__ = [
     'extract_deterministic_abstract', 'extract_deterministic_authors', 'extract_explicit_document_keywords', 'verify_and_resolve_authors',
     'normalize_author_affiliations', 'sanitize_entities', 'refine_and_deduplicate_metrics', 'correct_metric_units',
     'extract_references_regex_fallback', 'reconcile_references', 'run_agentic_step', 'run_agentic_step_async',
-    'repair_malformed_json', 'ANTONYM_PAIRS_BILINGUAL',
+    'repair_malformed_json', 'is_safe_custom_endpoint', 'resolve_and_pin_safe_endpoint', 'ANTONYM_PAIRS_BILINGUAL',
     'NEGATION_PATTERNS_BILINGUAL', 'validate_knowledge_graph_adversarial', 'validate_json_ld_rich_results', 'get_clean_schema_org_jsonld',
     'generate_google_scholar_meta_tags', 'generate_html_head_package', 'export_to_turtle_rdf', 'export_to_json_ld_graph',
     'calculate_graph_health_metrics', 'merge_and_enrich_json_ld', 'merge_authors',

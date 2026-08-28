@@ -61,6 +61,43 @@ def is_safe_custom_endpoint(endpoint_url: str) -> bool:
         return False
 
 
+def resolve_and_pin_safe_endpoint(endpoint_url: str) -> tuple[str, Dict[str, str]]:
+    """
+    Memvalidasi dan mengunci (pin) IP address hasil resolusi DNS pertama
+    untuk memitigasi celah SSRF via DNS Rebinding (TOCTOU).
+    Mengembalikan tuple (pinned_url, headers_dict).
+    """
+    if not is_safe_custom_endpoint(endpoint_url):
+        raise ValueError(f"Disallowed or unsafe custom endpoint: {endpoint_url}")
+    parsed = urllib.parse.urlparse(endpoint_url.strip())
+    hostname = parsed.hostname
+    port = parsed.port
+    
+    if hostname.lower() in ('localhost', '127.0.0.1', '::1'):
+        return endpoint_url, {}
+        
+    try:
+        ip_obj = ipaddress.ip_address(hostname)
+        return endpoint_url, {}
+    except ValueError:
+        pass
+        
+    default_port = 443 if parsed.scheme == 'https' else 80
+    addr_info = socket.getaddrinfo(hostname, port or default_port)
+    if not addr_info:
+        raise ValueError(f"Could not resolve hostname: {hostname}")
+        
+    pinned_ip = addr_info[0][4][0]
+    ip_obj = ipaddress.ip_address(pinned_ip)
+    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
+        raise ValueError(f"Endpoint resolved to unsafe IP: {pinned_ip}")
+        
+    netloc = f"{pinned_ip}:{port}" if port else pinned_ip
+    pinned_url = urllib.parse.urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+    host_header_val = f"{hostname}:{port}" if port else hostname
+    return pinned_url, {"Host": host_header_val}
+
+
 def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
     """
     Pemulihan heuristik untuk respons LLM berupa JSON yang terpotong,
@@ -272,10 +309,11 @@ def run_agentic_step(
 
     # 2. OpenAI / Groq / DeepSeek / Custom Endpoint BYOK
     elif provider in ["openai", "groq", "deepseek", "custom", "openrouter"]:
+        extra_headers = {}
         if base_url:
-            if not is_safe_custom_endpoint(base_url):
-                raise ValueError(f"Disallowed or unsafe custom base_url: {base_url}")
-            api_endpoint = base_url
+            pinned_endpoint, host_headers = resolve_and_pin_safe_endpoint(base_url)
+            api_endpoint = pinned_endpoint
+            extra_headers.update(host_headers)
         else:
             api_endpoint = "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
         url = f"{api_endpoint.rstrip('/')}/chat/completions"
@@ -289,6 +327,7 @@ def run_agentic_step(
             "temperature": 0.1
         }
         headers = {"Content-Type": "application/json"}
+        headers.update(extra_headers)
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
             
@@ -388,10 +427,11 @@ async def run_agentic_step_async(
             return run_agentic_step(system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url)
 
     elif provider in ["openai", "groq", "deepseek", "custom", "openrouter"]:
+        extra_headers = {}
         if base_url:
-            if not is_safe_custom_endpoint(base_url):
-                raise ValueError(f"Disallowed or unsafe custom base_url: {base_url}")
-            api_endpoint = base_url
+            pinned_endpoint, host_headers = resolve_and_pin_safe_endpoint(base_url)
+            api_endpoint = pinned_endpoint
+            extra_headers.update(host_headers)
         else:
             api_endpoint = "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
         url = f"{api_endpoint.rstrip('/')}/chat/completions"
@@ -405,6 +445,7 @@ async def run_agentic_step_async(
             "temperature": 0.1
         }
         headers = {"Content-Type": "application/json"}
+        headers.update(extra_headers)
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
             

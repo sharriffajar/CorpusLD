@@ -34,3 +34,34 @@ def test_ssrf_disallowed_endpoints():
     # None or empty
     assert is_safe_custom_endpoint("") is False
     assert is_safe_custom_endpoint(None) is False
+
+
+def test_resolve_and_pin_safe_endpoint():
+    from json_ld_extractor.llm_adapters import resolve_and_pin_safe_endpoint
+    
+    # Localhost returns URL as-is without extra Host header
+    pinned_url, headers = resolve_and_pin_safe_endpoint("http://localhost:11434")
+    assert pinned_url == "http://localhost:11434"
+    assert headers == {}
+    
+    # Disallowed endpoint raises ValueError
+    with pytest.raises(ValueError):
+        resolve_and_pin_safe_endpoint("http://169.254.169.254/latest")
+
+    with pytest.raises(ValueError):
+        resolve_and_pin_safe_endpoint("http://10.0.0.1:8080")
+
+
+def test_make_safe_attachment_header():
+    from server import make_safe_attachment_header
+    
+    header = make_safe_attachment_header("report.pdf", "schema.jsonld")
+    assert 'filename="report.pdf_schema.jsonld"' in header
+    assert "filename*=UTF-8''" in header
+    
+    # Prevents CRLF injection and quotes
+    injected = 'paper" \r\nSet-Cookie: admin=true\r\n.pdf'
+    safe_header = make_safe_attachment_header(injected, "schema.jsonld")
+    assert "\r" not in safe_header
+    assert "\n" not in safe_header
+    assert "Set-Cookie" not in safe_header or "_" in safe_header
