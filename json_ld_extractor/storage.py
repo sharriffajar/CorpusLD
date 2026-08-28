@@ -15,14 +15,28 @@ class CorpusStorage:
 
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path
-        self._init_db()
+        self._initialized = False
+
+    def _ensure_init(self):
+        if not self._initialized:
+            try:
+                self._init_db()
+                self._initialized = True
+            except Exception:
+                pass
 
     def _get_connection(self) -> sqlite3.Connection:
+        db_dir = os.path.dirname(os.path.abspath(self.db_path))
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
         conn = sqlite3.connect(self.db_path, timeout=15.0)
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode = WAL;")
-        conn.execute("PRAGMA busy_timeout = 5000;")
-        conn.execute("PRAGMA synchronous = NORMAL;")
+        try:
+            conn.execute("PRAGMA journal_mode = WAL;")
+            conn.execute("PRAGMA busy_timeout = 5000;")
+            conn.execute("PRAGMA synchronous = NORMAL;")
+        except Exception:
+            pass
         return conn
 
     def _init_db(self):
@@ -60,6 +74,7 @@ class CorpusStorage:
         conn.close()
 
     def save_file(self, file_name: str, file_path: str, file_size: int = 0):
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("""
@@ -71,6 +86,7 @@ class CorpusStorage:
 
     def get_all_files(self) -> Dict[str, str]:
         """Mengembalikan mapping {file_name: file_path}."""
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("SELECT file_name, file_path FROM workspace_files")
@@ -79,6 +95,7 @@ class CorpusStorage:
         return {r["file_name"]: r["file_path"] for r in rows}
 
     def delete_file(self, file_name: str):
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM workspace_files WHERE file_name = ?", (file_name,))
@@ -88,6 +105,7 @@ class CorpusStorage:
         conn.close()
 
     def save_chunks(self, file_name: str, chunks: List[Dict[str, Any]]):
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM extracted_chunks WHERE file_name = ?", (file_name,))
@@ -105,6 +123,7 @@ class CorpusStorage:
         conn.close()
 
     def get_chunks(self, file_name: Optional[str] = None) -> List[Dict[str, Any]]:
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         if file_name:
@@ -129,6 +148,7 @@ class CorpusStorage:
         return chunks
 
     def save_extracted_document(self, file_name: str, extraction_result: Dict[str, Any]):
+        self._ensure_init()
         schema_json = json.dumps(extraction_result.get("schema_json_ld", {}), ensure_ascii=False)
         val_json = json.dumps(extraction_result.get("validation", {}), ensure_ascii=False)
         tel_json = json.dumps(extraction_result.get("telemetry", {}), ensure_ascii=False)
@@ -143,6 +163,7 @@ class CorpusStorage:
         conn.close()
 
     def get_extracted_document(self, file_name: str) -> Optional[Dict[str, Any]]:
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("SELECT * FROM extracted_documents WHERE file_name = ?", (file_name,))
@@ -161,6 +182,7 @@ class CorpusStorage:
             return None
 
     def get_all_extracted_documents(self) -> Dict[str, Any]:
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("SELECT * FROM extracted_documents")
@@ -180,6 +202,7 @@ class CorpusStorage:
         return res
 
     def clear_all(self):
+        self._ensure_init()
         conn = self._get_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM workspace_files")

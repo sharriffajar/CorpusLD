@@ -103,17 +103,22 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
 
     return filtered
 
+ROMAN_TO_INT = {
+    'i': 1, 'ii': 2, 'iii': 3, 'iv': 4, 'v': 5, 'vi': 6, 'vii': 7, 'viii': 8, 'ix': 9, 'x': 10,
+    'xi': 11, 'xii': 12, 'xiii': 13, 'xiv': 14, 'xv': 15, 'xvi': 16, 'xvii': 17, 'xviii': 18, 'xix': 19, 'xx': 20
+}
+
+
 def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
     """
-    Menyaring kandidat bab secara agnostik berdasarkan konsistensi sekuensial halaman (Monotonic Structural Continuity).
-    Mencegah poin daftar bernomor di dalam Introduction (misal 1., 3., 4., 5. pada halaman 1-2)
-    salah dianggap sebagai bab utama 3, 4, 5 yang sebenarnya baru muncul di halaman-halaman berikutnya.
+    Menyaring kandidat bab bernomor secara hierarkis dan monoton meningkat terhadap urutan halaman.
+    Mendukung format angka desimal Arab (1., 2., 2.1), angka Romawi (I., II., III.), dan sub-bab alfabetik (A., B.).
     """
     if not candidates:
         return []
         
     major_candidates = {}  # major_num -> list of (pg, full_heading)
-    subsections = []       # subsections 1.1, 3.1, 3.1.1, etc.
+    subsections = []       # subsections 1.1, 3.1, 3.1.1, A., B., etc.
     other_candidates = []  # unnumbered (Abstract) / appendices
     
     for pg, h_full in candidates:
@@ -123,11 +128,21 @@ def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
             continue
             
         m_major = re.match(r'^([1-9]|1\d|2\d)\.\s+(.+)$', h_full)
+        m_roman = re.match(r'^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)\.\s+(.+)$', h_full, re.IGNORECASE) if not m_major else None
+
         if m_major:
             num = int(m_major.group(1))
             if num not in major_candidates:
                 major_candidates[num] = []
             major_candidates[num].append((pg, h_full))
+        elif m_roman:
+            r_str = m_roman.group(1).lower()
+            num = ROMAN_TO_INT.get(r_str, 99)
+            if num not in major_candidates:
+                major_candidates[num] = []
+            major_candidates[num].append((pg, h_full))
+        elif re.match(r'^[A-Z]\.\s+', h_full):
+            subsections.append((pg, h_full))
         else:
             other_candidates.append((pg, h_full))
             
@@ -146,7 +161,14 @@ def filter_monotonic_outline_headings(candidates: List[tuple]) -> List[tuple]:
             
     # Gabungkan bab utama yang valid dan subbab
     clean_outline = list(filtered_major)
-    major_page_map = {int(re.match(r'^(\d+)\.', e[1]).group(1)): e[0] for e in filtered_major if re.match(r'^(\d+)\.', e[1])}
+    major_page_map = {}
+    for e in filtered_major:
+        m_ar = re.match(r'^(\d+)\.', e[1])
+        m_ro = re.match(r'^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII)\.', e[1], re.IGNORECASE)
+        if m_ar:
+            major_page_map[int(m_ar.group(1))] = e[0]
+        elif m_ro:
+            major_page_map[ROMAN_TO_INT.get(m_ro.group(1).lower(), 99)] = e[0]
     
     for pg, h_full in subsections:
         m_sub = re.match(r'^([1-9]|1\d|2\d)\.(\d+)', h_full)

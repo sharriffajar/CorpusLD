@@ -567,18 +567,20 @@ RULES:
 6. Extract mathematical formulas into 'formulas' (MathFormula: name, expression, description).
 Respond ONLY in valid JSON."""
 
-    for cluster_idx, p_cluster in enumerate(page_clusters):
+    import concurrent.futures
+
+    def _process_cluster_item(item: tuple) -> tuple:
+        cluster_idx, p_cluster = item
         cluster_text = ""
         for p in p_cluster:
             for c in page_to_chunks[p]:
                 txt = sanitize_text_for_extraction(c.get("text", ""))
                 cluster_text += f"[Page: {p}]\n{txt}\n\n"
 
-        cluster_text = truncate_context(cluster_text, max_chars=3500)
+        cluster_text = truncate_context(cluster_text, max_chars=8000)
         p_input = f"Document: {file_name} (Pages: {p_cluster})\n\nContext to extract:\n{cluster_text}"
-        
         try:
-            sec_deep_res = run_agentic_step(
+            res = run_agentic_step(
                 sys_prompt_deep, 
                 p_input, 
                 StepSectionDeepExtraction, 
@@ -588,7 +590,20 @@ Respond ONLY in valid JSON."""
                 api_key=api_key, 
                 base_url=base_url
             )
-            
+            return cluster_idx, p_cluster, res
+        except Exception as e:
+            return cluster_idx, p_cluster, e
+
+    # Concurrently execute clusters with worker pool (max_workers=3)
+    max_workers = min(3, max(1, len(page_clusters))) if page_clusters else 1
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_process_cluster_item, (c_idx, cl)) for c_idx, cl in enumerate(page_clusters)]
+        for fut in concurrent.futures.as_completed(futures):
+            c_idx, p_cluster, sec_deep_res = fut.result()
+            if isinstance(sec_deep_res, Exception):
+                log(f"⚠️ Cluster {c_idx+1}/{len(page_clusters)} note: {sec_deep_res}")
+                continue
+
             # Collect metrics
             for m in sec_deep_res.get("metrics", []):
                 if not m.get("page_number") and p_cluster:
@@ -616,9 +631,6 @@ Respond ONLY in valid JSON."""
                 if not fm.get("page_number") and p_cluster:
                     fm["page_number"] = p_cluster[0]
                 accumulated_formulas.append(fm)
-                
-        except Exception as e:
-            log(f"⚠️ Cluster {cluster_idx+1}/{len(page_clusters)} note: {e}")
 
     # Deduplication and calibration of metrics
     all_doc_metric_text = "\n".join([c.get("text", "") for c in clean_file_chunks])

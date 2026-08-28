@@ -106,6 +106,25 @@ class TestTables(unittest.TestCase):
         self.assertIsNotNone(res)
         self.assertIn("Average cross-validation evaluation results for bather condition estimation", res["caption"])
 
+    def test_tolerant_table_consolidation_with_differing_headers(self):
+        # Table 4 split across page 5 and 6 with slight header punctuation/spacing variation
+        tbl_part1 = {
+            "caption": "Table 4. Experimental Results",
+            "page_number": 5,
+            "headers": ["No.", "Metric Name", "Value"],
+            "rows": [["1", "Accuracy", "98.5%"], ["2", "F1-Score", "0.98"]]
+        }
+        tbl_part2 = {
+            "caption": "Table 4 (Continued)",
+            "page_number": 6,
+            "headers": ["No", "Metric Name", "Value "],
+            "rows": [["3", "Latency", "12ms"], ["4", "Loss", "0.02"]]
+        }
+        consolidated = consolidate_tables([tbl_part1, tbl_part2], in_language="en")
+        self.assertEqual(len(consolidated), 1)
+        self.assertEqual(len(consolidated[0]["rows"]), 4)
+        self.assertEqual(consolidated[0]["page_number"], 6)
+
 
 if __name__ == "__main__":
     unittest.main()

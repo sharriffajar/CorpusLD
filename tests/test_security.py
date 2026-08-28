@@ -31,6 +31,11 @@ def test_ssrf_disallowed_endpoints():
     assert is_safe_custom_endpoint("http://192.168.1.1:8000") is False
     assert is_safe_custom_endpoint("http://172.16.0.1:9000") is False
     
+    # Disallowed CGNAT / RFC 6598 (100.64.0.0/10) and unspecified (0.0.0.0)
+    assert is_safe_custom_endpoint("http://100.64.0.1:8000") is False
+    assert is_safe_custom_endpoint("http://100.127.255.254:8000") is False
+    assert is_safe_custom_endpoint("http://0.0.0.0:8000") is False
+    
     # None or empty
     assert is_safe_custom_endpoint("") is False
     assert is_safe_custom_endpoint(None) is False
@@ -44,12 +49,20 @@ def test_resolve_and_pin_safe_endpoint():
     assert pinned_url == "http://localhost:11434"
     assert headers == {}
     
+    # HTTPS preserves URL for TLS/SNI certificate verification
+    https_url, headers = resolve_and_pin_safe_endpoint("https://api.openai.com/v1")
+    assert https_url == "https://api.openai.com/v1"
+    assert headers == {}
+
     # Disallowed endpoint raises ValueError
     with pytest.raises(ValueError):
         resolve_and_pin_safe_endpoint("http://169.254.169.254/latest")
 
     with pytest.raises(ValueError):
         resolve_and_pin_safe_endpoint("http://10.0.0.1:8080")
+        
+    with pytest.raises(ValueError):
+        resolve_and_pin_safe_endpoint("http://100.64.0.1:8080")
 
 
 def test_make_safe_attachment_header():
@@ -65,3 +78,14 @@ def test_make_safe_attachment_header():
     assert "\r" not in safe_header
     assert "\n" not in safe_header
     assert "Set-Cookie" not in safe_header or "_" in safe_header
+
+
+def test_sanitize_error_message():
+    from server import sanitize_error_message
+    
+    raw = "Request failed with Authorization: Bearer sk-proj-1234567890abcdef123456 at C:\\Users\\Administrator\\CorpusLD\\server.py"
+    cleaned = sanitize_error_message(raw)
+    assert "sk-proj-1234567890abcdef123456" not in cleaned
+    assert "[REDACTED_KEY]" in cleaned
+    assert "C:\\Users" not in cleaned
+    assert "[SERVER_PATH]" in cleaned

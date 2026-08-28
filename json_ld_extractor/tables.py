@@ -47,9 +47,20 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
         page_number = tbl.get("page_number", 1)
         table_type = tbl.get("table_type") or ("descriptive" if is_descriptive_table(headers, rows) else "quantitative")
 
-        headers_key = "|".join(headers).lower()
+        # Tolerant header tokenization (membersihkan tanda baca dan spasi berlebih)
+        token_headers = [re.sub(r'[^a-zA-Z0-9]', '', h.lower()) for h in headers]
+        headers_key = "|".join([th for th in token_headers if th])
         cap_norm = re.sub(r'\(?\s*(?:halaman|page)\s+\d+\s*\)?', '', caption.lower(), flags=re.IGNORECASE).strip()
-        merge_key = f"{headers_key}::{cap_norm[:40]}" if headers_key else f"nocap::{cap_norm[:40]}"
+
+        # Deteksi penomoran tabel eksplisit (e.g. Table 4, Tabel 4, TABLE IV)
+        tbl_num_match = re.search(r'\b(?:table|tabel)\s*([0-9ivxlcdm]+)\b', caption.lower())
+        if tbl_num_match:
+            tbl_id = tbl_num_match.group(1)
+            merge_key = f"tbl_{tbl_id}_{len(headers)}"
+        elif headers_key:
+            merge_key = f"{headers_key}::{cap_norm[:30]}"
+        else:
+            merge_key = f"cols_{len(headers)}::{cap_norm[:30]}"
 
         normalized_tables.append({
             "caption": caption,
@@ -75,10 +86,12 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
         cluster = None
         for it in items:
             if cluster is not None and it["page_number"] - cluster["page_number"] <= 1:
-                # Deduplikasi baris jika baris awal fragmen mengulang header tabel
+                # Deduplikasi baris jika baris awal fragmen sambungan mengulang header tabel
                 new_rows = []
+                cluster_token_headers = [re.sub(r'[^a-zA-Z0-9]', '', h.lower()) for h in cluster["headers"]]
                 for r in it["rows"]:
-                    if r == cluster["headers"] or (len(r) == len(cluster["headers"]) and all(r[i].strip().lower() == cluster["headers"][i].strip().lower() for i in range(len(r)))):
+                    r_token = [re.sub(r'[^a-zA-Z0-9]', '', cell.lower()) for cell in r]
+                    if r == cluster["headers"] or r_token == cluster_token_headers:
                         continue
                     new_rows.append(r)
                 cluster["rows"].extend(new_rows)

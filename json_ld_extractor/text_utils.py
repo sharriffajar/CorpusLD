@@ -27,12 +27,12 @@ def strip_markdown_formatting(text: Any) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     return text.strip(" \t\r\n-–—:;")
 
-MAX_CONTEXT_CHARS = 2000  # Batas karakter konteks untuk qwen2.5:1.5b agar tetap cepat
+MAX_CONTEXT_CHARS = 8000  # Batas karakter konteks modern untuk SLM/LLM agar informasi tidak terpotong
 
-MAX_CONTEXT_CHARS_AGENT1 = 3500  # Agent 1 butuh lebih besar untuk cover+abstract
+MAX_CONTEXT_CHARS_AGENT1 = 8000  # Agent 1 cover + abstract context
 
 def truncate_context(text: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
-    """Potong konteks ke max_chars karakter agar model kecil tetap responsif."""
+    """Potong konteks ke max_chars karakter jika melebihi batas token."""
     if len(text) <= max_chars:
         return text
     return text[:max_chars] + "\n[...konteks dipotong...]"

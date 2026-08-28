@@ -124,6 +124,23 @@ def make_safe_attachment_header(file_name: str, ext: str) -> str:
     return f'attachment; filename="{safe_filename}"; filename*=UTF-8\'\'{quoted_filename}'
 
 
+def sanitize_error_message(err_msg: Any) -> str:
+    """
+    Sensor kredensial sensitif (API Key, Bearer Token) dan path internal server
+    dari pesan error dan log streaming SSE.
+    """
+    if not err_msg:
+        return ""
+    text = str(err_msg)
+    # Mask API key patterns (Bearer, Google AIza, OpenAI sk-, Groq gsk_)
+    text = re.sub(r'(?:Bearer\s+|key=|api[-_]?key=)[A-Za-z0-9_\-\.]{15,}', '[REDACTED_KEY]', text, flags=re.I)
+    text = re.sub(r'\b(?:sk-[a-zA-Z0-9_-]{20,}|AIza[0-9A-Za-z-_]{30,}|gsk_[a-zA-Z0-9_-]{20,})\b', '[REDACTED_KEY]', text)
+    # Mask absolute server filesystem paths
+    text = re.sub(r'[A-Za-z]:\\[^:\n\r\t"]+', '[SERVER_PATH]', text)
+    text = re.sub(r'/(?:Users|home|root|working_dir|tmp)/[^\s:]+', '[SERVER_PATH]', text)
+    return text
+
+
 # Lazy-loaded Embedder & Qdrant Client
 _EMBEDDER = None
 _QDRANT_CLIENT = None
@@ -988,17 +1005,20 @@ async def extract_jsonld_stream(req: ExtractRequest):
         log_queue = asyncio.Queue()
         
         def sync_logger(msg: str):
-            log_queue.put_nowait({"type": "log", "message": msg})
+            clean_msg = sanitize_error_message(msg)
+            log_queue.put_nowait({"type": "log", "message": clean_msg})
             
         async def run_extraction():
             try:
-                # Ensure chunks exist
-                fpath = WORKSPACE_FILES[file_name]
-                file_chunks = [c for c in EXTRACTED_CHUNKS if c.get("metadata", {}).get("source") == file_name]
-                if not file_chunks:
-                    file_chunks = parse_document(fpath, file_name)
-                    STORAGE.save_chunks(file_name, file_chunks)
-                    EXTRACTED_CHUNKS.extend(file_chunks)
+                # Ensure chunks exist safely with workspace lock
+                async with _WORKSPACE_LOCK:
+                    fpath = WORKSPACE_FILES[file_name]
+                    file_chunks = [c for c in EXTRACTED_CHUNKS if c.get("metadata", {}).get("source") == file_name]
+                    if not file_chunks:
+                        file_chunks = parse_document(fpath, file_name)
+                        STORAGE.save_chunks(file_name, file_chunks)
+                        # Deduplicate before updating in-memory cache
+                        EXTRACTED_CHUNKS[:] = [c for c in EXTRACTED_CHUNKS if c.get("metadata", {}).get("source") != file_name] + file_chunks
                     
                 embedder = get_embedder()
                 qdrant = get_qdrant()
@@ -1024,11 +1044,13 @@ async def extract_jsonld_stream(req: ExtractRequest):
                 else:
                     final_res = res
                 
-                JSON_LD_STORE[file_name] = final_res
-                STORAGE.save_extracted_document(file_name, final_res)
+                async with _WORKSPACE_LOCK:
+                    JSON_LD_STORE[file_name] = final_res
+                    STORAGE.save_extracted_document(file_name, final_res)
                 await log_queue.put({"type": "complete", "result": final_res})
             except Exception as e:
-                await log_queue.put({"type": "error", "error": str(e)})
+                clean_err = sanitize_error_message(str(e))
+                await log_queue.put({"type": "error", "error": clean_err})
 
         # Launch extraction task
         task = asyncio.create_task(run_extraction())
@@ -1096,13 +1118,8 @@ async def chat_rag(req: ChatRequest):
         collection_name=Config.QDRANT_COLLECTION_NAME,
         query=query_vector,
         query_filter=query_filter,
-        limit=4
+        limit=6
     ).points
-    
-    has_table = any(
-        (p.payload or {}).get('metadata', {}).get('chunk_type') == 'table' or '|' in (p.payload or {}).get('text', '') 
-        for p in search_results
-    )
     
     context_text = ""
     sources = []
@@ -1114,25 +1131,11 @@ async def chat_rag(req: ChatRequest):
     for idx, point in enumerate(search_results, start=1):
         payload = point.payload or {}
         meta = payload.get("metadata", {}) or {}
-        context_text += f"\n--- CONTEKAN #{idx} [Dokumen: {meta.get('source')} | {_hal(meta)} | Tipe: {meta.get('chunk_type', 'paragraph')}] ---\n"
+        ctype = meta.get('chunk_type', 'paragraph')
+        icon = "📊 Tabel:" if ctype == "table" or "|" in payload.get("text", "") else "📄"
+        context_text += f"\n--- CONTEKAN #{idx} [Dokumen: {meta.get('source')} | {_hal(meta)} | Tipe: {ctype}] ---\n"
         context_text += payload.get("text", "") + "\n"
-        sources.append(f"📄 {meta.get('source')} ({_hal(meta)})")
-        
-    if not has_table:
-        refined_query = f"{req.query} tabel metrik angka statistik proyeksi"
-        new_vec = embedder.encode(refined_query).tolist()
-        extra_pts = qdrant.query_points(
-            collection_name=Config.QDRANT_COLLECTION_NAME,
-            query=new_vec,
-            query_filter=query_filter,
-            limit=2
-        ).points
-        for idx, point in enumerate(extra_pts, start=len(search_results) + 1):
-            p = point.payload or {}
-            m = p.get("metadata", {}) or {}
-            context_text += f"\n--- CONTEKAN TABEL #{idx} [Dokumen: {m.get('source')} | {_hal(m)}] ---\n"
-            context_text += p.get("text", "") + "\n"
-            sources.append(f"📊 Tabel: {m.get('source')} ({_hal(m)})")
+        sources.append(f"{icon} {meta.get('source')} ({_hal(meta)})")
 
     doc_scope_instruction = f"Fokus analisa EKSKLUSIF pada dokumen: '{req.file_name}'. DILARANG keras menyebutkan atau mengasumsikan dokumen lain di luar dokumen ini." if req.file_name else "Fokus analisa pada dokumen-dokumen yang relevan di korpus."
     

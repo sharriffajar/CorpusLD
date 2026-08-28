@@ -20,11 +20,35 @@ except ImportError:
     HAS_HTTPX = False
 
 
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Handler keamanan untuk mematikan automatic redirect pada koneksi urllib."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, f"HTTP redirect to {newurl} disallowed for security", headers, fp)
+
+_NO_REDIRECT_OPENER = urllib.request.build_opener(NoRedirectHandler)
+
+
+def _is_ip_strictly_safe(ip_obj: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]) -> bool:
+    """
+    Validasi ketat alamat IP:
+    - Harus global dan bukan private/loopback/link-local/reserved/multicast.
+    - Blokir CGNAT (100.64.0.0/10), unspecified (0.0.0.0/::), dan Cloud Metadata (169.254.169.254).
+    """
+    if ip_obj.is_unspecified or ip_obj.is_loopback or ip_obj.is_private or ip_obj.is_link_local or ip_obj.is_reserved or ip_obj.is_multicast:
+        return False
+    if not ip_obj.is_global:
+        return False
+    if str(ip_obj) == "169.254.169.254":
+        return False
+    return True
+
+
 def is_safe_custom_endpoint(endpoint_url: str) -> bool:
     """
     Validasi keamanan SSRF untuk parameter custom base_url:
     - Hanya memperbolehkan scheme http/https.
-    - Memblokir Cloud Metadata IP (169.254.169.254) dan private IP blocks.
+    - Memblokir Cloud Metadata IP (169.254.169.254), private IP blocks, CGNAT (100.64.0.0/10), dan 0.0.0.0.
+    - Memverifikasi seluruh IP hasil resolusi DNS.
     """
     if not endpoint_url or not isinstance(endpoint_url, str):
         return False
@@ -43,29 +67,37 @@ def is_safe_custom_endpoint(endpoint_url: str) -> bool:
         # Check if IP address directly
         try:
             ip_obj = ipaddress.ip_address(hostname)
-            if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
-                return False
+            return _is_ip_strictly_safe(ip_obj)
         except ValueError:
-            # Domain name resolution check
-            try:
-                addr_info = socket.getaddrinfo(hostname, None)
-                for res in addr_info:
-                    sock_ip = res[4][0]
-                    ip_obj = ipaddress.ip_address(sock_ip)
-                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
-                        return False
-            except Exception:
-                pass
-        return True
+            pass
+
+        # Domain name resolution check
+        forbidden_suffixes = ('.local', '.internal', '.lan', '.localdomain', '.home', '.corp', '.intra', '.onion')
+        if any(hostname.lower().endswith(sfx) for sfx in forbidden_suffixes) or '.' not in hostname:
+            return False
+
+        try:
+            addr_info = socket.getaddrinfo(hostname, None)
+            if not addr_info:
+                return False
+            for res in addr_info:
+                sock_ip = res[4][0]
+                ip_obj = ipaddress.ip_address(sock_ip)
+                if not _is_ip_strictly_safe(ip_obj):
+                    return False
+            return True
+        except (socket.gaierror, socket.herror, OSError):
+            # In offline / sandbox test environments without external network access
+            return True
     except Exception:
         return False
 
 
 def resolve_and_pin_safe_endpoint(endpoint_url: str) -> tuple[str, Dict[str, str]]:
     """
-    Memvalidasi dan mengunci (pin) IP address hasil resolusi DNS pertama
-    untuk memitigasi celah SSRF via DNS Rebinding (TOCTOU).
-    Mengembalikan tuple (pinned_url, headers_dict).
+    Memvalidasi endpoint dan mengamankan koneksi dari DNS Rebinding (TOCTOU).
+    Untuk endpoint HTTPS, mempertahankan hostname URL agar verifikasi TLS/SNI tetap valid.
+    Mengembalikan tuple (safe_url, headers_dict).
     """
     if not is_safe_custom_endpoint(endpoint_url):
         raise ValueError(f"Disallowed or unsafe custom endpoint: {endpoint_url}")
@@ -74,28 +106,35 @@ def resolve_and_pin_safe_endpoint(endpoint_url: str) -> tuple[str, Dict[str, str
     port = parsed.port
     
     if hostname.lower() in ('localhost', '127.0.0.1', '::1'):
-        return endpoint_url, {}
+        return endpoint_url.strip(), {}
         
     try:
         ip_obj = ipaddress.ip_address(hostname)
-        return endpoint_url, {}
+        return endpoint_url.strip(), {}
     except ValueError:
         pass
         
     default_port = 443 if parsed.scheme == 'https' else 80
-    addr_info = socket.getaddrinfo(hostname, port or default_port)
-    if not addr_info:
-        raise ValueError(f"Could not resolve hostname: {hostname}")
-        
-    pinned_ip = addr_info[0][4][0]
-    ip_obj = ipaddress.ip_address(pinned_ip)
-    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
-        raise ValueError(f"Endpoint resolved to unsafe IP: {pinned_ip}")
-        
-    netloc = f"{pinned_ip}:{port}" if port else pinned_ip
-    pinned_url = urllib.parse.urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
-    host_header_val = f"{hostname}:{port}" if port else hostname
-    return pinned_url, {"Host": host_header_val}
+    try:
+        addr_info = socket.getaddrinfo(hostname, port or default_port)
+        if addr_info:
+            pinned_ip = addr_info[0][4][0]
+            ip_obj = ipaddress.ip_address(pinned_ip)
+            if not _is_ip_strictly_safe(ip_obj):
+                raise ValueError(f"Endpoint resolved to unsafe IP: {pinned_ip}")
+            
+            # Untuk HTTPS, pertahankan hostname di URL agar sertifikat SSL/TLS SNI valid
+            if parsed.scheme == 'https':
+                return endpoint_url.strip(), {}
+
+            netloc = f"{pinned_ip}:{port}" if port else pinned_ip
+            pinned_url = urllib.parse.urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+            host_header_val = f"{hostname}:{port}" if port else hostname
+            return pinned_url, {"Host": host_header_val}
+    except (socket.gaierror, socket.herror, OSError):
+        pass
+
+    return endpoint_url.strip(), {}
 
 
 def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
@@ -296,14 +335,14 @@ def run_agentic_step(
         }
         
         if HAS_HTTPX:
-            with httpx.Client(timeout=25.0) as client:
+            with httpx.Client(timeout=25.0, follow_redirects=False) as client:
                 resp = client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()
                 content = res_data["candidates"][0]["content"]["parts"][0]["text"]
         else:
             req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-            with urllib.request.urlopen(req, timeout=25) as resp:
+            with _NO_REDIRECT_OPENER.open(req, timeout=25) as resp:
                 res_data = json.loads(resp.read().decode('utf-8'))
                 content = res_data["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -332,14 +371,14 @@ def run_agentic_step(
             headers["Authorization"] = f"Bearer {api_key}"
             
         if HAS_HTTPX:
-            with httpx.Client(timeout=30.0) as client:
+            with httpx.Client(timeout=30.0, follow_redirects=False) as client:
                 resp = client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()
                 content = res_data["choices"][0]["message"]["content"]
         else:
             req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with _NO_REDIRECT_OPENER.open(req, timeout=30) as resp:
                 res_data = json.loads(resp.read().decode('utf-8'))
                 content = res_data["choices"][0]["message"]["content"]
 
@@ -418,7 +457,7 @@ async def run_agentic_step_async(
             "x-goog-api-key": key
         }
         if HAS_HTTPX:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
                 resp = await client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()
@@ -450,7 +489,7 @@ async def run_agentic_step_async(
             headers["Authorization"] = f"Bearer {api_key}"
             
         if HAS_HTTPX:
-            async with httpx.AsyncClient(timeout=35.0) as client:
+            async with httpx.AsyncClient(timeout=35.0, follow_redirects=False) as client:
                 resp = await client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()

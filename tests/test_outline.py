@@ -31,6 +31,21 @@ class TestOutline(unittest.TestCase):
         self.assertTrue(any(h == "3. RESULTS" for _, h in out))
         self.assertFalse(any(h == "3.1 Early mention" for _, h in out))
 
+    def test_roman_numeral_and_lettered_outline_sorting(self):
+        cands = [
+            (1, "I. INTRODUCTION"),
+            (2, "A. Related Works"),
+            (3, "II. SYSTEM DESIGN"),
+            (4, "III. EXPERIMENTAL EVALUATION"),
+            (5, "IV. CONCLUSION")
+        ]
+        out = filter_monotonic_outline_headings(cands)
+        self.assertEqual(len(out), 5)
+        headings = [h for _, h in out]
+        self.assertIn("I. INTRODUCTION", headings)
+        self.assertIn("A. Related Works", headings)
+        self.assertIn("IV. CONCLUSION", headings)
+
 
 if __name__ == "__main__":
     unittest.main()
