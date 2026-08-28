@@ -512,17 +512,34 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
     print(f"\n✨ Generated Clean Studio Dashboard: {output_path}")
 
 def run_single_benchmark(pdf_path: Path, provider: str, model: str, api_key: str = None,
-                         parser: str = "pypdf", llamaparse_key: str = "") -> Dict[str, Any]:
+                         parser: str = "hybrid", llamaparse_key: str = "") -> Dict[str, Any]:
     file_name = pdf_path.name
+    
+    # 0. Resolusi API Keys otomatis dari argumen atau environment (.env)
+    resolved_api_key = api_key or os.environ.get("GEMINI_API_KEY") or Config.GEMINI_API_KEY
+    resolved_lp_key = (
+        llamaparse_key
+        or os.environ.get("LLAMAPARSE_API_KEY")
+        or os.environ.get("LLAMA_CLOUD_API_KEY")
+        or Config.LLAMAPARSE_API_KEY
+        or ""
+    )
+
+    # Hybrid Auto-Fallback: jika mode hybrid diminta tapi LLAMAPARSE_API_KEY tidak ada di .env -> otomatis pypdf lokal
+    effective_parser = parser
+    if parser == "hybrid" and not resolved_lp_key:
+        effective_parser = "pypdf"
+        print(f"ℹ️ [Hybrid Auto] LLAMAPARSE_API_KEY tidak terdeteksi di .env -> Fallback otomatis ke PyPDF lokal (gratis).")
+
     print(f"\n{'='*70}")
     print(f"🔬 RUNNING BENCHMARK: {file_name}")
-    print(f"🤖 Provider: {provider} | Model: {model or 'default'} | Parser: {parser}")
+    print(f"🤖 Provider: {provider} | Model: {model or 'default'} | Parser: {effective_parser}")
     print(f"{'='*70}")
 
     # 1. Parsing dengan Chunk Cache per-parser (hasil parsing tier berbeda TIDAK boleh tertukar)
     cache_dir = RESULTS_DIR / ".chunk_cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
-    chunk_cache_file = cache_dir / f"{pdf_path.stem}.{parser}.json"
+    chunk_cache_file = cache_dir / f"{pdf_path.stem}.{effective_parser}.json"
     legacy_cache_file = cache_dir / f"{pdf_path.stem}.json"
     active_cache_file = chunk_cache_file if chunk_cache_file.exists() else (legacy_cache_file if legacy_cache_file.exists() else chunk_cache_file)
 
@@ -533,23 +550,23 @@ def run_single_benchmark(pdf_path: Path, provider: str, model: str, api_key: str
             print(f"📦 Loaded {len(chunks)} pre-parsed chunks from cache[{active_cache_file.name}] (0.001s)")
         except Exception:
             chunks = parse_document(
-                file_path=str(pdf_path), file_name=file_name, parser_choice=parser,
-                llamaparse_key=llamaparse_key,
+                file_path=str(pdf_path), file_name=file_name, parser_choice=effective_parser,
+                llamaparse_key=resolved_lp_key,
             )
             with open(chunk_cache_file, "w", encoding="utf-8") as f:
                 json.dump(chunks, f, ensure_ascii=False)
-            print(f"✅ Parsed & cached {len(chunks)} chunks [{parser}]")
+            print(f"✅ Parsed & cached {len(chunks)} chunks [{effective_parser}]")
     else:
         t0 = time.time()
-        print(f"📄 Parsing PDF ({parser}) & Stitching cross-page blocks...")
+        print(f"📄 Parsing PDF ({effective_parser}) & Stitching cross-page blocks...")
         chunks = parse_document(
-            file_path=str(pdf_path), file_name=file_name, parser_choice=parser,
-            llamaparse_key=llamaparse_key,
+            file_path=str(pdf_path), file_name=file_name, parser_choice=effective_parser,
+            llamaparse_key=resolved_lp_key,
         )
         parse_time = round(time.time() - t0, 3)
         with open(chunk_cache_file, "w", encoding="utf-8") as f:
             json.dump(chunks, f, ensure_ascii=False)
-        print(f"✅ Parsed {len(chunks)} chunks in {parse_time}s (saved to cache[{parser}])")
+        print(f"✅ Parsed {len(chunks)} chunks in {parse_time}s (saved to cache[{effective_parser}])")
 
     # 2. Ekstraksi Multi-Agent RAG JSON-LD
     def cli_progress(msg: str):
@@ -599,19 +616,19 @@ def main():
     parser.add_argument("--file", type=str, help="Nama file PDF spesifik dalam folder benchmark_corpus/ (untuk hemat kuota API)")
     parser.add_argument("--provider", type=str, default="gemini", help="LLM Provider: gemini, ollama, openai, groq, openrouter")
     parser.add_argument("--model", type=str, default=Config.GEMINI_MODEL_NAME, help=f"Model name (default: {Config.GEMINI_MODEL_NAME}; e.g. gemini-2.5-flash, gpt-4o-mini, qwen2.5:7b)")
-    parser.add_argument("--api-key", type=str, default=None, help="API Key opsional (atau gunakan env GEMINI_API_KEY)")
+    parser.add_argument("--api-key", type=str, default=None, help="API Key opsional (otomatis membaca dari .env)")
     parser.add_argument("--clean", action="store_true", help="Reset riwayat benchmark dan jalankan ulang seluruh korpus dari awal")
     parser.add_argument("--delay", type=float, default=0.0, help="Jeda detik antar dokumen untuk menghindari rate-limit API (mis. 20)")
-    parser.add_argument("--parser", choices=["pypdf", "hybrid", "llamaparse", "unstructured"], default="pypdf",
-                        help="Parser tier: pypdf (offline, gratis) | hybrid (pypdf + LlamaParse hanya halaman tabel sulit)")
-    parser.add_argument("--llamaparse-key", type=str, default="", help="LlamaParse key opsional (fallback: env LLAMAPARSE_API_KEY / .env)")
+    parser.add_argument("--parser", choices=["hybrid", "pypdf", "llamaparse", "unstructured"], default="hybrid",
+                        help="Parser tier: hybrid (default: pypdf + LlamaParse auto-escalation dari .env; fallback ke pypdf jika key tidak ada) | pypdf | llamaparse | unstructured")
+    parser.add_argument("--llamaparse-key", type=str, default="", help="LlamaParse key opsional (otomatis membaca LLAMAPARSE_API_KEY dari .env)")
     args = parser.parse_args()
 
     CORPUS_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     api_key = args.api_key or os.environ.get("GEMINI_API_KEY") or Config.GEMINI_API_KEY
-    lp_key = args.llamaparse_key or os.environ.get("LLAMAPARSE_API_KEY") or Config.LLAMAPARSE_API_KEY
+    lp_key = args.llamaparse_key or os.environ.get("LLAMAPARSE_API_KEY") or os.environ.get("LLAMA_CLOUD_API_KEY") or Config.LLAMAPARSE_API_KEY or ""
 
     # History database file to preserve previous benchmark runs across sessions
     history_file = RESULTS_DIR / "benchmark_history.json"
