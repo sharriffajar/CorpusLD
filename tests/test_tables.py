@@ -58,6 +58,51 @@ class TestTables(unittest.TestCase):
         # 1 baris data menuntut >=3 kolom terstruktur
         self.assertFalse(is_valid_tabular_data(["Name", "Value"], [["a", "1"]]))
 
+    def test_descriptive_swot_matrix_table(self):
+        txt = (
+            "Table 2. SWOT Analysis Comparison\n"
+            "| Aspek | Deskripsi dan Kelebihan |\n"
+            "|---|---|\n"
+            "| Strength | Menggunakan algoritma incremental conductance yang stabil dan cepat beradaptasi dengan perubahan radiasi matahari |\n"
+            "| Weakness | Membutuhkan mikrokontroler dengan performa ADC yang presisi dan sampling rate tinggi |"
+        )
+        res = parse_markdown_table_direct(txt, page_number=4)
+        self.assertIsNotNone(res)
+        self.assertEqual(res["table_type"], "descriptive")
+        self.assertEqual(len(res["rows"]), 2)
+
+    def test_consolidate_deduplicates_repeated_header_in_fragment(self):
+        frag = [
+            mk("Table X - Parameter Value (Page 1)", 1, ["Parameter", "Value"], [["Voltage", "5V"]]),
+            mk("Table X - Parameter Value (Page 2)", 2, ["Parameter", "Value"], [["Parameter", "Value"], ["Current", "2A"]]),
+        ]
+        out = consolidate_tables(frag)
+        self.assertEqual(len(out), 1)
+        # Baris ["Parameter", "Value"] yang terulang di halaman 2 harus terhapus, menyisakan 2 baris data asli
+        self.assertEqual(len(out[0]["rows"]), 2)
+        self.assertEqual(out[0]["rows"], [["Voltage", "5V"], ["Current", "2A"]])
+
+    def test_stitcher_dehyphenation_and_bracket_citation(self):
+        from server import stateful_table_stitcher
+        pages_data = [
+            (1, "Penelitian ini menguji metode [1]\nyang berfokus pada implemen-"),
+            (2, "tasi algoritma optimasi jaringan sensor.")
+        ]
+        chunks = stateful_table_stitcher(pages_data, "test.pdf", "test_parser")
+        self.assertEqual(len(chunks), 1)
+        self.assertIn("implementasi", chunks[0]["text"])
+        self.assertNotIn("implemen- tasi", chunks[0]["text"])
+
+    def test_running_footers_collection(self):
+        from server import _collect_running_footers
+        pages_data = [
+            (1, "Halaman 1 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
+            (2, "Halaman 2 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
+            (3, "Halaman 3 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
+        ]
+        footers = _collect_running_footers(pages_data)
+        self.assertTrue(any("COPYRIGHT" in f for f in footers))
+
 
 if __name__ == "__main__":
     unittest.main()

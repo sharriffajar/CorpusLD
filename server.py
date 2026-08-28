@@ -24,16 +24,58 @@ from typing import List, Dict, Any, Optional
 logging.getLogger("pypdf").setLevel(logging.ERROR)
 logging.getLogger("pypdf._cmap").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", module="pypdf")
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-import ollama
-from pypdf import PdfReader
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType
-from sentence_transformers import SentenceTransformer
+try:
+    from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Response
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
+    from fastapi.staticfiles import StaticFiles
+    HAS_FASTAPI = True
+except ImportError:
+    HAS_FASTAPI = False
+    class FastAPI:
+        def __init__(self, *args, **kwargs): pass
+        def get(self, *args, **kwargs): return lambda f: f
+        def post(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+        def add_middleware(self, *args, **kwargs): pass
+        def mount(self, *args, **kwargs): pass
+    class UploadFile: pass
+    def File(*args, **kwargs): return None
+    def Form(*args, **kwargs): return None
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail=""):
+            self.status_code = status_code
+            self.detail = detail
+    class Request: pass
+    class Response: pass
+    class JSONResponse: pass
+    class StreamingResponse: pass
+    class FileResponse: pass
+    class CORSMiddleware: pass
+    class StaticFiles:
+        def __init__(self, *args, **kwargs): pass
+
+try:
+    from pydantic import BaseModel
+except ImportError:
+    class BaseModel: pass
+
+try:
+    from qdrant_client import QdrantClient
+    from qdrant_client.models import Distance, VectorParams, PointStruct, PayloadSchemaType
+except ImportError:
+    QdrantClient = None
+    Distance = VectorParams = PointStruct = PayloadSchemaType = None
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
+
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 
 from config import Config
 from json_ld_extractor import (
@@ -43,61 +85,17 @@ from json_ld_extractor import (
     sanitize_text_for_extraction,
     strip_markdown_formatting,
     parse_markdown_table_direct,
-    merge_and_enrich_json_ld
+    merge_and_enrich_json_ld,
+    export_to_turtle_rdf,
+    export_to_json_ld_graph,
+    calculate_graph_health_metrics,
+    generate_google_scholar_meta_tags,
+    generate_html_head_package
 )
+from json_ld_extractor.storage import CorpusStorage
 
-# ---------------------------------------------------------
-# LIFESPAN WARMUP PIPELINE
-# ---------------------------------------------------------
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Cek apakah flag 'fresh' diberikan di command-line (misal: python server.py fresh)
-    is_fresh = any(arg.lower() in ("fresh", "--fresh", "-f") for arg in sys.argv)
-    if is_fresh:
-        print("[Startup] Flag 'fresh' terdeteksi: Mensucikan database Qdrant & folder uploads...")
-        # Bersihkan uploads
-        if os.path.exists(UPLOAD_DIR):
-            for f in os.listdir(UPLOAD_DIR):
-                if f.endswith(".pdf"):
-                    try:
-                        os.remove(os.path.join(UPLOAD_DIR, f))
-                    except Exception:
-                        pass
-        # Bersihkan koleksi Qdrant
-        try:
-            qdrant = get_qdrant()
-            colls = qdrant.get_collections().collections
-            for c in colls:
-                qdrant.delete_collection(c.name)
-                print(f"[Startup] Koleksi Qdrant '{c.name}' berhasil disucikan.")
-        except Exception as e:
-            print(f"[Startup Notice] Pembersihan koleksi: {e}")
-
-    # Lightweight Startup Initialization (On-Demand Loading to conserve RAM)
-    async def init_pipeline():
-        try:
-            get_embedder()
-            get_qdrant()
-        except Exception as e:
-            print(f"[Startup Notice] Vector engine: {e}")
-
-    asyncio.create_task(init_pipeline())
-    yield
-
-app = FastAPI(
-    title="CorpusLD Studio API",
-    description="Multi-Agent Semantic Ingestion, Linked Data (Schema.org JSON-LD) & Neural RAG Engine",
-    version="2.0.0",
-    lifespan=lifespan
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Storage Persistence Manager (SQLite)
+STORAGE = CorpusStorage()
 
 # Directory Setup
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
@@ -105,7 +103,7 @@ FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fronten
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(FRONTEND_DIR, exist_ok=True)
 
-# In-Memory State
+# In-Memory & Persistent State
 WORKSPACE_FILES: Dict[str, str] = {}  # {clean_name: file_path}
 EXTRACTED_CHUNKS: List[Dict[str, Any]] = []
 JSON_LD_STORE: Dict[str, Any] = {}
@@ -126,6 +124,74 @@ def get_qdrant():
     if _QDRANT_CLIENT is None:
         _QDRANT_CLIENT = QdrantClient(path=Config.QDRANT_URL)
     return _QDRANT_CLIENT
+
+# ---------------------------------------------------------
+# LIFESPAN WARMUP PIPELINE
+# ---------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global WORKSPACE_FILES, JSON_LD_STORE, EXTRACTED_CHUNKS
+    # Cek apakah flag 'fresh' diberikan di command-line (misal: python server.py fresh)
+    is_fresh = any(arg.lower() in ("fresh", "--fresh", "-f") for arg in sys.argv)
+    if is_fresh:
+        print("[Startup] Flag 'fresh' terdeteksi: Mensucikan database Qdrant, SQLite storage & folder uploads...")
+        STORAGE.clear_all()
+        # Bersihkan uploads
+        if os.path.exists(UPLOAD_DIR):
+            for f in os.listdir(UPLOAD_DIR):
+                if f.endswith(".pdf"):
+                    try:
+                        os.remove(os.path.join(UPLOAD_DIR, f))
+                    except Exception:
+                        pass
+        # Bersihkan koleksi Qdrant
+        try:
+            qdrant = get_qdrant()
+            colls = qdrant.get_collections().collections
+            for c in colls:
+                qdrant.delete_collection(c.name)
+                print(f"[Startup] Koleksi Qdrant '{c.name}' berhasil disucikan.")
+        except Exception as e:
+            print(f"[Startup Notice] Pembersihan koleksi: {e}")
+    else:
+        # Muat state persisten dari SQLite
+        try:
+            saved_files = STORAGE.get_all_files()
+            WORKSPACE_FILES.update(saved_files)
+            saved_docs = STORAGE.get_all_extracted_documents()
+            JSON_LD_STORE.update(saved_docs)
+            saved_chunks = STORAGE.get_chunks()
+            if saved_chunks:
+                EXTRACTED_CHUNKS.extend(saved_chunks)
+            print(f"💾 [Startup] Persistent Storage loaded: {len(WORKSPACE_FILES)} files, {len(JSON_LD_STORE)} extracted documents.")
+        except Exception as e:
+            print(f"⚠️ [Startup Storage Notice] {e}")
+
+    # Lightweight Startup Initialization (On-Demand Loading to conserve RAM)
+    async def init_pipeline():
+        try:
+            get_embedder()
+            get_qdrant()
+        except Exception as e:
+            print(f"[Startup Notice] Vector engine: {e}")
+
+    asyncio.create_task(init_pipeline())
+    yield
+
+app = FastAPI(
+    title="CorpusLD Studio API",
+    description="Multi-Agent Semantic Ingestion, Linked Data (Schema.org JSON-LD & Deep KG) & Neural RAG Engine",
+    version="3.0.0",
+    lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------------------------------------
 # PARSERS & STATEFUL TABLE STITCHER
@@ -150,6 +216,20 @@ def _collect_running_headers(pages_data: List[tuple]) -> set:
                 line_pages.setdefault(key, set()).add(pnum)
     return {k for k, v in line_pages.items() if len(v) >= 3}
 
+def _collect_running_footers(pages_data: List[tuple]) -> set:
+    """
+    Kumpulkan baris running-footer / copyright / URL jurnal yang berulang di posisi akhir >=3
+    halaman berbeda (cek dua baris terakhir tiap halaman).
+    """
+    line_pages: Dict[str, set] = {}
+    for pnum, t in pages_data:
+        ls = [l.strip() for l in (t or "").strip().splitlines() if l.strip()]
+        for foot in ls[-2:]:
+            key = " ".join(foot.upper().split())
+            if len(key) >= 6:
+                line_pages.setdefault(key, set()).add(pnum)
+    return {k for k, v in line_pages.items() if len(v) >= 3}
+
 _VOL_HEADER_RE = re.compile(r'^(?:v\s?ol\.|vol\.|n[ºo°]\s*\d|iss\.|issue)', re.IGNORECASE)
 _PAGE_NUM_RE = re.compile(r'^\d{1,4}$')
 
@@ -157,8 +237,8 @@ def _extract_inline_tables_from_flat_block(block_text: str) -> List[str]:
     """
     Untuk halaman tanpa pemisah blok (pypdf menghasilkan satu blok raksasa),
     potong region tabel ber-caption langsung dari deretan baris agar tabel
-    resmi tetap tertangkap. Baris prosa panjang tanpa digit menandakan tabel
-    sudah selesai.
+    resmi tetap tertangkap. Baris prosa panjang tanpa digit & tanpa pemisah
+    menandakan tabel sudah selesai.
     """
     lines = [l.strip() for l in block_text.splitlines()]
     out: List[str] = []
@@ -183,14 +263,18 @@ def _extract_inline_tables_from_flat_block(block_text: str) -> List[str]:
                         break
                 wc = len(ts.split())
                 has_digit = bool(re.search(r'\d', ts))
-                if wc > 11 and not has_digit:
-                    break  # prosa melanjutkan -> tabel selesai di baris sebelumnya
-                if has_digit:
+                is_separated = ("|" in ts or "\t" in ts or bool(re.search(r'\s{3,}', ts)))
+                is_desc_row = bool(re.search(r'\b(?:strength|weakness|opportunity|threat|kelebihan|kekurangan|deskripsi|keterangan|fitur|spesifikasi|indikator|aspek|dimensi)\b', ts, re.I))
+                
+                # Hanya hentikan jika baris berupa prosa murni panjang tanpa pemisah kolom dan tanpa kata kunci deskriptif
+                if wc > 15 and not has_digit and not is_separated and not is_desc_row:
+                    break
+                if has_digit or is_separated:
                     digit_lines += 1
                 buf.append(ts)
                 j += 1
             body_lines = [l for l in buf[1:] if l.strip()]
-            if len(body_lines) >= 2 and digit_lines >= 2:
+            if len(body_lines) >= 2 and (digit_lines >= 1 or any(is_separated for _ in [1])):
                 out.append("\n".join(buf))
             else:
                 out.append("\n".join(buf))
@@ -254,6 +338,7 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
     flat_table_texts: set = set()
 
     running_headers = _collect_running_headers(pages_data)
+    running_footers = _collect_running_footers(pages_data)
 
     def flush_table():
         nonlocal table_count
@@ -306,18 +391,35 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
         if not page_text or not page_text.strip():
             continue
 
-        # Buang running-header jurnal di awal halaman (maks 5 baris pertama);
-        # termasuk baris volume/edisi dan nomor halaman mentah
+        # Buang running-header jurnal di awal halaman (maks 5 baris pertama)
+        # serta running-footer / copyright / URL di akhir halaman (maks 4 baris terakhir)
+        all_lines = [l for l in page_text.strip().splitlines() if l.strip()]
+        if not all_lines:
+            continue
+
+        # 1. Bersihkan header awal
         kept_lines = []
-        stripped_count = 0
-        for l in page_text.strip().splitlines():
+        stripped_head_count = 0
+        for l in all_lines:
             s = l.strip()
             norm = " ".join(s.upper().split())
             is_meta = bool(_VOL_HEADER_RE.match(s) or _PAGE_NUM_RE.match(s))
-            if s and stripped_count < 5 and (norm in running_headers or is_meta):
-                stripped_count += 1
+            if s and stripped_head_count < 5 and (norm in running_headers or is_meta):
+                stripped_head_count += 1
                 continue
             kept_lines.append(l)
+
+        # 2. Bersihkan footer akhir
+        if kept_lines:
+            while len(kept_lines) > 0 and len(kept_lines) >= 3:
+                last_line = kept_lines[-1].strip()
+                norm_f = " ".join(last_line.upper().split())
+                is_foot_meta = bool(_PAGE_NUM_RE.match(last_line) or "HTTP" in norm_f or "WWW." in norm_f or "DOI:" in norm_f or "COPYRIGHT" in norm_f or "ALL RIGHTS RESERVED" in norm_f)
+                if norm_f in running_footers or (is_foot_meta and len(last_line.split()) <= 8):
+                    kept_lines.pop()
+                else:
+                    break
+
         page_text = "\n".join(kept_lines).strip()
         if not page_text:
             continue
@@ -360,7 +462,27 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
             )
             
             if is_table_block:
-                table_lines_buffer.extend(lines)
+                if table_lines_buffer:
+                    # Mitigasi Celah 3: Deduplikasi baris header berulang pada tabel multi-halaman bersambung
+                    clean_new_lines = [l.strip() for l in lines if l.strip()]
+                    existing_headers = [l.strip() for l in table_lines_buffer[:4] if "|" in l and not re.match(r'^[\-\:\s\|]+$', l)]
+                    
+                    filtered_new_lines = []
+                    skip_header = True
+                    for l in clean_new_lines:
+                        # Lewati caption berulang (Table X), header identik, atau separator line di baris-baris awal halaman sambungan
+                        if skip_header and (
+                            re.match(r'^(?:Tabel|Table)\s+\d+', l, re.I) or
+                            (existing_headers and any(l == eh for eh in existing_headers)) or
+                            re.match(r'^\|?[\-\:\s\|]+\|?$', l)
+                        ):
+                            continue
+                        skip_header = False
+                        filtered_new_lines.append(l)
+                    
+                    table_lines_buffer.extend(filtered_new_lines if filtered_new_lines else lines)
+                else:
+                    table_lines_buffer.extend(lines)
                 table_pages_buffer.append(page_idx)
             else:
                 flush_table()
@@ -369,10 +491,24 @@ def stateful_table_stitcher(pages_data: List[tuple], file_name: str, parser_used
                     # Stitching kalimat/paragraf yang terpotong di perbatasan halaman
                     if chunks and chunks[-1].get("metadata", {}).get("chunk_type") == "paragraph":
                         last_txt = chunks[-1]["text"].strip()
-                        if last_txt and last_txt[-1] not in {'.', '!', '?', ':', '}', ']', ')'} and not re.match(r'^(?:[1-9]|BAB|CHAPTER|SECTION)\b', clean_paragraph, re.I):
-                            if clean_paragraph[0].islower() or re.match(r'^(?:and|or|with|that|which|dan|atau|yang|dengan|untuk|pada)\b', clean_paragraph, re.I):
-                                chunks[-1]["text"] = last_txt + " " + clean_paragraph
-                                chunks[-1]["metadata"]["page_span"] = list(set(chunks[-1]["metadata"].get("page_span", []) + [page_idx]))
+                        if last_txt:
+                            # Mitigasi Celah 2: Normalisasi quotes penutup & bracket sitasi [12] sebelum cek tanda titik
+                            norm_last = re.sub(r'["\'”’\s]+$', '', last_txt)
+                            norm_last = re.sub(r'\[\s*\d+(?:[\s,\-–—\d]*\d+)?\s*\]$', '', norm_last).strip()
+                            
+                            is_heading = bool(re.match(r'^(?:[1-9]|BAB|CHAPTER|SECTION|BAGIAN)\b', clean_paragraph, re.I))
+                            is_connective = bool(clean_paragraph and (
+                                clean_paragraph[0].islower() or 
+                                re.match(r'^(?:and|or|with|that|which|dan|atau|yang|dengan|untuk|pada|di|ke|sebagai|dalam|oleh)\b', clean_paragraph, re.I)
+                            ))
+                            
+                            if not is_heading and norm_last and norm_last[-1] not in {'.', '!', '?', ':'} and is_connective:
+                                # Mitigasi Celah 1: De-hyphenation kata terpotong ("implemen-" + "tasi" -> "implementasi")
+                                if last_txt.endswith("-") and clean_paragraph and (clean_paragraph[0].islower() or not clean_paragraph[0].isalnum()):
+                                    chunks[-1]["text"] = last_txt[:-1] + clean_paragraph
+                                else:
+                                    chunks[-1]["text"] = last_txt + " " + clean_paragraph
+                                chunks[-1]["metadata"]["page_span"] = sorted(list(set(chunks[-1]["metadata"].get("page_span", []) + [page_idx])))
                                 continue
 
                     chunks.append({
@@ -688,6 +824,7 @@ async def upload_documents(files: List[UploadFile] = File(...)):
         with open(save_path, "wb") as out:
             out.write(contents)
         WORKSPACE_FILES[safe_name] = save_path
+        STORAGE.save_file(safe_name, save_path, len(contents))
         uploaded.append(safe_name)
     IS_INDEXED = False
     return {"uploaded": uploaded, "rejected": rejected, "total": len(WORKSPACE_FILES)}
@@ -705,6 +842,7 @@ async def delete_document(file_name: str):
         del WORKSPACE_FILES[file_name]
         if file_name in JSON_LD_STORE:
             del JSON_LD_STORE[file_name]
+        STORAGE.delete_file(file_name)
         IS_INDEXED = False
         return {"success": True, "deleted": file_name}
     raise HTTPException(status_code=404, detail="File not found")
@@ -715,6 +853,7 @@ async def clear_all_documents():
     WORKSPACE_FILES.clear()
     EXTRACTED_CHUNKS.clear()
     JSON_LD_STORE.clear()
+    STORAGE.clear_all()
     IS_INDEXED = False
     
     # Hapus semua file PDF yang terunggah di folder uploads
@@ -756,6 +895,7 @@ async def sync_knowledge_base(req: SyncRequest):
             llamaparse_key=req.llamaparse_key or "",
             unstructured_key=req.unstructured_key or ""
         )
+        STORAGE.save_chunks(fname, chunks)
         all_chunks.extend(chunks)
     
     if not all_chunks:
@@ -830,6 +970,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                 file_chunks = [c for c in EXTRACTED_CHUNKS if c.get("metadata", {}).get("source") == file_name]
                 if not file_chunks:
                     file_chunks = parse_document(fpath, file_name)
+                    STORAGE.save_chunks(file_name, file_chunks)
                     EXTRACTED_CHUNKS.extend(file_chunks)
                     
                 embedder = get_embedder()
@@ -857,6 +998,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     final_res = res
                 
                 JSON_LD_STORE[file_name] = final_res
+                STORAGE.save_extracted_document(file_name, final_res)
                 await log_queue.put({"type": "complete", "result": final_res})
             except Exception as e:
                 await log_queue.put({"type": "error", "error": str(e)})
@@ -1055,6 +1197,97 @@ async def export_jsonld_file(file_name: str):
             }
         )
     raise HTTPException(status_code=404, detail="JSON-LD belum tersedia.")
+
+@app.get("/api/export/ttl/{file_name}")
+async def export_turtle_file(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        ttl_content = export_to_turtle_rdf(data)
+        return Response(
+            content=ttl_content,
+            media_type="text/turtle; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="{file_name}_kg.ttl"'
+            }
+        )
+    raise HTTPException(status_code=404, detail="Data graf belum diekstrak untuk file ini.")
+
+@app.get("/api/export/jsonld-graph/{file_name}")
+async def export_jsonld_graph_file(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        graph_obj = export_to_json_ld_graph(data)
+        return JSONResponse(
+            content=graph_obj,
+            headers={
+                "Content-Disposition": f'attachment; filename="{file_name}_graph.jsonld"'
+            }
+        )
+    raise HTTPException(status_code=404, detail="Data graf belum diekstrak untuk file ini.")
+
+@app.get("/api/export/scholar-meta/{file_name}")
+async def export_scholar_meta_file(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        html_head = generate_html_head_package(data)
+        return Response(
+            content=html_head,
+            media_type="text/html; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="{file_name}_head.html"'
+            }
+        )
+    raise HTTPException(status_code=404, detail="Metadata belum tersedia.")
+
+@app.get("/api/documents/{file_name}/knowledge-graph")
+async def get_document_knowledge_graph(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        kg = data.get("knowledge_graph") or {}
+        health = calculate_graph_health_metrics(kg)
+        return {
+            "file_name": file_name,
+            "knowledge_graph": kg,
+            "health_metrics": health
+        }
+    raise HTTPException(status_code=404, detail="Knowledge graph belum diekstrak untuk file ini.")
+
+@app.get("/api/documents/{file_name}/procedures")
+async def get_document_procedures(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        return {
+            "file_name": file_name,
+            "procedures": data.get("procedures", [])
+        }
+    raise HTTPException(status_code=404, detail="Prosedur belum diekstrak untuk file ini.")
+
+@app.get("/api/documents/{file_name}/terms")
+async def get_document_terms(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        return {
+            "file_name": file_name,
+            "defined_terms": data.get("defined_terms", [])
+        }
+    raise HTTPException(status_code=404, detail="Istilah teknis belum diekstrak untuk file ini.")
+
+@app.get("/api/documents/{file_name}/formulas")
+async def get_document_formulas(file_name: str):
+    if file_name in JSON_LD_STORE:
+        stored = JSON_LD_STORE[file_name]
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        return {
+            "file_name": file_name,
+            "math_formulas": data.get("math_formulas", [])
+        }
+    raise HTTPException(status_code=404, detail="Formula belum diekstrak untuk file ini.")
 
 # Serve Static Frontend Files
 if os.path.exists(FRONTEND_DIR):

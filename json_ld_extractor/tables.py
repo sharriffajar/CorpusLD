@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Parsing tabel deterministik (markdown/pipa/spasi) dan konsolidasi lintas halaman."""
+"""Parsing tabel deterministik (markdown/pipa/spasi) dan konsolidasi lintas halaman dengan dukungan tabel kuantitatif & kualitatif/matriks."""
 
 import html
 import json
 import logging
 import re
 import time
-import urllib.request
-import warnings
-import ollama
 from typing import List, Optional, Union, Dict, Any, Callable
-from pydantic import BaseModel, Field, ConfigDict, model_validator
-from qdrant_client import QdrantClient
-from qdrant_client.models import Filter, FieldCondition, MatchValue
-from config import Config
 
-from .text_utils import *
+from .text_utils import (
+    strip_markdown_formatting,
+    sanitize_text_for_extraction,
+    is_mathematical_formula,
+)
 
 
 def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") -> List[Dict[str, Any]]:
@@ -48,11 +45,9 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
         headers = [strip_markdown_formatting(h) for h in tbl.get("headers", [])]
         rows = [[strip_markdown_formatting(cell) for cell in r] for r in tbl.get("rows", [])]
         page_number = tbl.get("page_number", 1)
+        table_type = tbl.get("table_type") or ("descriptive" if is_descriptive_table(headers, rows) else "quantitative")
 
         headers_key = "|".join(headers).lower()
-        # Kunci penggabungan TANPA nomor halaman: fragmen tabel sama yang menyambung
-        # antar halaman (header identik, caption identik setelah suffix halaman
-        # dibuang) harus menjadi SATU tabel utuh, bukan duplikat terpisah.
         cap_norm = re.sub(r'\(?\s*(?:halaman|page)\s+\d+\s*\)?', '', caption.lower(), flags=re.IGNORECASE).strip()
         merge_key = f"{headers_key}::{cap_norm[:40]}" if headers_key else f"nocap::{cap_norm[:40]}"
 
@@ -61,12 +56,10 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
             "page_number": page_number,
             "headers": headers,
             "rows": rows,
+            "table_type": table_type,
             "merge_key": merge_key
         })
 
-    # Kelompokkan per kunci lalu gabungkan hanya fragmen yang BERDEKATAN halamannya
-    # (gap <= 1). Tabel berbeda yang kebetulan ber-header identik namun berjauhan
-    # tetap dipertahankan terpisah.
     groups: Dict[str, List[Dict[str, Any]]] = {}
     group_order: List[str] = []
     for entry in normalized_tables:
@@ -82,26 +75,64 @@ def consolidate_tables(tables: List[Dict[str, Any]], in_language: str = "id") ->
         cluster = None
         for it in items:
             if cluster is not None and it["page_number"] - cluster["page_number"] <= 1:
-                cluster["rows"].extend(it["rows"])
+                # Deduplikasi baris jika baris awal fragmen mengulang header tabel
+                new_rows = []
+                for r in it["rows"]:
+                    if r == cluster["headers"] or (len(r) == len(cluster["headers"]) and all(r[i].strip().lower() == cluster["headers"][i].strip().lower() for i in range(len(r)))):
+                        continue
+                    new_rows.append(r)
+                cluster["rows"].extend(new_rows)
                 cluster["page_number"] = max(cluster["page_number"], it["page_number"])
             else:
                 cluster = {
                     "caption": it["caption"],
                     "page_number": it["page_number"],
                     "headers": it["headers"],
-                    "rows": list(it["rows"])
+                    "rows": list(it["rows"]),
+                    "table_type": it["table_type"]
                 }
                 consolidated.append(cluster)
 
     return consolidated
 
-def is_valid_tabular_data(headers: List[str], rows: List[List[str]]) -> bool:
+
+def is_descriptive_table(headers: List[str], rows: List[List[str]]) -> bool:
     """
-    Validasi integritas struktur tabel murni (mencegah paragraf teks, bagan, dan formula matematika dijadikan tabel):
+    Mendeteksi apakah tabel merupakan tabel deskriptif/matriks kualitatif/SWOT/spesifikasi.
+    """
+    if not headers or not rows:
+        return False
+        
+    descriptive_keywords = {
+        'deskripsi', 'description', 'keterangan', 'fungsi', 'function', 'kelebihan',
+        'kekurangan', 'advantages', 'disadvantages', 'pros', 'cons', 'strength',
+        'weakness', 'opportunity', 'threat', 'features', 'fitur', 'spesifikasi',
+        'specification', 'rekomendasi', 'recommendation', 'alasan', 'reason',
+        'komponen', 'component', 'kegunaan', 'catatan', 'notes', 'remarks', 'role'
+    }
+    
+    headers_lower = [h.strip().lower() for h in headers]
+    if any(any(kw in h for kw in descriptive_keywords) for h in headers_lower):
+        return True
+        
+    all_cells = [cell.strip() for r in rows for cell in r if cell and cell.strip()]
+    if all_cells:
+        avg_words = sum(len(c.split()) for c in all_cells) / len(all_cells)
+        if avg_words > 4.0:
+            return True
+            
+    return False
+
+
+def is_valid_tabular_data(headers: List[str], rows: List[List[str]], allow_descriptive: bool = True) -> bool:
+    """
+    Validasi integritas struktur tabel (mencegah paragraf teks bebas, bagan grafik, dan formula matematika dijadikan tabel):
     1. Minimal 2 kolom header yang valid dan substantif.
     2. Minimal 1 baris data (dan jika 1 baris, harus memiliki minimal 3 kolom).
-    3. Kolom header tidak boleh berupa kalimat narasi panjang (> 8 kata).
-    4. Rata-rata kata per sel data <= 7 kata.
+    3. Kolom header tidak boleh berupa kalimat narasi panjang (> 12 kata).
+    4. Rata-rata kata per sel data:
+       - Tabel kuantitatif: rata-rata kata per sel <= 7.0
+       - Tabel deskriptif/matriks: diperbolehkan narasi panjang, asal bukan formula math.
     5. Bukan persamaan matematika / aljabar LaTeX.
     6. Bukan label sumbu grafik/bagan.
     """
@@ -116,11 +147,11 @@ def is_valid_tabular_data(headers: List[str], rows: List[List[str]]) -> bool:
     if any(is_mathematical_formula(h) for h in valid_headers):
         return False
         
-    # Header tidak boleh berupa kalimat narasi panjang (misal lebih dari 8 kata)
-    if any(len(h.split()) > 8 for h in valid_headers):
+    # Header tidak boleh berupa kalimat narasi terlalu panjang (misal lebih dari 12 kata)
+    if any(len(h.split()) > 12 for h in valid_headers):
         return False
         
-    # Periksa rata-rata panjang sel data
+    # Periksa sel data
     all_cells = [cell.strip() for r in rows for cell in r if cell and cell.strip()]
     if not all_cells:
         return False
@@ -128,15 +159,6 @@ def is_valid_tabular_data(headers: List[str], rows: List[List[str]]) -> bool:
     # Jika sebagian besar sel berisi formula matematika, tolak
     math_cell_count = sum(1 for c in all_cells if is_mathematical_formula(c))
     if math_cell_count / len(all_cells) > 0.4:
-        return False
-        
-    avg_words = sum(len(c.split()) for c in all_cells) / len(all_cells)
-    if avg_words > 7.0:
-        return False
-        
-    # Periksa jika sel-sel data berisi kalimat bertitik naratif
-    narrative_count = sum(1 for c in all_cells if len(c.split()) > 10 or re.search(r'\.\s+[A-Z]', c))
-    if narrative_count / len(all_cells) > 0.2:
         return False
         
     # Tolak jika header hanya berupa 1 huruf atau simbol variabel matematika sumbu grafik
@@ -152,8 +174,19 @@ def is_valid_tabular_data(headers: List[str], rows: List[List[str]]) -> bool:
     # Jika hanya 1 baris data, harus memiliki minimal 3 kolom terstruktur
     if len(rows) == 1 and len(valid_headers) < 3:
         return False
-        
+
+    # Pengecekan tabel deskriptif vs kuantitatif
+    descriptive = is_descriptive_table(headers, rows)
+    if not descriptive and not allow_descriptive:
+        avg_words = sum(len(c.split()) for c in all_cells) / len(all_cells)
+        if avg_words > 7.0:
+            return False
+        narrative_count = sum(1 for c in all_cells if len(c.split()) > 10 or re.search(r'\.\s+[A-Z]', c))
+        if narrative_count / len(all_cells) > 0.2:
+            return False
+            
     return True
+
 
 def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_language: str = "id") -> Optional[Dict[str, Any]]:
     """Parse Markdown table into UniversalTable deterministically in 0.001s with language-aware captions and strict prose rejection."""
@@ -228,12 +261,16 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
             caption = re.sub(r'\(Page\s+(\d+)\)', r'(Halaman \1)', caption, flags=re.IGNORECASE)
             caption = re.sub(r'\bPage\s+(\d+)\b', r'Halaman \1', caption, flags=re.IGNORECASE)
 
+    table_type = "descriptive" if is_descriptive_table(headers, rows) else "quantitative"
+
     return {
         "caption": caption,
         "page_number": page_number,
         "headers": headers,
-        "rows": rows
+        "rows": rows,
+        "table_type": table_type
     }
+
 
 def parse_flat_text_table(text: str, page_number: int = 1, in_language: str = "id") -> Optional[Dict[str, Any]]:
     """
@@ -267,10 +304,12 @@ def parse_flat_text_table(text: str, page_number: int = 1, in_language: str = "i
         rows.append([m.group(1).strip(), m.group(2).strip(), m.group(3).strip()])
         
     if is_valid_tabular_data(headers, rows):
+        table_type = "descriptive" if is_descriptive_table(headers, rows) else "quantitative"
         return {
             "caption": caption,
             "page_number": page_number,
             "headers": headers,
-            "rows": rows
+            "rows": rows,
+            "table_type": table_type
         }
     return None
