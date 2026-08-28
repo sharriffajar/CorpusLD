@@ -17,11 +17,13 @@ def clean_and_unpack_citations(raw_list: List[str]) -> List[str]:
         return []
 
     bio_cutoff_re = re.compile(
-        r'\b(?:BIOGRAPHY|BIOGRAPHIES|AUTHOR\s+BIOGRAPHIES?|ABOUT\s+THE\s+AUTHORS?|BIOGRAFI\s+PENULIS|APPENDIX|APPENDICES)\b',
+        r'\b(?:BIOGRAPHY|BIOGRAPHIES|AUTHOR\s+BIOGRAPHIES?|ABOUT\s+THE\s+AUTHORS?|BIOGRAFI\s+PENULIS|APPENDIX|APPENDICES|ACKNOWLEDGMENT|ACKNOWLEDGEMENTS)\b'
+        r'|(?:\b[A-Z0-9\.\s\-]{3,40}\s*\((?:Student\s+|Graduate\s+Student\s+|Senior\s+|Life\s+)?Member,\s*IEEE\))'
+        r'|(?:\b(?:received|earned|holds|completed)\s+(?:the\s+|his\s+|her\s+|a\s+|an\s+)?(?:B\.?Eng|B\.?S|M\.?Eng|M\.?S|Ph\.?D|Bachelor|Master|Doctorate)\b)',
         re.IGNORECASE
     )
     bio_prose_re = re.compile(
-        r'\b(?:[A-Z][a-z]+(?:\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+){1,3}\s+(?:is\s+a|is\s+an|is\s+currently|was\s+born|born\s+in|received\s+(?:a|his|her|the)|earned\s+(?:a|his|her|the)|completed\s+(?:his|her|their)|studied\s+|holds\s+a|graduated\s+from|adalah\s+dosen|merupakan\s+dosen|lahir\s+di))\b',
+        r'\b(?:[A-Z\.\s\-]{2,35}\s*(?:\([^\)]+\)\s*)?(?:is\s+a|is\s+an|is\s+currently|was\s+born|born\s+in|received\s+(?:the|a|his|her)|earned\s+(?:the|a|his|her)|completed\s+(?:the|his|her)|studied\s+|holds\s+a|graduated\s+from|adalah\s+dosen|merupakan\s+dosen|lahir\s+di))\b',
         re.IGNORECASE
     )
     section_header_re = re.compile(r'^(?:REFERENCES|DAFTAR\s+PUSTAKA|BIBLIOGRAPHY|RUJUKAN)\s*', re.IGNORECASE)
@@ -96,7 +98,11 @@ def extract_references_regex_fallback(text: str) -> List[str]:
     # Running header noise patterns
     header_noise_re = re.compile(r'^(?:(?:E-ISSN|P-ISSN|ISSN|ISBN|DOI)[\s\:\.\-]+|\b(?:Volume|Vol\.?|Nomor|No\.?|Halaman|Page|Pages)\s+\d+|\b\d{4,5}\b|Indonesian\s+Journal\s+of|International\s+Journal\s+of|Journal\s+of\s+[A-Za-z\s]+?\d{3,6}$)', re.IGNORECASE)
     running_header_re = re.compile(r'^[A-Z][a-z]+(?:\s+et\s+al\.?)?\s*:\s*.+?(?:Journal\s+of\s+Photonics|IEEE|Vol\.\s*\d+|\d{6}-\d+)', re.IGNORECASE)
-    bio_start_re = re.compile(r'^(?:BIOGRAPHY|BIOGRAPHIES\b|[A-Z][a-z]+(?:\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+){1,3}\s+(?:is\s+a|is\s+an|is\s+currently|was\s+born|born\s+in|received\s+(?:a|his|her|the)|earned\s+(?:a|his|her|the)|completed\s+(?:his|her|their)|studied\s+|holds\s+a|graduated\s+from|adalah\s+dosen|merupakan\s+dosen|lahir\s+di))\b', re.IGNORECASE)
+    bio_start_re = re.compile(
+        r'^(?:BIOGRAPHY|BIOGRAPHIES\b|[A-Z\.\s\-]{2,35}\s*(?:\([^\)]+\)\s*)?(?:is\s+a|is\s+an|is\s+currently|was\s+born|born\s+in|received\s+(?:a|his|her|the)|earned\s+(?:a|his|her|the)|completed\s+(?:his|her|their)|studied\s+|holds\s+a|graduated\s+from|adalah\s+dosen|merupakan\s+dosen|lahir\s+di))\b'
+        r'|^(?:[A-Z0-9\.\s\-]{3,40}\s*\((?:Student\s+|Graduate\s+Student\s+|Senior\s+|Life\s+)?Member,\s*IEEE\))',
+        re.IGNORECASE
+    )
 
     filtered_lines = []
     for l in lines:

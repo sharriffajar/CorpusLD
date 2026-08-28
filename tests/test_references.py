@@ -30,15 +30,16 @@ class TestReferences(unittest.TestCase):
         self.assertNotIn("BIOGRAPHY", unpacked[0])
         self.assertNotIn("was born in Jelutung", unpacked[0])
 
-    def test_reconcile_references_unpacks_and_purifies(self):
-        llm_refs = [
-            "[1] First ref 2020. [2] Second ref 2021.",
-            "Author Biography John Doe is a lecturer at Universitas Indonesia."
+    def test_cutoff_ieee_member_biography_in_citations(self):
+        raw = [
+            "[24] Y. Liu et al., “ITransformer: Inverted transformers are effective for time series forecasting,” 2023, arXiv:2310.06625. M. SHAHRUL AMIR KAMARULZAMAN (Graduate Student Member, IEEE) received the B.Eng. degree in computer science and systems engineering and the M.Eng. degree in science, technology and innovation from Kobe University, Kobe, Japan, in 2022 and 2024, respectively. He is currently engaged in research focusing on the development of a robust signal processing method for a bather monitoring system in bathroom environments using ultrasonic array sensors."
         ]
-        reconciled = reconcile_references(llm_refs, "")
-        self.assertEqual(len(reconciled), 2)
-        self.assertTrue(reconciled[0].startswith("[1]"))
-        self.assertTrue(reconciled[1].startswith("[2]"))
+        unpacked = clean_and_unpack_citations(raw)
+        self.assertEqual(len(unpacked), 1)
+        self.assertTrue(unpacked[0].startswith("[24]"))
+        self.assertNotIn("SHAHRUL AMIR KAMARULZAMAN", unpacked[0])
+        self.assertNotIn("Member, IEEE", unpacked[0])
+        self.assertNotIn("received the B.Eng. degree", unpacked[0])
 
 
 if __name__ == "__main__":

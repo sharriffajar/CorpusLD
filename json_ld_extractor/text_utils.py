@@ -37,12 +37,39 @@ def truncate_context(text: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
         return text
     return text[:max_chars] + "\n[...konteks dipotong...]"
 
+def normalize_ligatures_and_spaces(text: str) -> str:
+    """Normalisasi ligatur PDF (ﬁ -> fi, ﬂ -> fl, ﬀ -> ff, ﬃ -> ffi, ﬄ -> ffl) dan spasi titik desimal."""
+    if not text:
+        return ""
+    ligatures = {
+        '\ufb00': 'ff',
+        '\ufb01': 'fi',
+        '\ufb02': 'fl',
+        '\ufb03': 'ffi',
+        '\ufb04': 'ffl',
+        '\ufb05': 'ft',
+        '\ufb06': 'st',
+        'ﬁ': 'fi',
+        'ﬂ': 'fl',
+        'ﬀ': 'ff',
+        'ﬃ': 'ffi',
+        'ﬄ': 'ffl',
+    }
+    for k, v in ligatures.items():
+        text = text.replace(k, v)
+    
+    # Rapatkan angka yang terpisah spasi di sekitar titik desimal (misal: "97 .5" -> "97.5", "11 .9" -> "11.9", "0 .656" -> "0.656")
+    text = re.sub(r'(\d+)\s+\.\s*(\d+)', r'\1.\2', text)
+    text = re.sub(r'(\d+)\s*\.\s+(\d+)', r'\1.\2', text)
+    return text
+
 def sanitize_text_for_extraction(text: str) -> str:
     """Membersihkan artefak teks parser seperti 'DATA TABEL / METRIK SPESIFIK:' dan markdown formatting."""
     cleaned = re.sub(r'DATA TABEL / METRIK SPESIFIK:\s*', '', text)
     # Bersihkan Markdown heading dan bold dari konteks input
     cleaned = re.sub(r'^#+\s*', '', cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r'\*\*([^*]+)\*\*', r'\1', cleaned)
+    cleaned = normalize_ligatures_and_spaces(cleaned)
     return cleaned.strip()
 
 def fix_concatenated_title_spacing(title: str) -> str:

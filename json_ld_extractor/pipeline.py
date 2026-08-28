@@ -79,7 +79,7 @@ def extract_technical_terms_deterministic(text: str, page_number: int = 1) -> Li
             seen.add(code)
             terms.append({
                 "name": code,
-                "description": f"Komponen teknis / modul hardware teridentifikasi pada halaman {page_number}",
+                "description": f"Page {page_number}",
                 "term_code": code,
                 "page_number": page_number
             })
@@ -106,19 +106,38 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
         'section', 'bab', 'copyright', 'all rights reserved', 'http', 'https', 'www', 'orcid', 'arxiv',
         'author', 'available online', 'editor', 'publisher'
     }
-    action_verbs = {'the', 'a', 'an', 'achieved', 'reached', 'measured', 'estimated', 'calculated', 'is', 'was', 'shows', 'attained', 'observed', 'yielding', 'produced', 'were', 'assumed', 'to', 'be'}
+    noise_lead_words = {
+        'the', 'a', 'an', 'these', 'this', 'those', 'that', 'its', 'their', 'our', 'my', 'his', 'her',
+        'are', 'is', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+        'using', 'with', 'for', 'of', 'in', 'on', 'at', 'by', 'from', 'into', 'onto', 'about',
+        'such', 'both', 'each', 'every', 'all', 'any', 'some', 'no', 'not', 'only', 'also',
+        'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'while', 'whereas',
+        'and', 'or', 'but', 'nor', 'so', 'yet', 'if', 'then', 'else', 'when', 'as', 'attributed',
+        'examples', 'example', 'case', 'cases', 'words', 'word', 'total', 'totals', 'totaling'
+    }
+
+    def _clean_param_name(raw_name: str) -> str:
+        words = [w.strip() for w in strip_markdown_formatting(raw_name).split() if w.strip()]
+        while words and words[0].lower() in noise_lead_words:
+            words.pop(0)
+        while words and words[-1].lower() in noise_lead_words:
+            words.pop()
+        if not words:
+            return ""
+        return ' '.join(words)
 
     # 1. Pattern: Parameter = Value [Unit] (misal: "Efficiency = 94.5%", "RMSE = 0.042", "Pressure: 120 mmHg")
     for m in re.finditer(r'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){0,3})\s*(?:=|\bis\s+about\b|\bis\s+approximately\b|\bis\b|:)\s*([€\$£¥]?\s*[\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)?(?:\s|[,\.;]|$)', clean_text, re.IGNORECASE):
-        raw_p_name = strip_markdown_formatting(m.group(1)).strip()
+        raw_p_name = m.group(1).strip()
         val_str = m.group(2).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').replace('¥', '').strip()
         raw_unit = strip_markdown_formatting(m.group(3) or '').strip()
         
         if not raw_unit and any(c in m.group(2) for c in ['€', '$', '£', '¥']):
             raw_unit = 'EUR' if '€' in m.group(2) else ('USD' if '$' in m.group(2) else ('GBP' if '£' in m.group(2) else 'JPY'))
             
-        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
-        p_name = ' '.join(words) if words else raw_p_name
+        p_name = _clean_param_name(raw_p_name)
+        if not p_name:
+            continue
         p_lower = p_name.lower()
         
         if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
@@ -144,7 +163,7 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
                 "name": p_name.title(),
                 "value": val_num,
                 "unit_text": norm_unit,
-                "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                "context_or_condition": f"Page {page_number}",
                 "page_number": page_number
             })
 
@@ -152,14 +171,15 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
     for m in re.finditer(r'([€\$£¥]?\s*[\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)\s+(?:for|of)\s+([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){0,3})', clean_text, re.IGNORECASE):
         val_str = m.group(1).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').replace('¥', '').strip()
         raw_unit = strip_markdown_formatting(m.group(2)).strip()
-        raw_p_name = strip_markdown_formatting(m.group(3)).strip()
+        raw_p_name = m.group(3).strip()
         
         is_unit_valid, norm_unit, dimension = is_valid_scientific_unit(raw_unit)
         if not is_unit_valid:
             continue
             
-        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
-        p_name = ' '.join(words) if words else raw_p_name
+        p_name = _clean_param_name(raw_p_name)
+        if not p_name:
+            continue
         p_lower = p_name.lower()
         
         if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
@@ -176,7 +196,7 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
                     "name": p_name.title(),
                     "value": val_num,
                     "unit_text": norm_unit,
-                    "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                    "context_or_condition": f"Page {page_number}",
                     "page_number": page_number
                 })
         except ValueError:
@@ -184,14 +204,15 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
 
     # 3. Pattern: Parameter total/is Value Unit (misal: "Verified peatland formations total 23.118 km2")
     for m in re.finditer(r'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){1,4})\s+(?:total|totaling|totals|reaching|amounts\s+to|equaling)\s+([\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)?(?:\s|[,\.;]|$)', clean_text, re.IGNORECASE):
-        raw_p_name = strip_markdown_formatting(m.group(1)).strip()
+        raw_p_name = m.group(1).strip()
         val_str = m.group(2).strip().replace(',', '.')
         raw_unit = strip_markdown_formatting(m.group(3) or '').strip()
         
         is_unit_valid, norm_unit, dimension = is_valid_scientific_unit(raw_unit) if raw_unit else (False, None, None)
         
-        words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
-        p_name = ' '.join(words) if words else raw_p_name
+        p_name = _clean_param_name(raw_p_name)
+        if not p_name:
+            continue
         p_lower = p_name.lower()
         
         if any(nk in p_lower for nk in noise_keywords):
@@ -208,7 +229,7 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
                     "name": p_name.title(),
                     "value": val_num,
                     "unit_text": norm_unit,
-                    "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
+                    "context_or_condition": f"Page {page_number}",
                     "page_number": page_number
                 })
         except ValueError:
@@ -217,7 +238,10 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
     # 4. Pattern: Count Items (misal "614 observation points", "68 soil specimens")
     for m in re.finditer(r'\b([\d\.,]+)\s+([A-Za-z\-\/]+(?:\s+[A-Za-z\-\/]+){0,2}\s+(?:points|specimens|articles|samples|participants|respondents|patients|subjects|cases|epochs|iterations))\b', clean_text, re.IGNORECASE):
         val_str = m.group(1).strip().replace(',', '.')
-        p_name = strip_markdown_formatting(m.group(2)).strip()
+        raw_p_name = m.group(2).strip()
+        p_name = _clean_param_name(raw_p_name)
+        if not p_name:
+            continue
         p_lower = p_name.lower()
         if any(nk in p_lower for nk in noise_keywords):
             continue
@@ -232,7 +256,7 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
                     "name": p_name.title(),
                     "value": val_num,
                     "unit_text": p_name.split()[-1],
-                    "context_or_condition": f"Kuantitas terukur pada halaman {page_number}",
+                    "context_or_condition": f"Page {page_number}",
                     "page_number": page_number
                 })
         except ValueError:
@@ -690,9 +714,10 @@ Respond ONLY in valid JSON."""
     for c in clean_file_chunks:
         pg = c.get("metadata", {}).get("pdf_page_index", 1)
         txt = c.get("text", "")
-        matches = re.finditer(r'(?:^|\n)\s*((?:Table|Tabel)\s+\d+[\s\:\.\-]+[^\n]+(?:\n[^\n]+)?)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section|[1-9]\.\d*\s+[A-Z])|\nSource:|\Z))', txt, re.IGNORECASE)
+        matches = re.finditer(r'(?:^|\n)\s*((?:Table|Tabel)\s+\d+[\s\:\.\-]+[^\n]+(?:\n[^\n\|]+)?)\n([\s\S]*?)(?=(?:\n(?:Table|Tabel|Figure|Gambar|Bagan|BAB|Section|[1-9]\.\d*\s+[A-Z])|\nSource:|\Z))', txt, re.IGNORECASE)
         for m in matches:
-            cap = " ".join([strip_markdown_formatting(l) for l in m.group(1).split("\n") if l.strip()])
+            cap_lines = [strip_markdown_formatting(l) for l in m.group(1).split("\n") if l.strip() and "|" not in l and not re.match(r'^(?:Figure|Fig\.|Gambar)\b', l, re.I)]
+            cap = " ".join(cap_lines)
             body = m.group(2).strip()
             cap_key = cap.lower()[:40]
             if cap_key not in seen_table_captions and not re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot)\s+\d+', cap, re.IGNORECASE):
@@ -833,6 +858,8 @@ Respond ONLY in valid JSON."""
         if p_unit and p_unit.lower() not in ["null", "none", "n/a", "undefined"]:
             prop_obj["unitText"] = p_unit
         if p_ctx:
+            p_ctx = re.sub(r'^(?:Teridentifikasi\s+pada\s+halaman|Kuantitas\s+terukur\s+pada\s+halaman)\s+(\d+)', r'Page \1', p_ctx, flags=re.IGNORECASE)
+            p_ctx = re.sub(r'^(?:Halaman|Hal\.?)\s+(\d+)', r'Page \1', p_ctx, flags=re.IGNORECASE)
             prop_obj["description"] = p_ctx
         clean_prop = prune_empty_fields(prop_obj)
         if clean_prop:

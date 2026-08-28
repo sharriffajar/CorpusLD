@@ -500,24 +500,57 @@ def refine_and_deduplicate_metrics(metrics: list, text_context: str = "") -> lis
         return []
         
     percentage_keywords = ['growth', 'pertumbuhan', 'rate', 'tingkat', 'rasio', 'share', 'inflation', 'inflasi', 'gini', 'unemployment', 'pengangguran', 'deficit', 'surplus', 'percent', 'enrollment', 'accuracy', 'akurasi', 'precision', 'recall', 'f1']
+    noise_lead_words = {
+        'the', 'a', 'an', 'these', 'this', 'those', 'that', 'its', 'their', 'our', 'my', 'his', 'her',
+        'are', 'is', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+        'using', 'with', 'for', 'of', 'in', 'on', 'at', 'by', 'from', 'into', 'onto', 'about',
+        'such', 'both', 'each', 'every', 'all', 'any', 'some', 'no', 'not', 'only', 'also',
+        'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'while', 'whereas',
+        'and', 'or', 'but', 'nor', 'so', 'yet', 'if', 'then', 'else', 'when', 'as', 'attributed',
+        'examples', 'example', 'case', 'cases', 'words', 'word'
+    }
+    generic_reject_names = {'parameter', 'value', 'data', 'metric', 'variable', 'number'}
     
     # 1. Standardisasi unit & pembersihan markdown
     for m in metrics:
-        name = strip_markdown_formatting(m.get('name', '')).strip()
+        raw_name = strip_markdown_formatting(m.get('name', '')).strip()
+        words = [w for w in raw_name.split() if w]
+        while words and words[0].lower() in noise_lead_words:
+            words.pop(0)
+        while words and words[-1].lower() in noise_lead_words:
+            words.pop()
+        name = ' '.join(words) if words else raw_name
+        
         unit = strip_markdown_formatting(m.get('unit_text', '')).strip()
         ctx = strip_markdown_formatting(m.get('context_or_condition', '')).strip()
+        
+        # Standardize context to clean "Page X"
+        ctx = re.sub(r'^(?:Teridentifikasi\s+pada\s+halaman|Kuantitas\s+terukur\s+pada\s+halaman)\s+(\d+)', r'Page \1', ctx, flags=re.IGNORECASE)
+        ctx = re.sub(r'^(?:Halaman|Hal\.?)\s+(\d+)', r'Page \1', ctx, flags=re.IGNORECASE)
+        
         val = m.get('value', '')
         if isinstance(val, str) and re.match(r'^\d+,\d{1,4}$', val.strip()):
             val = val.strip().replace(',', '.')
-        m['value'] = val
-        
+        try:
+            val_float = float(val) if isinstance(val, (int, float, str)) and str(val).replace('.', '', 1).isdigit() else None
+        except Exception:
+            val_float = None
+            
+        m['value'] = val_float if val_float is not None else val
         m['name'] = name
-        m['unit_text'] = unit
         m['context_or_condition'] = ctx
         
         name_lower = name.lower()
-        if any(pk in name_lower for pk in percentage_keywords) and unit in ['$', 'US$', 'USD', 'IDR']:
-            m['unit_text'] = '%'
+        if any(pk in name_lower for pk in percentage_keywords) and (not unit or unit in ['$', 'US$', 'USD', 'IDR']):
+            unit = '%'
+        elif 'frequency' in name_lower and not unit:
+            unit = 'kHz'
+        elif any(d in name_lower for d in ['mae', 'rmse', 'distance', 'position estimation']) and not unit:
+            unit = 'cm'
+        elif any(s in name_lower for s in ['iou', 'score', 'ratio']) and not unit:
+            unit = 'score'
+            
+        m['unit_text'] = unit
 
     # 2. Deduplikasi Case-Insensitive & Semantic Hash Universal
     deduped = []
@@ -529,7 +562,7 @@ def refine_and_deduplicate_metrics(metrics: list, text_context: str = "") -> lis
         c_clean = re.sub(r'\s+', ' ', m.get('context_or_condition', '').strip().lower())
         v_clean = str(m.get('value', '')).strip().lower()
         
-        if not n_clean or not v_clean:
+        if not n_clean or not v_clean or n_clean in generic_reject_names:
             continue
             
         exact_key = f"{n_clean}|{u_clean}|{c_clean}|{v_clean}"

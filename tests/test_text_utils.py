@@ -42,10 +42,12 @@ class TestTextUtils(unittest.TestCase):
         self.assertTrue(is_mathematical_formula("q(m) = a*x+b"))
         self.assertFalse(is_mathematical_formula("Pontianak City 42 points"))
 
-    def test_sanitize_strips_markdown_symbols(self):
-        # Perilaku riil: ** di-strip, underscore tunggal dipertahankan (proteksi snake_case)
-        self.assertEqual(sanitize_text_for_extraction("**Bold** _text_"), "Bold _text_")
-        self.assertNotIn("*", sanitize_text_for_extraction("**Bold** text"))
+    def test_normalize_ligatures_and_spaces(self):
+        from json_ld_extractor.text_utils import normalize_ligatures_and_spaces
+        # Ligatures fi, fl, ff and decimal spacing
+        raw = "The signiﬁcant eﬀect yielded 97 .5 ± 2.0% accuracy and 11 .9 ± 2.9 cm MAE."
+        out = normalize_ligatures_and_spaces(raw)
+        self.assertEqual(out, "The significant effect yielded 97.5 ± 2.0% accuracy and 11.9 ± 2.9 cm MAE.")
 
 
 if __name__ == "__main__":

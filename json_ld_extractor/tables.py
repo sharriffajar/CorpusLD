@@ -196,7 +196,7 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
     caption = None
     narrative_table_intro = re.compile(r'^(?:Tabel|Table)\s+\d+\s+(?:shows|presents|illustrates|displays|summarizes|provides|compares|is|was|were|menunjukkan|menyajikan|menjelaskan|memperlihatkan)\b', re.IGNORECASE)
     
-    for l in raw_lines[:6]:
+    for idx, l in enumerate(raw_lines[:6]):
         l_clean = strip_markdown_formatting(l)
         if re.match(r'^(?:Figure|Fig\.|Gambar|Bagan|Chart|Grafik|Plot|Diagram)\s+\d+', l_clean, re.IGNORECASE):
             return None  # Strictly reject figures
@@ -207,13 +207,13 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
         if narrative_table_intro.match(l_clean):
             continue  # Lewati kalimat narasi pengantar ("Table 1 shows the comparisons...")
             
-        if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-–—]+[^\n\|]+', l_clean, re.IGNORECASE):
-            caption = l_clean[:120].strip()
-            if len(l_clean) > 120 and "." in l_clean[:120]:
-                caption = l_clean[:l_clean.index(".")+1].strip()
-            break
-        elif re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE):
-            caption = l_clean[:120].strip()
+        if re.match(r'^(?:Tabel|Table)\s+\d+[\.:\s\-–—]+[^\n\|]+', l_clean, re.IGNORECASE) or re.match(r'^(?:Tabel|Table)\s+\d+\b', l_clean, re.IGNORECASE):
+            caption = l_clean.strip()
+            if idx + 1 < len(raw_lines):
+                next_l = strip_markdown_formatting(raw_lines[idx + 1]).strip()
+                if next_l and "|" not in next_l and not re.match(r'^(?:Table|Tabel|Figure|Gambar|BAB|Section|\d+\.)\b', next_l, re.I):
+                    if re.search(r'\b(?:for|of|in|with|and|to|the|on|by|at|from|under|between|among|\-)$', caption, re.I) or (not caption.endswith('.') and len(caption) < 80):
+                        caption = f"{caption} {next_l}".strip()
             break
             
     table_lines = [l for l in raw_lines if "|" in l]

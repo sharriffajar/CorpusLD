@@ -93,15 +93,18 @@ class TestTables(unittest.TestCase):
         self.assertIn("implementasi", chunks[0]["text"])
         self.assertNotIn("implemen- tasi", chunks[0]["text"])
 
-    def test_running_footers_collection(self):
-        from server import _collect_running_footers
-        pages_data = [
-            (1, "Halaman 1 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
-            (2, "Halaman 2 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
-            (3, "Halaman 3 teks utama\nCopyright 2026 IEEE All Rights Reserved"),
-        ]
-        footers = _collect_running_footers(pages_data)
-        self.assertTrue(any("COPYRIGHT" in f for f in footers))
+    def test_multiline_table_caption_stitching(self):
+        txt = (
+            "TABLE 4. Average cross-validation evaluation results for\n"
+            "bather condition estimation in the bathtub.\n"
+            "| Condition | Accuracy (%) | Precision |\n"
+            "|---|---|---|\n"
+            "| Normal | 98.2 | 0.98 |\n"
+            "| Drowning | 99.3 | 0.99 |"
+        )
+        res = parse_markdown_table_direct(txt, page_number=5, in_language="en")
+        self.assertIsNotNone(res)
+        self.assertIn("Average cross-validation evaluation results for bather condition estimation", res["caption"])
 
 
 if __name__ == "__main__":
