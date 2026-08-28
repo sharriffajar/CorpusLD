@@ -114,6 +114,11 @@ from .pipeline import (
     extract_technical_terms_deterministic,
     extract_quantitative_metrics_deterministic,
 )
+from .unit_ontology import (
+    is_valid_scientific_unit,
+    sanitize_text_strip_superscript_citations,
+    is_citation_or_footnote_context,
+)
 
 __all__ = [
     'EducationalOrganization', 'Author', 'UniversalEntity', 'DocumentSection',
@@ -139,4 +144,6 @@ __all__ = [
     'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
     'extract_latex_formulas_deterministic', 'extract_technical_terms_deterministic',
     'extract_quantitative_metrics_deterministic',
+    'is_valid_scientific_unit', 'sanitize_text_strip_superscript_citations',
+    'is_citation_or_footnote_context',
 ]

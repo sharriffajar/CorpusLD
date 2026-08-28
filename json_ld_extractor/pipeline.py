@@ -19,6 +19,7 @@ from .metadata import *
 from .references import *
 from .llm_adapters import *
 from .validation import *
+from .unit_ontology import *
 
 
 def extract_latex_formulas_deterministic(text: str, page_number: int = 1) -> List[Dict[str, Any]]:
@@ -88,8 +89,15 @@ def extract_technical_terms_deterministic(text: str, page_number: int = 1) -> Li
 
 def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) -> List[Dict[str, Any]]:
     """
-    Ekstraksi deterministik metrik kuantitatif, nilai numerik, persentase, dan pengukuran fisik (100% loss-free base).
+    Ekstraksi deterministik metrik kuantitatif berbasis Ontologi Satuan Baku (SI/UCUM/Pint)
+    dengan eliminasi sitasi pangkat (superscript) dan footnote.
     """
+    if not text:
+        return []
+
+    # 1. Bersihkan sitasi pangkat dan bracket citations agar tidak menipu parser angka
+    clean_text = sanitize_text_strip_superscript_citations(text)
+    
     metrics = []
     seen = set()
     noise_keywords = {
@@ -99,81 +107,107 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
         'author', 'available online', 'editor', 'publisher'
     }
     action_verbs = {'the', 'a', 'an', 'achieved', 'reached', 'measured', 'estimated', 'calculated', 'is', 'was', 'shows', 'attained', 'observed', 'yielding', 'produced', 'were', 'assumed', 'to', 'be'}
-    unit_pat = r'(?:%|km²|km2|m²|m2|m³|m3|MW|kW|GW|MWh|kWh|GWh|MJ|GJ|kJ|kg|ton|tonne|tonnes|t|ppm|mg/L|mg/kg|V|A|ms|s|Hz|kHz|MHz|GHz|bps|kbps|Mbps|Gbps|points|specimens|articles|samples|participants|respondents|USD|IDR|EUR|€|\$|£|°C|K|tCO2|tCO2eq|EUR/ton|USD/ton|€/kWh|€/t|€/kg|€/ton|\$/ton|\$/kg|\$/kWh)'
 
-    # 1. Pattern: Parameter = Value [Unit]
-    for m in re.finditer(rf'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{0,3}})\s*(?:=|\bis\s+about\b|\bis\s+approximately\b|\bis\b|:)\s*([€\$£]?\s*[\d\.,]+)\s*({unit_pat})?(?:\s|[,\.;]|$)', text, re.IGNORECASE):
+    # 1. Pattern: Parameter = Value [Unit] (misal: "Efficiency = 94.5%", "RMSE = 0.042", "Pressure: 120 mmHg")
+    for m in re.finditer(r'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){0,3})\s*(?:=|\bis\s+about\b|\bis\s+approximately\b|\bis\b|:)\s*([€\$£¥]?\s*[\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)?(?:\s|[,\.;]|$)', clean_text, re.IGNORECASE):
         raw_p_name = strip_markdown_formatting(m.group(1)).strip()
-        val_str = m.group(2).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').strip()
-        unit = strip_markdown_formatting(m.group(3) or '').strip()
-        if not unit and any(c in m.group(2) for c in ['€', '$', '£']):
-            unit = 'EUR' if '€' in m.group(2) else ('USD' if '$' in m.group(2) else 'GBP')
+        val_str = m.group(2).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').replace('¥', '').strip()
+        raw_unit = strip_markdown_formatting(m.group(3) or '').strip()
+        
+        if not raw_unit and any(c in m.group(2) for c in ['€', '$', '£', '¥']):
+            raw_unit = 'EUR' if '€' in m.group(2) else ('USD' if '$' in m.group(2) else ('GBP' if '£' in m.group(2) else 'JPY'))
+            
         words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
         p_name = ' '.join(words) if words else raw_p_name
         p_lower = p_name.lower()
+        
         if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
             continue
+        if is_citation_or_footnote_context(p_name, val_str):
+            continue
+            
         try:
             val_num = float(val_str)
         except ValueError:
             continue
-        if not unit and not any(mn in p_lower for mn in ['rmse', 'mape', 'fcr', 'snr', 'accuracy', 'precision', 'recall', 'f1', 'loss', 'score', 'ratio', 'count', 'p-value', 'r2', 'r²']):
+            
+        is_unit_valid, norm_unit, dimension = is_valid_scientific_unit(raw_unit) if raw_unit else (False, None, None)
+        
+        # If no unit, only accept recognized metric names
+        if not is_unit_valid and not any(mn in p_lower for mn in ['rmse', 'mape', 'fcr', 'snr', 'accuracy', 'precision', 'recall', 'f1', 'loss', 'score', 'ratio', 'count', 'p-value', 'r2', 'r²']):
             continue
-        key = f"{p_lower}|{val_num}|{unit.lower()}"
+            
+        key = f"{p_lower}|{val_num}|{(norm_unit or '').lower()}"
         if key not in seen:
             seen.add(key)
             metrics.append({
                 "name": p_name.title(),
                 "value": val_num,
-                "unit_text": unit if unit else None,
+                "unit_text": norm_unit,
                 "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
                 "page_number": page_number
             })
 
-    # 2. Pattern: Value Unit for/of Parameter (misal: '0.22 €/kWh for electricity', '50 €/t for mature compost')
-    for m in re.finditer(rf'([€\$£]?\s*[\d\.,]+)\s*({unit_pat})\s+(?:for|of)\s+([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{0,3}})', text, re.IGNORECASE):
-        val_str = m.group(1).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').strip()
-        unit = strip_markdown_formatting(m.group(2)).strip()
+    # 2. Pattern: Value Unit for/of Parameter (misal: '0.22 €/kWh for electricity', '1.4 mg/dL of creatinine', '140 mmHg for blood pressure')
+    for m in re.finditer(r'([€\$£¥]?\s*[\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)\s+(?:for|of)\s+([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){0,3})', clean_text, re.IGNORECASE):
+        val_str = m.group(1).strip().replace(',', '.').replace('€', '').replace('$', '').replace('£', '').replace('¥', '').strip()
+        raw_unit = strip_markdown_formatting(m.group(2)).strip()
         raw_p_name = strip_markdown_formatting(m.group(3)).strip()
+        
+        is_unit_valid, norm_unit, dimension = is_valid_scientific_unit(raw_unit)
+        if not is_unit_valid:
+            continue
+            
         words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
         p_name = ' '.join(words) if words else raw_p_name
         p_lower = p_name.lower()
+        
         if any(nk in p_lower for nk in noise_keywords) or len(p_name.split()) > 5:
             continue
+        if is_citation_or_footnote_context(p_name, val_str):
+            continue
+            
         try:
             val_num = float(val_str)
-            key = f"{p_lower}|{val_num}|{unit.lower()}"
+            key = f"{p_lower}|{val_num}|{norm_unit.lower()}"
             if key not in seen:
                 seen.add(key)
                 metrics.append({
                     "name": p_name.title(),
                     "value": val_num,
-                    "unit_text": unit if unit else None,
+                    "unit_text": norm_unit,
                     "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
                     "page_number": page_number
                 })
         except ValueError:
             pass
 
-    # 3. Pattern: Parameter total/is Value Unit (misal "Verified peatland formations total 23.118 km2")
-    for m in re.finditer(rf'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){{1,4}})\s+(?:total|totaling|totals|reaching|amounts\s+to|equaling)\s+([\d\.,]+)\s*({unit_pat})?(?:\s|[,\.;]|$)', text, re.IGNORECASE):
+    # 3. Pattern: Parameter total/is Value Unit (misal: "Verified peatland formations total 23.118 km2")
+    for m in re.finditer(r'\b([A-Za-z\(\)\-\/]+(?:\s+[A-Za-z\(\)\-\/]+){1,4})\s+(?:total|totaling|totals|reaching|amounts\s+to|equaling)\s+([\d\.,]+)\s*([A-Za-z°µμΩ%][A-Za-z0-9°µμΩ\/\-\^\.\*\(\)%]*)?(?:\s|[,\.;]|$)', clean_text, re.IGNORECASE):
         raw_p_name = strip_markdown_formatting(m.group(1)).strip()
         val_str = m.group(2).strip().replace(',', '.')
-        unit = strip_markdown_formatting(m.group(3) or '').strip()
+        raw_unit = strip_markdown_formatting(m.group(3) or '').strip()
+        
+        is_unit_valid, norm_unit, dimension = is_valid_scientific_unit(raw_unit) if raw_unit else (False, None, None)
+        
         words = [w for w in raw_p_name.split() if w.lower() not in action_verbs]
         p_name = ' '.join(words) if words else raw_p_name
         p_lower = p_name.lower()
+        
         if any(nk in p_lower for nk in noise_keywords):
             continue
+        if is_citation_or_footnote_context(p_name, val_str):
+            continue
+            
         try:
             val_num = float(val_str)
-            key = f"{p_lower}|{val_num}|{unit.lower()}"
+            key = f"{p_lower}|{val_num}|{(norm_unit or '').lower()}"
             if key not in seen:
                 seen.add(key)
                 metrics.append({
                     "name": p_name.title(),
                     "value": val_num,
-                    "unit_text": unit if unit else None,
+                    "unit_text": norm_unit,
                     "context_or_condition": f"Teridentifikasi pada halaman {page_number}",
                     "page_number": page_number
                 })
@@ -181,11 +215,13 @@ def extract_quantitative_metrics_deterministic(text: str, page_number: int = 1) 
             pass
 
     # 4. Pattern: Count Items (misal "614 observation points", "68 soil specimens")
-    for m in re.finditer(r'\b([\d\.,]+)\s+([A-Za-z\-\/]+(?:\s+[A-Za-z\-\/]+){0,2}\s+(?:points|specimens|articles|samples|participants|respondents))\b', text, re.IGNORECASE):
+    for m in re.finditer(r'\b([\d\.,]+)\s+([A-Za-z\-\/]+(?:\s+[A-Za-z\-\/]+){0,2}\s+(?:points|specimens|articles|samples|participants|respondents|patients|subjects|cases|epochs|iterations))\b', clean_text, re.IGNORECASE):
         val_str = m.group(1).strip().replace(',', '.')
         p_name = strip_markdown_formatting(m.group(2)).strip()
         p_lower = p_name.lower()
         if any(nk in p_lower for nk in noise_keywords):
+            continue
+        if is_citation_or_footnote_context(p_name, val_str):
             continue
         try:
             val_num = float(val_str)
