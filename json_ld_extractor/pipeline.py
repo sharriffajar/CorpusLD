@@ -567,12 +567,12 @@ RULES:
 6. Extract mathematical formulas into 'formulas' (MathFormula: name, expression, description).
 Respond ONLY in valid JSON."""
 
+    import asyncio
     import concurrent.futures
 
     dynamic_limit = get_model_context_limit(llm_provider, llm_model)
 
-    def _process_cluster_item(item: tuple) -> tuple:
-        cluster_idx, p_cluster = item
+    async def _async_process_cluster_item(c_idx: int, p_cluster: list) -> tuple:
         cluster_text = ""
         for p in p_cluster:
             for c in page_to_chunks[p]:
@@ -582,7 +582,7 @@ Respond ONLY in valid JSON."""
         cluster_text = truncate_context(cluster_text, max_chars=dynamic_limit)
         p_input = f"Document: {file_name} (Pages: {p_cluster})\n\nContext to extract:\n{cluster_text}"
         try:
-            res = run_agentic_step(
+            res = await run_agentic_step_async(
                 sys_prompt_deep, 
                 p_input, 
                 StepSectionDeepExtraction, 
@@ -592,47 +592,58 @@ Respond ONLY in valid JSON."""
                 api_key=api_key, 
                 base_url=base_url
             )
-            return cluster_idx, p_cluster, res
+            return c_idx, p_cluster, res
         except Exception as e:
-            return cluster_idx, p_cluster, e
+            return c_idx, p_cluster, e
 
-    # Concurrently execute clusters with worker pool (max_workers=3)
-    max_workers = min(3, max(1, len(page_clusters))) if page_clusters else 1
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(_process_cluster_item, (c_idx, cl)) for c_idx, cl in enumerate(page_clusters)]
-        for fut in concurrent.futures.as_completed(futures):
-            c_idx, p_cluster, sec_deep_res = fut.result()
-            if isinstance(sec_deep_res, Exception):
-                log(f"⚠️ Cluster {c_idx+1}/{len(page_clusters)} note: {sec_deep_res}")
-                continue
+    async def _gather_cluster_extractions():
+        tasks = [_async_process_cluster_item(c_idx, cl) for c_idx, cl in enumerate(page_clusters)]
+        return await asyncio.gather(*tasks, return_exceptions=False)
 
-            # Collect metrics
-            for m in sec_deep_res.get("metrics", []):
-                if not m.get("page_number") and p_cluster:
-                    m["page_number"] = p_cluster[0]
-                accumulated_metrics.append(m)
-                
-            # Collect nodes & edges
-            accumulated_nodes.extend(sec_deep_res.get("nodes", []))
-            accumulated_edges.extend(sec_deep_res.get("edges", []))
+    # Menjalankan konkurensi asinkron penuh (asyncio.gather) untuk memangkas latensi ekstraksi ~3x lipat
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop is not None and loop.is_running():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            cluster_results = pool.submit(lambda: asyncio.run(_gather_cluster_extractions())).result()
+    else:
+        cluster_results = asyncio.run(_gather_cluster_extractions())
+
+    for c_idx, p_cluster, sec_deep_res in cluster_results:
+        if isinstance(sec_deep_res, Exception):
+            log(f"⚠️ Cluster {c_idx+1}/{len(page_clusters)} note: {sec_deep_res}")
+            continue
+
+        # Collect metrics
+        for m in sec_deep_res.get("metrics", []):
+            if not m.get("page_number") and p_cluster:
+                m["page_number"] = p_cluster[0]
+            accumulated_metrics.append(m)
             
-            # Collect procedures
-            for pr in sec_deep_res.get("procedures", []):
-                if not pr.get("page_number") and p_cluster:
-                    pr["page_number"] = p_cluster[0]
-                accumulated_procedures.append(pr)
-                
-            # Collect defined terms
-            for dt in sec_deep_res.get("defined_terms", []):
-                if not dt.get("page_number") and p_cluster:
-                    dt["page_number"] = p_cluster[0]
-                accumulated_defined_terms.append(dt)
-                
-            # Collect formulas
-            for fm in sec_deep_res.get("formulas", []):
-                if not fm.get("page_number") and p_cluster:
-                    fm["page_number"] = p_cluster[0]
-                accumulated_formulas.append(fm)
+        # Collect nodes & edges
+        accumulated_nodes.extend(sec_deep_res.get("nodes", []))
+        accumulated_edges.extend(sec_deep_res.get("edges", []))
+        
+        # Collect procedures
+        for pr in sec_deep_res.get("procedures", []):
+            if not pr.get("page_number") and p_cluster:
+                pr["page_number"] = p_cluster[0]
+            accumulated_procedures.append(pr)
+            
+        # Collect defined terms
+        for dt in sec_deep_res.get("defined_terms", []):
+            if not dt.get("page_number") and p_cluster:
+                dt["page_number"] = p_cluster[0]
+            accumulated_defined_terms.append(dt)
+            
+        # Collect formulas
+        for fm in sec_deep_res.get("formulas", []):
+            if not fm.get("page_number") and p_cluster:
+                fm["page_number"] = p_cluster[0]
+            accumulated_formulas.append(fm)
 
     # Deduplication and calibration of metrics
     all_doc_metric_text = "\n".join([c.get("text", "") for c in clean_file_chunks])

@@ -498,8 +498,34 @@ async def run_agentic_step_async(
             return run_agentic_step(system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url)
 
     else:
-        # Fallback sync run_agentic_step for local ollama
-        return run_agentic_step(system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url)
+        # Provider Ollama asinkron via httpx atau asyncio.to_thread
+        ollama_url = f"{base_url.rstrip('/') if base_url else 'http://127.0.0.1:11434'}/api/generate"
+        payload = {
+            "model": model_to_use,
+            "system": system_prompt,
+            "prompt": user_text,
+            "format": "json",
+            "stream": False,
+            "options": {
+                "temperature": 0.1,
+                "num_ctx": num_ctx
+            }
+        }
+        if HAS_HTTPX:
+            try:
+                async with httpx.AsyncClient(timeout=45.0, follow_redirects=False) as client:
+                    resp = await client.post(ollama_url, json=payload)
+                    resp.raise_for_status()
+                    res_data = resp.json()
+                    content = res_data.get("response", "")
+            except Exception:
+                return await asyncio.to_thread(
+                    run_agentic_step, system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url
+                )
+        else:
+            return await asyncio.to_thread(
+                run_agentic_step, system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url
+            )
 
     raw_json = repair_malformed_json(content)
     if raw_json is None:
