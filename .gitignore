@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyd
+.pytest_cache/
+pytest-cache-files-*/
+pytest-cache-files-*
 
 # Environment Variables & Secrets
 .env
@@ -23,8 +26,23 @@ uploads/*
 # Local Model Weights & Cache
 models/
 models/*
-.cache/
+.cache/*
+!.cache/.gitkeep
 huggingface/
+
+# IDE, Agent Indexing & Google Drive Temporary Uploads
+.tools/
+.kilo/
+.tmp.driveupload/
+.tmp.*/
+*.driveupload
+.tmp*
+
+# Compressed Archives
+*.zip
+*.tar.gz
+*.7z
+*.rar
 
 # Virtual Environments
 venv/
