@@ -13,107 +13,11 @@ from .text_utils import strip_markdown_formatting
 try:
     from pydantic import BaseModel, Field, ConfigDict, model_validator
     HAS_PYDANTIC = True
-except ImportError:
-    HAS_PYDANTIC = False
-
-    class Field:
-        def __init__(self, default=None, default_factory=None, alias=None, description=None):
-            self.default = default
-            self.default_factory = default_factory
-            self.alias = alias
-            self.description = description
-
-    def ConfigDict(**kwargs):
-        return kwargs
-
-    def model_validator(mode="before"):
-        def decorator(fn):
-            fn._is_model_validator = True
-            fn._validator_mode = mode
-            return fn
-        return decorator
-
-    class BaseModel:
-        model_config = {}
-
-        def __init__(self, **data):
-            # Process class validators
-            validators = []
-            for attr_name in dir(self.__class__):
-                attr = getattr(self.__class__, attr_name)
-                if getattr(attr, "_is_model_validator", False):
-                    validators.append(attr)
-
-            current_data = data
-            for v in validators:
-                current_data = v(current_data)
-                if not isinstance(current_data, dict):
-                    break
-
-            if isinstance(current_data, dict):
-                # Map fields
-                cls_annotations = getattr(self.__class__, "__annotations__", {})
-                for field_name in cls_annotations:
-                    field_def = getattr(self.__class__, field_name, None)
-                    alias = getattr(field_def, "alias", None)
-                    
-                    val = None
-                    if alias and alias in current_data:
-                        val = current_data[alias]
-                    elif field_name in current_data:
-                        val = current_data[field_name]
-                    elif getattr(field_def, "default_factory", None) is not None:
-                        val = field_def.default_factory()
-                    elif getattr(field_def, "default", None) is not None:
-                        val = field_def.default
-                        
-                    setattr(self, field_name, val)
-                    
-                # Handle extra fields
-                for k, v in current_data.items():
-                    if not hasattr(self, k):
-                        setattr(self, k, v)
-
-        def model_dump(self, by_alias=False, **kwargs) -> Dict[str, Any]:
-            res = {}
-            cls_annotations = getattr(self.__class__, "__annotations__", {})
-            for field_name in cls_annotations:
-                val = getattr(self, field_name, None)
-                field_def = getattr(self.__class__, field_name, None)
-                key = (getattr(field_def, "alias", None) if by_alias and getattr(field_def, "alias", None) else field_name)
-                
-                if isinstance(val, BaseModel):
-                    res[key] = val.model_dump(by_alias=by_alias, **kwargs)
-                elif isinstance(val, list):
-                    res[key] = [
-                        item.model_dump(by_alias=by_alias, **kwargs) if isinstance(item, BaseModel) else item
-                        for item in val
-                    ]
-                elif isinstance(val, dict):
-                    res[key] = {
-                        dk: (dv.model_dump(by_alias=by_alias, **kwargs) if isinstance(dv, BaseModel) else dv)
-                        for dk, dv in val.items()
-                    }
-                else:
-                    res[key] = val
-            return res
-
-        @classmethod
-        def model_validate(cls, obj: Any) -> "BaseModel":
-            if isinstance(obj, cls):
-                return obj
-            if isinstance(obj, dict):
-                return cls(**obj)
-            raise ValueError(f"Cannot validate {type(obj)} as {cls.__name__}")
-
-        @classmethod
-        def model_validate_json(cls, json_data: Union[str, bytes]) -> "BaseModel":
-            data = json.loads(json_data)
-            return cls.model_validate(data)
-
-        @classmethod
-        def model_json_schema(cls) -> Dict[str, Any]:
-            return {"title": cls.__name__, "type": "object"}
+except ImportError as e:
+    raise ImportError(
+        "CorpusLD requires 'pydantic' >= 2.0 for rigorous schema validation and dual-layer JSON-LD extraction. "
+        "Please install it with: pip install pydantic"
+    ) from e
 
 
 class EducationalOrganization(BaseModel):

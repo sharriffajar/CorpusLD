@@ -27,9 +27,30 @@ def strip_markdown_formatting(text: Any) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     return text.strip(" \t\r\n-–—:;")
 
-MAX_CONTEXT_CHARS = 8000  # Batas karakter konteks modern untuk SLM/LLM agar informasi tidak terpotong
+MAX_CONTEXT_CHARS = 8000  # Default fallback context chars
 
-MAX_CONTEXT_CHARS_AGENT1 = 8000  # Agent 1 cover + abstract context
+MAX_CONTEXT_CHARS_AGENT1 = 8000  # Default fallback cover + abstract context
+
+
+def get_model_context_limit(provider: str = "ollama", model_name: Optional[str] = None) -> int:
+    """
+    Menghitung batas karakter konteks secara adaptif berdasarkan model dan provider:
+    - Cloud LLMs (Gemini 1.5/2.0, OpenAI GPT-4o, Groq Llama 3.3, DeepSeek): 24.000 chars
+    - Local 7B/8B/14B models: 14.000 chars
+    - Standard Local SLMs (3B models seperti Qwen2.5:3B / Llama 3.2): 8.000 chars
+    - Small/Ultra-compact models (1.5B/0.5B): 4.000 chars
+    """
+    p = (provider or "ollama").lower()
+    m = (model_name or "").lower()
+
+    if p in ("gemini", "openai", "groq", "openrouter", "deepseek"):
+        return 24000
+    if "1.5b" in m or "0.5b" in m:
+        return 4000
+    if "7b" in m or "8b" in m or "14b" in m:
+        return 14000
+    return 8000
+
 
 def truncate_context(text: str, max_chars: int = MAX_CONTEXT_CHARS) -> str:
     """Potong konteks ke max_chars karakter jika melebihi batas token."""

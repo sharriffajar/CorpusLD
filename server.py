@@ -39,6 +39,7 @@ except ImportError:
         def delete(self, *args, **kwargs): return lambda f: f
         def add_middleware(self, *args, **kwargs): pass
         def mount(self, *args, **kwargs): pass
+        def exception_handler(self, *args, **kwargs): return lambda f: f
     class UploadFile: pass
     def File(*args, **kwargs): return None
     def Form(*args, **kwargs): return None
@@ -225,6 +226,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "error": True, "message": exc.detail, "status_code": exc.status_code}
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    clean_msg = sanitize_error_message(str(exc))
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "error": True, "message": clean_msg or "Internal Server Error", "status_code": 500}
+    )
 
 # ---------------------------------------------------------
 # PARSERS & STATEFUL TABLE STITCHER

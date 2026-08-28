@@ -569,6 +569,8 @@ Respond ONLY in valid JSON."""
 
     import concurrent.futures
 
+    dynamic_limit = get_model_context_limit(llm_provider, llm_model)
+
     def _process_cluster_item(item: tuple) -> tuple:
         cluster_idx, p_cluster = item
         cluster_text = ""
@@ -577,7 +579,7 @@ Respond ONLY in valid JSON."""
                 txt = sanitize_text_for_extraction(c.get("text", ""))
                 cluster_text += f"[Page: {p}]\n{txt}\n\n"
 
-        cluster_text = truncate_context(cluster_text, max_chars=8000)
+        cluster_text = truncate_context(cluster_text, max_chars=dynamic_limit)
         p_input = f"Document: {file_name} (Pages: {p_cluster})\n\nContext to extract:\n{cluster_text}"
         try:
             res = run_agentic_step(

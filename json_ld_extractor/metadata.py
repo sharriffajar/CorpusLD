@@ -139,12 +139,32 @@ def detect_publisher_deterministic(full_text: str, exclude_title: str = "") -> O
     return None
 
 def detect_document_language(text: str) -> str:
-    """Deteksi bahasa dokumen secara deterministik (id vs en)."""
+    """
+    Deteksi bahasa dokumen secara deterministik dan multi-bahasa 
+    (mendukung id, en, zh, ja, ar, es, de, fr).
+    """
     if not text:
         return "id"
-    id_count = len(re.findall(r'\b(?:yang|dengan|dan|pada|adalah|untuk|dalam|dari|ini|itu|sebagai|oleh|terhadap|atau|sebuah|penelitian|metode|hasil)\b', text, re.I))
-    en_count = len(re.findall(r'\b(?:the|and|of|in|with|for|is|on|by|this|that|from|as|an|to|are|was|were|which|study|research|method)\b', text, re.I))
-    return "en" if en_count > id_count else "id"
+    
+    # 1. Non-Latin Script Detection
+    if len(re.findall(r'[\u3040-\u309f\u30a0-\u30ff]', text)) >= 3:
+        return "ja"
+    if len(re.findall(r'[\u4e00-\u9fff]', text)) >= 5:
+        return "zh"
+    if len(re.findall(r'[\u0600-\u06ff]', text)) >= 5:
+        return "ar"
+
+    # 2. Latin Script Keyword Density
+    counts = {
+        "id": len(re.findall(r'\b(?:yang|dengan|dan|pada|adalah|untuk|dalam|dari|ini|itu|sebagai|oleh|terhadap|atau|sebuah|penelitian|metode|hasil)\b', text, re.I)),
+        "en": len(re.findall(r'\b(?:the|and|of|in|with|for|is|on|by|this|that|from|as|an|to|are|was|were|which|study|research|method)\b', text, re.I)),
+        "es": len(re.findall(r'\b(?:de|la|el|los|las|por|con|para|una|como|este|esta|estudio|investigaci[oó]n|m[eé]todo|resultados)\b', text, re.I)),
+        "de": len(re.findall(r'\b(?:und|der|die|das|in|von|mit|für|eine|auf|ist|nicht|den|ein|dieser|dieses|untersuchung|ergebnisse)\b', text, re.I)),
+        "fr": len(re.findall(r'\b(?:et|dans|pour|une|sur|des|avec|est|les|par|cette|plus|nous|[eé]tude|recherche|m[eé]thode|r[eé]sultats)\b', text, re.I)),
+    }
+    
+    best_lang, best_count = max(counts.items(), key=lambda x: x[1])
+    return best_lang if best_count >= 5 else ("id" if counts["id"] > counts["en"] else "en")
 
 def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) -> str:
     """Ekstrak judul substantif dokumen dari Halaman 1 tanpa embel-embel nama file .pdf."""

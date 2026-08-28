@@ -866,8 +866,11 @@ def calculate_graph_health_metrics(kg_data: Dict[str, Any]) -> Dict[str, Any]:
     - average_connectivity: edges / nodes
     - orphan_nodes: nodes dengan 0 edges
     """
-    nodes = kg_data.get("nodes", [])
-    edges = kg_data.get("edges", [])
+    if not isinstance(kg_data, dict):
+        return {"node_count": 0, "edge_count": 0, "density": 0.0, "average_connectivity": 0.0, "orphan_nodes": 0, "graph_health_score": 0.0}
+
+    nodes = kg_data.get("nodes") or kg_data.get("kg:nodes", [])
+    edges = kg_data.get("edges") or kg_data.get("kg:edges", [])
     
     n_count = len(nodes)
     e_count = len(edges)
@@ -895,10 +898,16 @@ def calculate_graph_health_metrics(kg_data: Dict[str, Any]) -> Dict[str, Any]:
         if nid and nid not in connected_node_ids:
             orphans += 1
 
+    health_score = 1.0
+    if n_count > 0:
+        orphan_ratio = orphans / n_count
+        health_score = max(0.0, round(1.0 - (orphan_ratio * 0.5), 2))
+
     return {
         "node_count": n_count,
         "edge_count": e_count,
         "density": density,
         "average_connectivity": avg_conn,
-        "orphan_nodes_count": orphans
+        "orphan_nodes_count": orphans,
+        "graph_health_score": health_score
     }
