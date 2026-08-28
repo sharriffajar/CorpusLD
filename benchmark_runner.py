@@ -523,12 +523,14 @@ def run_single_benchmark(pdf_path: Path, provider: str, model: str, api_key: str
     cache_dir = RESULTS_DIR / ".chunk_cache"
     cache_dir.mkdir(parents=True, exist_ok=True)
     chunk_cache_file = cache_dir / f"{pdf_path.stem}.{parser}.json"
+    legacy_cache_file = cache_dir / f"{pdf_path.stem}.json"
+    active_cache_file = chunk_cache_file if chunk_cache_file.exists() else (legacy_cache_file if legacy_cache_file.exists() else chunk_cache_file)
 
-    if chunk_cache_file.exists():
+    if active_cache_file.exists():
         try:
-            with open(chunk_cache_file, "r", encoding="utf-8") as f:
+            with open(active_cache_file, "r", encoding="utf-8") as f:
                 chunks = json.load(f)
-            print(f"📦 Loaded {len(chunks)} pre-parsed chunks from cache[{parser}] (0.001s)")
+            print(f"📦 Loaded {len(chunks)} pre-parsed chunks from cache[{active_cache_file.name}] (0.001s)")
         except Exception:
             chunks = parse_document(
                 file_path=str(pdf_path), file_name=file_name, parser_choice=parser,

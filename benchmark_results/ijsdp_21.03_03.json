@@ -99,273 +99,185 @@
     {
       "@type": "CreativeWork",
       "name": "1. INTRODUCTION",
-      "description": "This section introduces the study addressing critical deficiencies in Indonesian peatland boundary estimations. It outlines the significance of accurate peatland mapping and sets the research objectives for Pontianak City, West Kalimantan Province."
+      "description": "Detailed analysis, methodology, and findings presented under section '1. INTRODUCTION'."
     },
     {
       "@type": "CreativeWork",
       "name": "2. RESEARCH METHODS",
-      "description": "This section details the methodological framework used to verify peat soil distribution. It describes the study area, field investigation, sampling strategies, laboratory testing, and geographic information system analysis."
+      "description": "Detailed analysis, methodology, and findings presented under section '2. RESEARCH METHODS'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 Study area",
-      "description": "This subsection outlines the geographical characteristics and administrative districts of the study area in Pontianak City, West Kalimantan. It provides context on the environmental setting and targeted zones for peatland verification."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Study area'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Field investigation and data collection",
-      "description": "This subsection explains the procedures and protocols followed during the field investigations. It covers the collection of primary data and observations necessary for assessing peat soil distribution."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Field investigation and data collection'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3 Sampling strategy",
-      "description": "This subsection outlines the strategic approach utilized for selecting soil sampling sites. It establishes the criteria and framework to ensure representative data acquisition across the study zones."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Sampling strategy'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3.1 Sampling location determination",
-      "description": "This subsection describes the specific criteria and methods used to pinpoint exact geographic locations for soil sampling. It ensures spatial coverage and accuracy in data gathering."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3.1 Sampling location determination'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3.2 Field sampling procedures",
-      "description": "This subsection details the step-by-step procedures executed in the field to collect soil samples. It ensures consistency and adherence to scientific standards during sample extraction."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3.2 Field sampling procedures'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.4 Organic content and ash content testing",
-      "description": "This subsection explains the laboratory testing methods used to determine organic matter and ash content in the collected soil samples. These tests help classify and verify the peat composition."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.4 Organic content and ash content testing'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5 Geographic Information System analysis",
-      "description": "This subsection provides an overview of the geospatial techniques applied to process spatial data. It sets the foundation for mapping and evaluating the extent of peatland areas."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5 Geographic Information System analysis'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5.1 Spatial data components",
-      "description": "This subsection identifies the various spatial datasets and layers incorporated into the analysis. It details the inputs required for accurate geographic modeling."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5.1 Spatial data components'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5.2 Geographic Information System development and processing",
-      "description": "This subsection describes the workflow for building and processing the GIS database. It highlights how spatial analysis tools were utilized to evaluate peatland boundaries."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5.2 Geographic Information System development and processing'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.6 Research flowchart",
-      "description": "This subsection presents a comprehensive flowchart summarizing the entire research methodology. It visually maps out the sequential steps from data collection to final analysis."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.6 Research flowchart'."
     },
     {
       "@type": "CreativeWork",
       "name": "3. RESULTS AND ANALYSIS",
-      "description": "This section presents the findings obtained from field investigations and laboratory testing. It includes detailed land use classifications, laboratory results, and geospatial mapping evaluations."
+      "description": "Detailed analysis, methodology, and findings presented under section '3. RESULTS AND ANALYSIS'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 Field investigation results",
-      "description": "This subsection details the primary findings gathered directly from the field surveys. It highlights initial observations regarding peatland presence and site conditions."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Field investigation results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1.1 Preliminary peatland distribution from Indicative Map of Delay in Granting New Permits map",
-      "description": "This subsection reviews the initial peatland distribution estimates derived from official permit delay maps. It establishes a baseline for comparison against verified ground data."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1.1 Preliminary peatland distribution from Indicative Map of Delay in Granting New Permits map'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1.2 Land use classification results",
-      "description": "This subsection outlines the categorization of different land use types observed within the study area. It categorizes how verified peatlands are currently utilized."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1.2 Land use classification results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Laboratory classification results",
-      "description": "This subsection summarizes the outcomes of laboratory soil analyses. It provides quantitative metrics regarding the physical and chemical properties of the samples."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Laboratory classification results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2.1 Organic content testing results",
-      "description": "This subsection presents the specific organic content percentages measured in the laboratory tests. These values confirm the presence and grade of organic soils."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2.1 Organic content testing results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2.2 Ash content testing results",
-      "description": "This subsection details the ash content findings from the soil samples. It provides crucial indicators for differentiating peat soil layers and mineral soils."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2.2 Ash content testing results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 Data analysis and evaluation",
-      "description": "This subsection synthesizes the field and laboratory data to evaluate overall peatland characteristics. It bridges raw measurements with practical environmental assessments."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Data analysis and evaluation'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3.1 Land use assessment in verified peatland areas",
-      "description": "This subsection evaluates the specific human activities and land covers present on verified peatlands. It assesses potential environmental pressures and management needs."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.1 Land use assessment in verified peatland areas'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3.2 Peatland demarcation refinement and boundary",
-      "description": "This subsection discusses the adjustments made to official peatland boundaries based on empirical data. It refines mapping accuracy for better spatial planning."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.2 Peatland demarcation refinement and boundary'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3.3 Peat soil layer depth classification",
-      "description": "This subsection classifies the measured depths of the peat soil layers across various study sites. It provides a vertical dimension to the spatial distribution analysis."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.3 Peat soil layer depth classification'."
     },
     {
       "@type": "CreativeWork",
       "name": "Results",
-      "description": "This section consolidates key analytical outcomes regarding depth classifications and soil characteristics. It provides intermediary findings prior to full geospatial integration."
+      "description": "Detailed analysis, methodology, and findings presented under section 'Results'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.4 Geospatial mapping and GIS assessment",
-      "description": "This subsection details the advanced GIS assessments and spatial modeling performed. It translates field and lab discoveries into comprehensive digital maps."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4 Geospatial mapping and GIS assessment'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.4.1 Comparative analysis: IMDGNP vs verified boundaries",
-      "description": "This subsection compares official permit map boundaries with the newly verified empirical boundaries. It highlights discrepancies and improvements in mapping precision."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4.1 Comparative analysis: IMDGNP vs verified boundaries'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.0 meters), facilitating evidence -based decision -making for sustainable urban planning and environmental management",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.0 meters) from agricultural productivity functions (depth <'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.4.2 Final demarcation mapping products",
-      "description": "This subsection presents the final cartographic outputs resulting from the study. It delivers updated spatial products designed to guide future environmental management."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4.2 Final demarcation mapping products'."
     },
     {
       "@type": "CreativeWork",
       "name": "4. CONCLUSION",
-      "description": "This section summarizes the primary findings and contributions of the research. It emphasizes the importance of accurate geospatial verification for sustainable peatland governance."
-    }
-  ],
-  "additionalProperty": [
-    {
-      "@type": "PropertyValue",
-      "name": "Preliminary IMDGNP peatland area estimate",
-      "value": 23.8649,
-      "unitText": "km²",
-      "description": "Preliminary IMDGNP cartographic products across four administrative districts in Pontianak City"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Systematic field reconnaissance observation points",
-      "value": 614.0,
-      "unitText": "points",
-      "description": "Field reconnaissance at 250-meter intervals"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Field reconnaissance observation interval",
-      "value": 250.0,
-      "unitText": "m",
-      "description": "Systematic field reconnaissance interval"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Undisturbed soil specimens tested in laboratory",
-      "value": 68.0,
-      "unitText": "specimens",
-      "description": "Laboratory classification testing following ASTM D4427 and ASTM D2974"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Organic content threshold",
-      "value": 75.0,
-      "unitText": "%",
-      "description": "ASTM D4427 standard procedure"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Ash content threshold",
-      "value": 25.0,
-      "unitText": "%",
-      "description": "ASTM D2974 standard procedure"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Peat soil area in Southeast Pontianak",
-      "value": 5.798,
-      "unitText": "km²",
-      "description": "Verified peat soil formations in Southeast Pontianak district"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Peat soil percentage in Southeast Pontianak",
-      "value": 35.95,
-      "unitText": "%",
-      "description": "Percentage of district area in Southeast Pontianak"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Peat soil area in North Pontianak",
-      "value": 17.32,
-      "unitText": "km²",
-      "description": "Verified peat soil formations in North Pontianak district"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Peat soil percentage in North Pontianak",
-      "value": 42.14,
-      "unitText": "%",
-      "description": "Percentage of district area in North Pontianak"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Verified total peatland formations",
-      "value": 23.118,
-      "unitText": "km²",
-      "description": "Verified peatland formations confined to two districts"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "Preliminary district-level IMDGNP estimate for North Pontianak",
-      "value": 12.7683,
-      "unitText": "km²",
-      "description": "Preliminary district-level IMDGNP estimate for North Pontianak District"
-    },
-    {
-      "@type": "PropertyValue",
-      "name": "North Pontianak verified extent excess over preliminary estimate",
-      "value": 35.76,
-      "unitText": "%",
-      "description": "North Pontianak District verified extent exceeding preliminary estimate"
+      "description": "Detailed analysis, methodology, and findings presented under section '4. CONCLUSION'."
     }
   ],
   "citation": [
-    "[1] Raturi, A., Raturi, A., Singh, H. (2024). Climate change impacts on wetland ecosystem functioning with special reference to greenhouse gas emissions. In Forests and Climate Change, pp. 345-364. https://doi.org/10.1007/978-981-97-3905-9_18",
-    "[2] Harenda, K.M., Lamentowicz, M., Samson, M., Chojnicki, B.H. (2017). The role of peatlands and their carbon storage function in the context of climate change. In GeoPlanet: Earth and Planetary Sciences, pp. 169-187. https://doi.org/10.1007/978-3-319-71788-3_12",
-    "[3] Reed, M.R., Sari, D. (2020). Indonesia's contribution to macro sustainability. SSRN Electronic Journal. https://doi.org/10.2139/ssrn.3526758",
+    "[1] Raturi, A., Raturi, A., Singh, H. (2024). Climate change impacts on wetland ecosystem functioning with special reference to greenhouse gas emissions. In Forests and Climate Change, pp. 345-364. https://doi.org/10.1007/978-981-97-3905-9_18.",
+    "[2] Harenda, K.M., Lamentowicz, M., Samson, M., Chojnicki, B.H. (2017). The role of peatlands and their carbon storage function in the context of climate change. In GeoPlanet: Earth and Planetary Sciences, pp. 169-187. https://doi.org/10.1007/978-3-319-71788-3_12.",
+    "[3] Reed, M.R., Sari, D. (2020). Indonesia's contribution to macro sustainability. SSRN Electronic Journal. https://doi.org/10.2139/ssrn.3526758.",
     "[4] Lestariningsih, S.P., Hamkani, H., Nurwendi, A.F., Harahap, R.N. (2024). Karakteristik lahan gambut dan tinggi muka air gambut di Kecamatan Siantan Hilir, Pontianak Utara. Jurnal Lingkungan Hutan Tropis, 3(1): 102-112.",
-    "[5] Lesmana, R. (2022). Identifikasi kenampakan fisik tanah gambut (peat soil) di Kelurahan Tanjung Selor Timur Kabupaten Bulungan Provinsi Kalimantan Utara. Jurnal Pendidikan Tambusai, 6(3): 13688-13693. https://doi.org/10.31004/jptam.v6i3.4492",
-    "[6] Kolay, P.K., Taib, S.N.L. (2018). Physical and geotechnical properties of tropical peat and its stabilization. In Peat. InTech. https://doi.org/10.5772/intechopen.74173",
-    "[7] Mahyan, N., Taib, S., Sa'don, N., Truna, L., John, J. (2023). Correlation of different peat soil index properties. International Journal of Integrated Engineering, 15(6): 21-30. https://doi.org/10.30880/ijie.2023.15.06.003",
-    "[8] Amaludin, A.E., Asrah, H., Mohamad, H.M. (2023). A review of advances in peat soil stabilisation technology: Exploring the potential of palm oil fuel ash geopolymer as a soil stabiliser material. Civil Engineering Journal, 9(8): 2085-2104. https://doi.org/10.28991/cej-2023-09- 08-017",
-    "[9] Xu, J., Morris, P.J., Liu, J., Holden, J. (2018). PEATMAP: Refining estimates of global peatland distribution based on a meta-analysis. CATENA, 160: 134-140. https://doi.org/10.1016/j.catena.2017.09.010",
-    "[10] Trappe, J., Kneisel, C. (2019). Geophysical and sedimentological investigations of peatlands for the assessment of lithology and subsurface water pathways. Geosciences, 9(3): 118. https://doi.org/10.3390/geosciences9030118",
+    "[5] Lesmana, R. (2022). Identifikasi kenampakan fisik tanah gambut (peat soil) di Kelurahan Tanjung Selor Timur Kabupaten Bulungan Provinsi Kalimantan Utara. Jurnal Pendidikan Tambusai, 6(3): 13688-13693. https://doi.org/10.31004/jptam.v6i3.4492.",
+    "[6] Kolay, P.K., Taib, S.N.L. (2018). Physical and geotechnical properties of tropical peat and its stabilization. In Peat. InTech. https://doi.org/10.5772/intechopen.74173.",
+    "[7] Mahyan, N., Taib, S., Sa'don, N., Truna, L., John, J. (2023). Correlation of different peat soil index properties. 21-30. https://doi.org/10.30880/ijie.2023.15.06.003.",
+    "[8] Amaludin, A.E., Asrah, H., Mohamad, H.M. (2023). A review of advances in peat soil stabilisation technology: Exploring the potential of palm oil fuel ash geopolymer as a soil stabiliser material. Civil Engineering Journal, 9(8): 2085-2104. https://doi.org/10.28991/cej-2023-09- 08-017.",
+    "[9] Xu, J., Morris, P.J., Liu, J., Holden, J. (2018). PEATMAP: Refining estimates of global peatland distribution based on a meta-analysis. CATENA, 160: 134-140. https://doi.org/10.1016/j.catena.2017.09.010.",
+    "[10] Trappe, J., Kneisel, C. (2019). Geophysical and sedimentological investigations of peatlands for the assessment of lithology and subsurface water pathways. Geosciences, 9(3): 118. https://doi.org/10.3390/geosciences9030118.",
     "[11] Agus, F., Wahyunto, Dariah, A., Setyanto, P., Subiksa, I.G.M., Runtunuwu, E., Susanti, E., Supriatna, W. (2010). Carbon budget and management strategies for conserving carbon in peatland: Case study in Kubu Raya and Pontianak districts, West Kalimantan, Indonesia. In Proceedings of the International Workshop on Evaluation and Sustainable Management of Soil Carbon Sequestration in Asian Countries, Bogor, Indonesia, pp. 217-234.",
-    "[12] Tunar Özcan, N., Ulusay, R., Işık, N.S. (2020). Geo- engineering characterization and an approach to estimate the in-situ long-term settlement of a peat deposit at an industrial district. Engineering Geology, 265: 105329. https://doi.org/10.1016/j.enggeo.2019.105329",
-    "[13] Wahyunto, W., Supriatna, W., Agus, F. (2013). Land use change and recommendation for sustainable development of peatland for agriculture: Case study at Kubu Raya and Pontianak districts, West Kalimantan. Indonesian Journal of Agricultural Science, 11(1): 32. https://doi.org/10.21082/ijas.v11n1.2010.p32-40",
-    "[14] Comas, X., Slater, L., Reeve, A. (2004). Geophysical evidence for peat basin morphology and stratigraphic controls on vegetation observed in a northern peatland. Journal of Hydrology, 295(1-4): 173-184. https://doi.org/10.1016/j.jhydrol.2004.03.008",
-    "[15] Hooimeijer, F.L., Maring, L. (2018). The significance of the subsurface in urban renewal. Journal of Urbanism: International Research on Placemaking and Urban Sustainability, 11(3): 303-328. https://doi.org/10.1080/17549175.2017.1422532",
-    "[16] Gunawan, I., Soemardiono, B., Septanti, D. (2022). Typology of settlement development in riverbanks in Pontianak. International Journal of Environment, Architecture, and Societies, 2(2): 73-84. https://doi.org/10.26418/ijeas.2022.2.02.73-84",
-    "[17] Affrilyno, A., Gultom, B.J., Jati, D.R., Zhang, A. (2024). Quantifying fire risks in Pontianak for future planning and development. International Journal of Environment, Architecture, and Societies, 4(1): 1-12. https://doi.org/10.26418/ijeas.2024.4.01.1-12",
-    "[18] Flood, K., Wilson, D., Renou-Wilson, F. (2025). Evidence synthesis and knowledge integration for sustainable peatland management. Land, 14(7): 1397. https://doi.org/10.3390/land14071397",
-    "[19] Taskin, E., Rastorgueva, N., Foley, L., Noto, R., Borruso, L., Cesco, S., Mimmo, T. (2025). Living labs for sustainable soil management: A systematic review of global practices and perspectives. Journal of Soils and Sediments, 25(11): 3342-3359. https://doi.org/10.1007/S11368-025-04100-Z",
-    "[20] Evers, S., Yule, C.M., Padfield, R., O'Reilly, P., Varkkey, H. (2016). Keep wetlands wet: The myth of sustainable development of tropical peatlands - Implications for policies and management. Global Change Biology, 23(2): 534-549. https://doi.org/10.1111/gcb.13422",
+    "[12] Tunar Özcan, N., Ulusay, R., Işık, N.S. (2020). Geo- engineering characterization and an approach to estimate the in-situ long-term settlement of a peat deposit at an industrial district. Engineering Geology, 265: 105329. https://doi.org/10.1016/j.enggeo.2019.105329.",
+    "[13] Wahyunto, W., Supriatna, W., Agus, F. (2013). Land use change and recommendation for sustainable development of peatland for agriculture: Case study at Kubu Raya and Pontianak districts, West Kalimantan. https://doi.org/10.21082/ijas.v11n1.2010.p32-40.",
+    "[14] Comas, X., Slater, L., Reeve, A. (2004). Geophysical evidence for peat basin morphology and stratigraphic controls on vegetation observed in a northern peatland. Journal of Hydrology, 295(1-4): 173-184. https://doi.org/10.1016/j.jhydrol.2004.03.008.",
+    "[15] Hooimeijer, F.L., Maring, L. (2018). The significance of the subsurface in urban renewal. Journal of Urbanism: International Research on Placemaking and Urban Sustainability, 11(3): 303-328. https://doi.org/10.1080/17549175.2017.1422532.",
+    "[16] Gunawan, I., Soemardiono, B., Septanti, D. (2022). Typology of settlement development in riverbanks in Pontianak. International Journal of Environment, Architecture, and Societies, 2(2): 73-84. https://doi.org/10.26418/ijeas.2022.2.02.73-84.",
+    "[17] Affrilyno, A., Gultom, B.J., Jati, D.R., Zhang, A. (2024). Quantifying fire risks in Pontianak for future planning and development. International Journal of Environment, Architecture, and Societies, 4(1): 1-12. https://doi.org/10.26418/ijeas.2024.4.01.1-12.",
+    "[18] Flood, K., Wilson, D., Renou-Wilson, F. (2025). Evidence synthesis and knowledge integration for sustainable peatland management. Land, 14(7): 1397. https://doi.org/10.3390/land14071397.",
+    "[19] Taskin, E., Rastorgueva, N., Foley, L., Noto, R., Borruso, L., Cesco, S., Mimmo, T. (2025). Living labs for sustainable soil management: A systematic review of global practices and perspectives. Journal of Soils and Sediments, 25(11): 3342-3359. https://doi.org/10.1007/S11368-025-04100-Z.",
+    "[20] Evers, S., Yule, C.M., Padfield, R., O'Reilly, P., Varkkey, H. (2016). Keep wetlands wet: The myth of sustainable development of tropical peatlands - Implications for policies and management. Global Change Biology, 23(2): 534-549. https://doi.org/10.1111/gcb.13422.",
     "[21] Wahyunto, W., Nugroho, K., Ritung, S., Sulaeman, Y. (2014). Indonesian peatland map: Method, certainty, and uses. In Pengelolaan Berkelanjutan Lahan Gambut Terdegradasi, Jakarta, pp. 81-96. http://balittanah.litbang.pertanian.go.id/ind/dokumentasi /prosiding_gambut_icctf/05.",
     "[22] Pertanian, K., Penelitian, B., Pertanian, P. (2011). Peta lahan gambut Indonesia skala 1:250.000. https://repository.pertanian.go.id/handle/123456789/584 0.",
-    "[23] Minasny, B., Adetsu, D.V., Aitkenhead, M., Artz, R.R.E., et al . (2023). Mapping and monitoring peatland conditions from global to field scale. Biogeochemistry, 167(4): 383-425. https://doi.org/10.1007/s10533-023- 01084-1",
-    "[24] Cha, S., Lee, J., Choi, E., Lim, J. (2024). Unveiling the past: Deep-learning-based estimation of historical peatland distribution. Land, 13(3): 328. https://doi.org/10.3390/land13030328",
-    "[25] Indrajaya, Y., Yuwati, T.W., Lestari, S., Winarno, B., et al. (2022). Tropical forest landscape restoration in Indonesia: A review. Land, 11(3): 328. https://doi.org/10.3390/land11030328",
-    "[26] Leng, S., Lin, J.R., Li, S.W., Hu, Z.Z. (2021). A data integration and simplification framework for improving site planning and building design. IEEE Access, 9: 148845-148861. https://doi.org/10.1109/ACCESS.2021.3124010",
-    "[27] Ren, S., Song, C., Ye, S., Cheng, F., Akhmadov, V., Kuzyakov, Y. (2023). Land use evaluation considering soil properties and agricultural infrastructure in black soil region. Land Degradation & Development, 34(17): 5373- 5388. https://doi.org/10.1002/ldr.4850",
-    "[28] Anda, M., Ritung, S., Suryani, E., Sukarman, Hikmat, M., Yatno, E., Mulyani, A., Subandiono, R.E., Suratman, Husnain. (2021). Revisiting tropical peatlands in Indonesia: Semi-detailed mapping, extent and depth distribution assessment. Geoderma, 402: 115235. https://doi.org/10.1016/j.geoderma.2021.115235",
-    "[29] Kunarso, A., Bonner, M.T.L., Blanch, E.W., Grover, S. (2022). Differences in tropical peat soil physical and chemical properties under different land uses: A systematic review and meta-analysis. Journal of Soil Science and Plant Nutrition, 22(4): 4063-4083. https://doi.org/10.1007/S42729-022-01008-2",
-    "[30] Zheng, Y., Li, X., Pang, S., Chen, J. (2025). Evaluation of soft soil consolidation parameters before and after dynamic compaction in port areas. Geotechnical and Geological Engineering, 43(8). https://doi.org/10.1007/S10706-025-03386-7",
-    "[31] Carless, D., Kulessa, B., Booth, A.D., Drocourt, Y., Sinnadurai, P., Street-Perrott, F.A., Jansson, P. (2021). An integrated geophysical and GIS based approach improves estimation of peatland carbon stocks. Geoderma, 402: 115176. https://doi.org/10.1016/j.geoderma.2021.115176",
-    "[32] Basu, D., Misra, A., Puppala, A.J. (2015). Sustainability and geotechnical engineering: Perspectives and review. Canadian Geotechnical Journal, 52(1): 96-113. https://doi.org/10.1139/CGJ-2013-0120",
-    "[33] Raihan, A. (2024). A systematic review of geographic information systems (GIS) in agriculture for evidence- based decision making and sustainability. Global Sustainability Research, 3(1): 1-24. https://doi.org/10.56556/GSSR.V3I1.636",
-    "[34] Sutikno, S., Yusa, M., Andy Hendri, Kusairi, M., Ahmad Muhammad, Nurul Qomar. (2025). Mapping peat thickness and groundwater level using a portable electromagnetic instrument in Indragiri Hilir, Riau, Indonesia. Journal of Degraded and Mining Lands Management, 12(3): 7431-7441. https://doi.org/10.15243/jdmlm.2025.123.7431",
-    "[35] Stanitsa, A., Hallett, S.H., Jude, S. (2022). The challenges of implementing evidence-based strategies to inform building and urban design decisions: A view from current practice. Journal of Engineering, Design and Technology, 22(4): 1099-1118. https://doi.org/10.1108/JEDT-01-2022-0003",
+    "[23] Minasny, B., Adetsu, D.V., Aitkenhead, M., Artz, R.R.E., et al . (2023). Mapping and monitoring peatland conditions from global to field scale. Biogeochemistry, 167(4): 383-425. https://doi.org/10.1007/s10533-023.",
+    "[24] Cha, S., Lee, J., Choi, E., Lim, J. (2024). Unveiling the past: Deep-learning-based estimation of historical peatland distribution. Land, 13(3): 328. https://doi.org/10.3390/land13030328.",
+    "[25] Indrajaya, Y., Yuwati, T.W., Lestari, S., Winarno, B., et al. (2022). Tropical forest landscape restoration in Indonesia: A review. Land, 11(3): 328. https://doi.org/10.3390/land11030328.",
+    "[26] Leng, S., Lin, J.R., Li, S.W., Hu, Z.Z. (2021). A data integration and simplification framework for improving site planning and building design. IEEE Access, 9: 148845-148861. https://doi.org/10.1109/ACCESS.2021.3124010.",
+    "[27] Ren, S., Song, C., Ye, S., Cheng, F., Akhmadov, V., Kuzyakov, Y. (2023). Land use evaluation considering soil properties and agricultural infrastructure in black soil region. Land Degradation & Development, 34(17): 5373.",
+    "[28] Anda, M., Ritung, S., Suryani, E., Sukarman, Hikmat, M., Yatno, E., Mulyani, A., Subandiono, R.E., Suratman, Husnain. (2021). Revisiting tropical peatlands in Indonesia: Semi-detailed mapping, extent and depth distribution assessment. Geoderma, 402: 115235. https://doi.org/10.1016/j.geoderma.2021.115235.",
+    "[29] Kunarso, A., Bonner, M.T.L., Blanch, E.W., Grover, S. (2022). Differences in tropical peat soil physical and chemical properties under different land uses: A systematic review and meta-analysis. Journal of Soil Science and Plant Nutrition, 22(4): 4063-4083. https://doi.org/10.1007/S42729-022-01008-2.",
+    "[30] Zheng, Y., Li, X., Pang, S., Chen, J. (2025). Evaluation of soft soil consolidation parameters before and after dynamic compaction in port areas. Geotechnical and Geological Engineering, 43(8). https://doi.org/10.1007/S10706-025-03386-7.",
+    "[31] Carless, D., Kulessa, B., Booth, A.D., Drocourt, Y., Sinnadurai, P., Street-Perrott, F.A., Jansson, P. (2021). An integrated geophysical and GIS based approach improves estimation of peatland carbon stocks. Geoderma, 402: 115176. https://doi.org/10.1016/j.geoderma.2021.115176.",
+    "[32] Basu, D., Misra, A., Puppala, A.J. (2015). Sustainability and geotechnical engineering: Perspectives and review. Canadian Geotechnical Journal, 52(1): 96-113. https://doi.org/10.1139/CGJ-2013-0120.",
+    "[33] Raihan, A. (2024). A systematic review of geographic information systems (GIS) in agriculture for evidence- based decision making and sustainability. Global Sustainability Research, 3(1): 1-24. https://doi.org/10.56556/GSSR.V3I1.636.",
+    "[34] Sutikno, S., Yusa, M., Andy Hendri, Kusairi, M., Ahmad Muhammad, Nurul Qomar. (2025). Mapping peat thickness and groundwater level using a portable electromagnetic instrument in Indragiri Hilir, Riau, Indonesia. Journal of Degraded and Mining Lands Management, 12(3): 7431-7441. https://doi.org/10.15243/jdmlm.2025.123.7431.",
+    "[35] Stanitsa, A., Hallett, S.H., Jude, S. (2022). The challenges of implementing evidence-based strategies to inform building and urban design decisions: A view from current practice. Journal of Engineering, Design and Technology, 22(4): 1099-1118. https://doi.org/10.1108/JEDT-01-2022-0003.",
     "[36] Vernimmen, R., Akmalia, R., Fitranatanegara, N., Artiyan, E., Febrianto, T., Yuherdha, A., Mulyadi, D., Syahrozi, O., Anugrah, I. (2018). Peatland mapping for Kubu Raya, West Kalimantan, using limited LiDAR data and peat thickness field measurements. https://cms.deltares.nl/assets/common/downloads/Peatla nd-mapping-for-Kubu-Raya-Team-Deltares-1.pdf.",
     "[37] Hirose, K., Takeda, T., Anshari, G., Nuriman, M., Tanimoto, T., Christianto, R., Takahara, S., Kobayashi, H., Hidayat, G.G. (2016). Assessment of tropical peatland map in West Kalimantan, Indonesia. In Proceedings of the 15th International Peat Congress, Kuching, pp. 86-90. https://peatlands.org/assets/uploads/2019/06/ipc16p86- 90a392hirose.takeda.etal_.pdf.",
     "[38] FAO & FAOLEX. (2017). Regulation of the Minister of Environment and Forestry of the R.I. No. P.14/MENLHK/SETJEN/KUM.1/2/2017 on procedures for the peat ecosystem inventory functions. https://www.informea.org/en/legislation/regulation- minister-environment-and-forestry-ri-no- p14menlhksetjenkum122017-procedures."
@@ -375,9 +287,9 @@
     "name": "CorpusLD",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Desktop",
-    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
     "url": "https://github.com/sharriffajar/CorpusLD",
-    "softwareVersion": "2.0"
+    "softwareVersion": "3.0"
   },
   "identifier": [
     {

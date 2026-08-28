@@ -37,8 +37,13 @@
   "hasPart": [
     {
       "@type": "CreativeWork",
+      "name": "Abstract",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Abstract'."
+    },
+    {
+      "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "The introduction outlines the motivation for studying probability estimation over large alphabets under log loss. It introduces a new Bayesian estimator based on a layered simplex architecture and highlights its simplicity, competitiveness, and analytical tractability."
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
     },
     {
       "@type": "CreativeWork",
@@ -63,17 +68,17 @@
     {
       "@type": "CreativeWork",
       "name": "3.1 Exact regret via count profiles",
-      "description": "This subsection derives exact expressions for the regret using count profiles. It provides the mathematical foundation for evaluating the estimator's performance under log loss."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Exact regret via count profiles'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 The shallow end of the family is Laplace’s rule",
-      "description": "This subsection explores the shallow limit of the layered simplex architecture. It shows that this limiting case corresponds to the classical Laplace's rule of succession."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 The shallow end of the family is Laplace’s rule'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 The deep end of the family: depth tilts the complexity spectrum",
-      "description": "This subsection analyzes the deep limit of the estimator family. It explains how increasing depth alters the complexity spectrum and affects the estimator's bias-variance tradeoff."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 The deep end of the family: depth tilts the complexity spectrum'."
     },
     {
       "@type": "CreativeWork",
@@ -83,27 +88,27 @@
     {
       "@type": "CreativeWork",
       "name": "4.1 Three numerical tests",
-      "description": "This subsection evaluates the proposed estimator through three numerical tests. The empirical results demonstrate its strong performance compared to specialized methods like Good-Turing across synthetic and real-world datasets."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1 Three numerical tests'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.1 Setup",
-      "description": "This subsection outlines the experimental setup for certified computation and regret evaluations. It defines the parameter ranges and datasets used in the subsequent analysis."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.1 Setup'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.2 Findings",
-      "description": "This subsection presents the primary findings from the computational experiments. It details the empirical behavior of the regret and confirms the theoretical scaling laws."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.2 Findings'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.3 Compressing the Bible",
-      "description": "This subsection applies the proposed estimator to a real-text benchmark involving the compression of the Bible. The results highlight the method's effectiveness on natural language data."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.3 Compressing the Bible'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.4 Adding memory",
-      "description": "This subsection explores extensions of the architecture that incorporate memory. It discusses how Markovian or sequential dependencies can be integrated into the simplex priors."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.4 Adding memory'."
     },
     {
       "@type": "CreativeWork",
@@ -113,12 +118,12 @@
     {
       "@type": "CreativeWork",
       "name": "7. Discussion",
-      "description": "The discussion synthesizes the main contributions of the paper. It reflects on the implications of depth-averaging, scaling laws, and potential avenues for future research."
+      "description": "Detailed analysis, methodology, and findings presented under section '7. Discussion'."
     },
     {
       "@type": "CreativeWork",
       "name": "8. Conclusion",
-      "description": "The conclusion summarizes the core findings regarding the layered simplex architecture for large alphabets. It reiterates the elegance, analytical tractability, and competitiveness of the proposed Bayesian estimator."
+      "description": "Detailed analysis, methodology, and findings presented under section '8. Conclusion'."
     }
   ],
   "citation": [
@@ -131,7 +136,7 @@
     "[7] Meir Feder, R¨ udiger Urbanke, and Yaniv Fogel. Information-theoretic framework for understanding modern machine-learning.Preprint, 2025.",
     "[8] Irving John Good. The population frequencies of species and the estimation of population parameters. Biometrika, 40(3–4):237–264, 1953.",
     "[9] Geoffrey E. Hinton. Products of experts. InNinth International Conference on Artificial Neural Net- works (ICANN), volume 1, pages 1–6, 1999.",
-    "[10] Marcus Hutter. Offline to online conversion. InAlgorithmic Learning Theory (ALT), pages 230–244, 2014.",
+    "[10] Marcus Hutter. Offline to online conversion. InAlgorithmic Learning Theory (ALT), pages 230–244.",
     "[11] Ryan Jeong. A phase transition for layered multiplicative priors on the simplex. Unpublished manuscript, 2026.",
     "[12] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models.arXiv preprint arXiv:2001.08361, 2020.",
     "[13] Raphail Krichevsky and Victor Trofimov. The performance of universal encoding.IEEE Transactions on Information Theory, 27(2):199–207, 1981.",
@@ -139,7 +144,7 @@
     "[15] Neri Merhav and Meir Feder. Universal prediction.IEEE Transactions on Information Theory, 44(6):2124–2147, 1998.",
     "[16] Alon Orlitsky, Narayana P. Santhanam, and Junan Zhang. Always Good Turing: Asymptotically optimal probability estimation.Science, 302(5644):427–431, 2003.",
     "[17] Alon Orlitsky and Ananda Theertha Suresh. Competitive distribution estimation: Why is Good-Turing good.Advances in Neural Information Processing Systems, 28, 2015.",
-    "[18] Eric Sven Ristad. A natural law of succession.Technical Report CS-TR-495-95, Princeton University, 1995. arXiv:cmp-lg/9508012.",
+    "[18] Eric Sven Ristad. A natural law of succession.Technical Report CS-TR-495-95, Princeton University.",
     "[19] Frans MJ Willems. The context-tree weighting method: Extensions.IEEE Transactions on Information Theory, 44(2):792–798, 1998.",
     "[20] Frans MJ Willems, Yuri M Shtarkov, and Tjalling J Tjalkens. The context-tree weighting method: Basic properties.IEEE transactions on information theory, 41(3):653–664, 1995."
   ],
@@ -148,9 +153,9 @@
     "name": "CorpusLD",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Desktop",
-    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
     "url": "https://github.com/sharriffajar/CorpusLD",
-    "softwareVersion": "2.0"
+    "softwareVersion": "3.0"
   },
   "datePublished": "2026-08-20",
   "dateModified": "2026-08-20",

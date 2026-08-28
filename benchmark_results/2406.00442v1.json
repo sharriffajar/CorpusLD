@@ -45,103 +45,99 @@
   "hasPart": [
     {
       "@type": "CreativeWork",
+      "name": "Abstract",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Abstract'."
+    },
+    {
+      "@type": "CreativeWork",
       "name": "1. Introduction",
-      "description": "This section introduces the context of Power-to-X integration in biogas plants for hydrogen and e-methanol production. It outlines the motivation and structural framework of the research."
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Background",
-      "description": "This section provides essential background information, reviewing existing literature, ongoing projects, legal frameworks, and technological inputs related to e-methanol and PtX hubs."
+      "description": "Detailed analysis, methodology, and findings presented under section '2. Background'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 Review previous literature",
-      "description": "This subsection reviews past academic studies and scientific literature concerning Power-to-X technologies, e-methanol production, and biogas plant integration."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Review previous literature'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Overview of existing projects for e-MeOH",
-      "description": "This subsection surveys current industrial projects and real-world implementations focusing on e-methanol production and commercial viability."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Overview of existing projects for e-MeOH'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.3 Legal framework",
-      "description": "This subsection outlines the regulatory policies, directives, and legal frameworks governing renewable energy, green hydrogen, and e-fuels."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Legal framework'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.4 Overview of GreenLab Skive PtX hub concept",
-      "description": "This subsection details the specific GreenLab Skive industrial symbiosis concept, highlighting its role as a regional hub for Power-to-X operations."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.4 Overview of GreenLab Skive PtX hub concept'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5 Technology inputs and costa data",
-      "description": "This subsection compiles economic and technical parameters, including capital expenditures, operational costs, and efficiencies for the various modeled technologies."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5 Technology inputs and costa data'."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Methodology",
-      "description": "This section describes the mathematical modeling framework, optimization approach, and scenario setups used to evaluate the integrated energy systems."
+      "description": "Detailed analysis, methodology, and findings presented under section '3. Methodology'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.1 PyPSA model",
-      "description": "This subsection explains the implementation of the Python for Power System Analysis (PyPSA) modeling framework and its customization for the studied plant."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 PyPSA model'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Sensitivity analysis",
-      "description": "This subsection outlines the parameters varied during the sensitivity analysis to test the robustness of the economic and operational model outcomes."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Sensitivity analysis'."
     },
     {
       "@type": "CreativeWork",
       "name": "4. Results and discussion",
-      "description": "This section presents the primary findings from the optimization runs, analyzing production costs, total system expenditures, and optimal plant configurations."
+      "description": "Detailed analysis, methodology, and findings presented under section '4. Results and discussion'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1 Production cost of H2 and MeOH",
-      "description": "This subsection evaluates the levelized cost of hydrogen and e-methanol produced under various operational scenarios."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1 Production cost of H2 and MeOH'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.3 Total system cost",
-      "description": "This subsection analyzes the overall economic burden of the integrated system, breaking down capital and operational expenditures across components."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.3 Total system cost'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.4 Optimal system design – H2 to grid",
-      "description": "This subsection explores the optimal plant configuration when excess hydrogen is exported directly to the external grid."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.4 Optimal system design – H2 to grid'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.5 Optimal system design – MeOH standalone",
-      "description": "This subsection investigates the ideal system design when the facility operates primarily as a standalone e-methanol producer."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.5 Optimal system design – MeOH standalone'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.6 Impact of DH and biochar credits",
-      "description": "This subsection quantifies how district heating (DH) integration and biochar-related revenue credits influence the overall project economics."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.6 Impact of DH and biochar credits'."
     },
     {
       "@type": "CreativeWork",
       "name": "6. Conclusions",
-      "description": "This section summarizes the key insights derived from the study, providing final remarks on the feasibility and optimization of Power-to-X biogas integration."
+      "description": "Detailed analysis, methodology, and findings presented under section '6. Conclusions'."
     },
     {
       "@type": "Table",
-      "name": "Table 7 - Interface between external grids and behind-the-meter market",
-      "description": "Structured quantitative data table (14 rows)"
-    },
-    {
-      "@type": "Table",
-      "name": "Table 8 : sensitivity parameters",
-      "description": "Structured quantitative data table (2 rows)"
-    },
-    {
-      "@type": "Table",
-      "name": "Table 8 : sensitivity parameters Parameter name Type of parameter Range Reference",
-      "description": "Structured quantitative data table (2 rows)"
+      "name": "Table 2",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
     }
   ],
   "citation": [
@@ -179,8 +175,7 @@
     "32. IEA, Hydrogen report. 2019.",
     "33. Methanol Institute Carbon footprint of methanol. 2022.",
     "34. Álvarez, A., et al., Challenges in the Greener Production of Formates/Formic Acid, Methanol, and DME by Heterogeneously Catalyzed CO2 Hydrogenation Processes. Chemical Reviews, 2017. 117(14): p. 9804-9838.",
-    "35. Ren, M., et al., Catalytic Hydrogenation of CO2 to Methanol: A Review. Catalysts,",
-    "2022. 12(4): p. 403.",
+    "35. Ren, M., et al., Catalytic Hydrogenation of CO2 to Methanol: A Review. Catalysts.",
     "36. Wang, J., et al., CO2 Hydrogenation to Methanol over In2O3-Based Catalysts: From Mechanism to Catalyst Development. ACS Catalysis, 2021. 11(3): p. 1406-1423.",
     "37. Methanol institute. renewable methanol plants. 2024; Available from: https://www.methanol.org/renewable/.",
     "38. Danish Energy Agency, Technology Data. 2023.",
@@ -217,9 +212,9 @@
     "name": "CorpusLD",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Desktop",
-    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
     "url": "https://github.com/sharriffajar/CorpusLD",
-    "softwareVersion": "2.0"
+    "softwareVersion": "3.0"
   },
   "@id": "corpusld:undated/optimizing-hydrogen-and-e-methanol-production-thro"
 }

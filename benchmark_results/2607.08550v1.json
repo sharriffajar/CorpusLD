@@ -37,273 +37,236 @@
   "hasPart": [
     {
       "@type": "CreativeWork",
-      "name": "1. Introduction",
-      "description": "Introduces the context of open-hardware PLCs and the problem of the deployment gap between abstract formal verification models and physical microcontroller execution constraints. It highlights the risks this gap poses to industrial control systems and outlines the motivation for the proposed research."
+      "name": "Abstract",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Abstract'."
     },
     {
       "@type": "CreativeWork",
       "name": "1.1 The Deployment Gap",
-      "description": "Discusses the specific discrepancies between ideal verification models, such as unbounded integer semantics, and actual MCU execution realities like finite bit-widths and ADC resolution limits."
+      "description": "Detailed analysis, methodology, and findings presented under section '1.1 The Deployment Gap'."
     },
     {
       "@type": "CreativeWork",
       "name": "1.2 Contributions",
-      "description": "Summarizes the core technical contributions of the paper, including hardware-faithful verification techniques and the evaluation of industrial open-hardware PLCs."
+      "description": "Detailed analysis, methodology, and findings presented under section '1.2 Contributions'."
     },
     {
       "@type": "CreativeWork",
       "name": "1.3 Scope",
-      "description": "Defines the operational boundaries and target environments covered by the proposed approach, focusing on Arduino-class devices and specific IEC 61131-3 languages."
+      "description": "Detailed analysis, methodology, and findings presented under section '1.3 Scope'."
     },
     {
       "@type": "CreativeWork",
       "name": "2. Background",
-      "description": "Provides foundational background on programmable logic controllers, the PLC scan cycle, open-hardware toolchains, and bounded model checking principles."
+      "description": "Detailed analysis, methodology, and findings presented under section '2. Background'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.1 The PLC Scan Cycle",
-      "description": "Explains the cyclic nature of PLC execution, detailing the phases of reading inputs, executing logic, and writing outputs."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 The PLC Scan Cycle'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.2 Open-Hardware PLCs and the OpenPLC Toolchain",
-      "description": "Overview of open-hardware industrial controllers and how the OpenPLC ecosystem compiles IEC 61131-3 code into deployable binaries."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Open-Hardware PLCs and the OpenPLC Toolchain'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.4 PLCopen XML",
-      "description": "Describes the XML-based standard format used to represent PLC programs, configurations, and function blocks across diverse engineering tools."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.4 PLCopen XML'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain",
-      "description": "Details the compilation pipeline translating high-level PLCopen XML representations into executable C code and target-specific binaries."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.6 Machine Models of Arduino-Class Targets",
-      "description": "Examines the hardware architectures and integer bit-width limitations characteristic of Arduino-class microcontrollers used in industrial settings."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.6 Machine Models of Arduino-Class Targets'."
     },
     {
       "@type": "CreativeWork",
       "name": "2.7 Bounded Model Checking andk-Induction for PLCs",
-      "description": "Reviews formal verification techniques, specifically bounded model checking and k-induction, as applied to verifying safety properties in PLC programs."
+      "description": "Detailed analysis, methodology, and findings presented under section '2.7 Bounded Model Checking andk-Induction for PLCs'."
     },
     {
       "@type": "CreativeWork",
       "name": "3. Related Work",
-      "description": "Surveys existing literature and toolchains related to the formal verification of IEC 61131-3 programs and target-faithful analysis of embedded software."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "3.1 Verification of IEC 61131-3",
-      "description": "Summarizes prior approaches and tools designed to check safety properties and functional correctness of programs written in IEC 61131-3 languages."
+      "description": "Detailed analysis, methodology, and findings presented under section '3. Related Work'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.2 Target-Faithful Analysis of Embedded Software",
-      "description": "Discusses methods that account for underlying hardware characteristics during software analysis to prevent unsound verification results."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Target-Faithful Analysis of Embedded Software'."
     },
     {
       "@type": "CreativeWork",
       "name": "3.3 Code-Generation Correctness",
-      "description": "Reviews studies and verification techniques addressing bugs and discrepancies introduced during the automatic code generation and compilation process."
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Code-Generation Correctness'."
     },
     {
       "@type": "CreativeWork",
       "name": "4. The Deployment Gap, Formally",
-      "description": "Formalizes the deployment gap mathematically, establishing the physical process, fault model, and motivating examples that demonstrate verification unsoundness."
+      "description": "Detailed analysis, methodology, and findings presented under section '4. The Deployment Gap, Formally'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1 Physical Process and Fault Model",
-      "description": "Outlines the physical process interactions and the specific fault model used to evaluate software anomalies caused by hardware constraints."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1 Physical Process and Fault Model'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.1 Fault model",
-      "description": "Details the types of hardware-induced faults considered, such as integer overflow behavior and quantization errors from analog inputs."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.1 Fault model'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.2 Assumptions",
-      "description": "States the formal assumptions regarding target execution environments, sensor characteristics, and environment behaviors."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.2 Assumptions'."
     },
     {
       "@type": "CreativeWork",
       "name": "4.1.3 Motivating example",
-      "description": "Presents a concrete programming example where abstract verification passes successfully while the physical implementation fails due to hardware constraints."
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.3 Motivating example'."
     },
     {
       "@type": "CreativeWork",
       "name": "5. Hardware-Faithful Verification",
-      "description": "Introduces the core methodology for hardware-faithful verification, including the scan-cycle execution model, faithful lowering, and gap diagnosis."
+      "description": "Detailed analysis, methodology, and findings presented under section '5. Hardware-Faithful Verification'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.1 Scan-Cycle Execution Model",
-      "description": "Formulates an accurate formal execution model that reflects how target microcontrollers handle the cyclic execution of PLC logic."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.1 Scan-Cycle Execution Model'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.2 The Hardware Abstraction Layer (HAL) Descriptor",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.2 The Hardware Abstraction Layer (HAL) Descriptor'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.3 Faithful Lowering",
-      "description": "Describes the transformation process that maps high-level specifications down to bit-accurate representations matching the target hardware."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.3 Faithful Lowering'."
     },
     {
       "@type": "CreativeWork",
       "name": "5.4 Soundness and Gap Diagnosis",
-      "description": "Proves the theoretical soundness of the proposed verification framework and explains how deployment gap discrepancies are diagnosed."
+      "description": "Detailed analysis, methodology, and findings presented under section '5.4 Soundness and Gap Diagnosis'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6. end for 7:foreach analog output writeo←edo",
+      "description": "Detailed analysis, methodology, and findings presented under section '6. end for 7:foreach analog output writeo←edo'."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2 Implementation",
-      "description": "Details the practical implementation details of the verifier tool extension, focusing on integration hooks and configurability."
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2 Implementation'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7. foreach analog output writeo←edo",
+      "description": "Detailed analysis, methodology, and findings presented under section '7. foreach analog output writeo←edo'."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.1 Where the Hook Sits",
-      "description": "Specifies the architectural placement of verification hooks within the compilation and analysis toolchain."
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.1 Where the Hook Sits'."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.2 What the Hook Emits",
-      "description": "Explains the intermediate verification constraints and annotations emitted by the integration hook."
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.2 What the Hook Emits'."
     },
     {
       "@type": "CreativeWork",
       "name": "6.2.3 Configurability and Engineering",
-      "description": "Discusses engineering considerations and user-facing configuration options available in the implemented tool."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "7. The Approach in Practice",
-      "description": "Demonstrates how the proposed hardware-faithful verification approach is applied from both an engineer's perspective and an internal architectural view."
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.3 Configurability and Engineering'."
     },
     {
       "@type": "CreativeWork",
       "name": "7.1.1 Engineer’s View",
-      "description": "Illustrates the workflow and user experience for a control engineer using the hardware-faithful verification toolchain."
+      "description": "Detailed analysis, methodology, and findings presented under section '7.1.1 Engineer’s View'."
     },
     {
       "@type": "CreativeWork",
       "name": "7.1.2 Under the Hood",
-      "description": "Provides a deep dive into the internal algorithms and translation mechanisms executing beneath the user interface."
+      "description": "Detailed analysis, methodology, and findings presented under section '7.1.2 Under the Hood'."
     },
     {
       "@type": "CreativeWork",
       "name": "8. Evaluation",
-      "description": "Presents experimental evaluation results addressing research questions regarding the frequency of the deployment gap, performance impacts, and soundness restoration."
+      "description": "Detailed analysis, methodology, and findings presented under section '8. Evaluation'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.1 Setup and Methodology",
-      "description": "Describes the experimental setup, benchmark suites, hardware targets, and metrics used to evaluate the verification approach."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.1 Setup and Methodology'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.2 RQ1: The Gap Is Real but Rare",
-      "description": "Evaluates how often deployment gaps occur in practice across real-world benchmark programs, finding them infrequent but critical when present."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.2 RQ1: The Gap Is Real but Rare'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.3 RQ2: Naive Width-Aware Verification Is Unusable",
-      "description": "Analyzes the computational bottlenecks and scalability issues encountered when applying naive width-aware verification techniques."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.3 RQ2: Naive Width-Aware Verification Is Unusable'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
-      "description": "Demonstrates that utilizing the hardware abstraction layer annotator effectively eliminates false negatives and restores verification soundness."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.4 RQ3: The HAL Annotator Restores Soundness'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific",
-      "description": "Compares results across multiple verification tools to confirm that the deployment gap is a fundamental hardware-software issue rather than an artifact of a single tool."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "10. Threats to Validity",
-      "description": "Identifies potential internal and external validity threats to the experimental evaluation, including benchmark representativeness and tool assumptions."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "11. Future Work",
-      "description": "Outlines promising future research directions, such as extending support to more complex microcontroller architectures and additional industrial protocols."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific'."
     },
     {
       "@type": "CreativeWork",
       "name": "12. Conclusion",
-      "description": "Summarizes the main contributions of the paper, emphasizing the importance of hardware-faithful verification in closing the deployment gap for open-hardware PLCs."
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
     },
     {
       "@type": "CreativeWork",
       "name": "8.6 RQ4: Performance and Completeness",
-      "description": "Evaluates the execution time, memory overhead, and completeness of the proposed hardware-faithful verification algorithm."
+      "description": "Detailed analysis, methodology, and findings presented under section '8.6 RQ4: Performance and Completeness'."
     },
     {
       "@type": "CreativeWork",
       "name": "9. Discussion",
-      "description": "Reflects on the broader implications of the findings for industrial automation security, limitations of the current method, and broader impacts."
-    }
-  ],
-  "additionalProperty": [
-    {
-      "@type": "PropertyValue",
-      "name": "false-alarm rate",
-      "value": 44,
-      "unitText": "%",
-      "description": "checking 16-bit arithmetic overflow without a hardware input model on 123 real third-party programs"
+      "description": "Detailed analysis, methodology, and findings presented under section '9. Discussion'."
     },
     {
-      "@type": "PropertyValue",
-      "name": "false alarms eliminated",
-      "value": 54,
-      "unitText": "count",
-      "description": "on the 123-program corpus using the HAL annotator"
+      "@type": "Table",
+      "name": "Table LetP be a program andφ a safety property. Existing tools checkMabs(P) - =φ , whereMabs is the abstract scan-cycle (Page 8)",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table Mabs:wlarge,D(i) =Z - M dev(P,H): both fromH (Page 10)",
+      "description": "Structured descriptive data table (2 rows)",
+      "additionalType": "descriptive"
     }
   ],
   "citation": [
-    "[1] Thiago Alves and Thomas Morris. Openplc: An iec 61131-3 compliant open source industrial controller for cyber security research.Computers & Security, 78:364–379, September 2018. ISSN 0167-4048. doi: 10.1016/j.cose.2018.07.007.",
-    "[2] Thiago Rodrigues Alves, Mario Buratto, Flavio Mauricio de Souza, and Thelma Virginia Rodrigues. Openplc: An open source alternative to automation. InIEEE Global Humanitarian Technology Conference (GHTC 2014), page 585–589, San Jose, CA, USA, October 2014. IEEE. doi: 10.1109/ghtc.2014.6970342.",
-    "[3] Arduino. Arduino OPTA: Micro PLC with industrial IoT. https://www.arduino.cc/pro/ hardware-arduino-opta/, 2024. Accessed 2026-06-27.",
-    "[4] Arduino. Arduino PLC IDE: IEC 61131-3 programming for arduino pro hardware. https://www.arduino.cc/ pro/software-plc-ide/, 2024. Accessed 2026-06-27.",
-    "[5] CONTROLLINO. CONTROLLINO: Arduino-compatible industrial PLC. https://www.controllino.com/, 2024. Accessed 2026-06-27.",
-    "[6] Industrial Shields. M-Duino arduino-based PLC family. https://www.industrialshields.com/, 2024. Accessed 2026-06-27.",
-    "[7] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-PLC: Formal verification of IEC 61131-3 ladder diagram programs, 2026. TACAS 2027 artefact. Reproducible viabash conformance/run_all.sh.",
-    "[8] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-GraphPLC: Formal verification of graphical PLCopen XML ladder diagram programs using SMT-based model checking, 2026.",
-    "[9] Pierre Dantas, Lucas C. Cordeiro, and W. S. Silva Júnior. ESBMC-PLC+: Unified IEC 61131-3 formal verification framework with ST frontend and graphical function block support (pull request #5427). GitHub Pull Request #5427, esbmc/esbmc, 2026. URL https://github.com/esbmc/esbmc/pull/5427. Source code and benchmark suite.",
-    "[10] Jean-Charles Tournier, Borja Fernández Adiego, and Ignacio D. Lopez-Miguel. PLCverif: Status of a formal verifi- cation tool for programmable logic controller. InProceedings of the 18th International Conference on Accelerator and Large Experimental Physics Control Systems (ICALEPCS’21), page MOPV042, Shanghai, China, October 2021. JACoW Publishing. ISBN 978-3-95450-221-9. doi: 10.18429/JACoW-ICALEPCS2021-MOPV042.",
-    "[11] Ignacio D. Lopez-Miguel, Borja Fernández Adiego, Matias Salinas, and Christine Betz.Formal Verification of PLCs as a Service: A CERN-GSI Safety-Critical Case Study, pages 227–235. Springer Nature Switzerland, Williamsburg, V A, USA, June 2025. ISBN 9783031937064. doi: 10.1007/978-3-031-93706-4_13.",
-    "[12] Florent Kirchner, Nikolai Kosmatov, Virgile Prevosto, Julien Signoles, and Boris Yakobowski. Frama-c: A software analysis perspective.Formal Aspects of Computing, 27(3):573–609, May 2015. ISSN 1433-299X. doi: 10.1007/s00165-014-0326-7.",
-    "[13] Patrick Cousot, Radhia Cousot, Jêrome Feret, Laurent Mauborgne, Antoine Miné, David Monniaux, and Xavier Rival. The astreÉ analyzer. InProgramming Languages and Systems, page 21–30, Edinburgh, UK, 2005. Springer Berlin Heidelberg. ISBN 9783540319870. doi: 10.1007/978-3-540-31987-0_3.",
-    "[14] Arduino. ArduinoCore-avr: the official arduino avr core. https://github.com/arduino/ArduinoCore-avr, 2024. ADC 10-bit, analogWrite/PWM 8-bit; A VR-GCCint= 16-bit. Accessed 2026-06-28.",
-    "[15] Edouard Tisserant, Laurent Bessard, and Mario de Sousa. An open source iec 61131-3 integrated development environment, July 2007. ISSN 1935-4576.",
-    "[16] Lucas Cordeiro, Bernd Fischer, and Joao Marques-Silva. Smt-based bounded model checking for embedded ansi-c software.IEEE Transactions on Software Engineering, 38(4):957–974, July 2012. ISSN 0098-5589. doi: 10.1109/tse.2011.59.",
-    "[17] Mikhail R. Gadelha, Rafael S. Menezes, and Lucas C. Cordeiro. ESBMC 6.1: Automated Test Case Generation Using Bounded Model Checking.International Journal on Software Tools for Technology Transfer, 23(6):857–861, May 2020. doi: 10.1007/s10009-020-00571-2.",
-    "[18] Mary Sheeran, Satnam Singh, and Gunnar Stålmarck. Checking safety properties using induction and a sat-solver. InFormal Methods in Computer-Aided Design, page 127–144, Berlin, 2000. Springer Berlin Heidelberg. ISBN 9783540409229. doi: 10.1007/3-540-40922-x_8.",
-    "[19] Matthias Weis, Philipp Marks, Benjamin Maschler, Dustin White, Pascal Kesseli, and Michael Weyrich. Towards establishing formal verification and inductive code synthesis in the PLC domain. In2021 IEEE 19th International Conference on Industrial Informatics (INDIN), pages 1–8, Palma de Mallorca, Spain, July 2021. IEEE. doi: 10.1109/INDIN45523.2021.9557423.",
-    "[20] Roberto Cavada, Alessandro Cimatti, Marco Dorigatti, Alberto Griggio, Alessandro Mariotti, Andrea Micheli, Sergio Mover, Marco Roveri, and Stefano Tonetta. The nuXmv symbolic model checker. InComputer Aided Verification (CAV 2014), volume 8559 ofLecture Notes in Computer Science, pages 334–345, Vienna, Austria, 2014. Springer. doi: 10.1007/978-3-319-08867-9_22.",
-    "[21] Kun Wang, Jingyi Wang, Christopher M. Poskitt, Xiangxiang Chen, Jun Sun, and Peng Cheng. K-st: A formal executable semantics of the structured text language for plcs.IEEE Transactions on Software Engineering, 49 (10):4796–4813, October 2023. ISSN 2326-3881. doi: 10.1109/tse.2023.3315292.",
-    "[22] Jaeseo Lee and Kyungmin Bae.Formal Semantics and Analysis of Multitask PLC ST Programs with Preemption, pages 425–442. Springer Nature Switzerland, Milan, Italy, September 2024. ISBN 9783031711626. doi: 10.1007/978-3-031-71162-6_22.",
-    "[23] Jaeseo Lee and Kyungmin Bae.Formal Analysis of Networked PLC Controllers Interacting with Physical Environments, pages 328–356. Springer Nature Switzerland, Singapore, Singapore, October 2025. ISBN 9783032071064. doi: 10.1007/978-3-032-07106-4_14.",
-    "[24] Xaver Fink, Anastasia Mavridou, Andreas Katis, and Borja Fernández Adiego.Verifying PLC Programs via Monitors: Extending the Integration of FRET and PLCverif, page 427–435. Springer Nature Switzerland, Moffett Field, CA, USA, 2024. ISBN 9783031606984. doi: 10.1007/978-3-031-60698-4_26.",
-    "[25] Chibuzo Ukegbu and Hoda Mehrpouyan. Cooperative verification of PLC programs using CoVeriTeam: Towards a reliable and secure industrial control systems. InProceedings of Cyber-Physical Systems and Internet of Things Week 2023, CPS-IoT Week ’23, pages 37–42, San Antonio, TX, USA, May 2023. ACM. doi: 10.1145/3576914. 3587490.",
-    "[26] Ali Ebnenasir. Formalizing ladder logic programs and timing charts for fault impact analysis and verification of fault tolerance. Technical Report CS-TR-23-01, Michigan Technological University, Department of Computer Science, 2023. URL https://www.mtu.edu/cs/research/papers/pdfs/ formalizing-ladder-logic-ali-ebnenasir-tech-rpt-010623-rev.pdf.",
-    "[27] Roberto Bruttomesso, Alessandro Di Pinto, Moreno Carullo, and Andrea Carcano. Method for automatic translation of ladder logic to a SMT-based model checker in a network. US Patent 11,906,943. Assignee: Nozomi Networks SAGL, 2024. Filed: 2021-08-12. Granted: 2024-02-20.",
-    "[28] Xavier Leroy. Formal verification of a realistic compiler.Communications of the ACM, 52(7):107–115, July 2009. ISSN 1557-7317. doi: 10.1145/1538788.1538814.",
-    "[29] Edmund Clarke, Daniel Kroening, and Flavio Lerda.A Tool for Checking ANSI-C Programs, page 168–176. Springer Berlin Heidelberg, Berlin, 2004. ISBN 9783540247302. doi: 10.1007/978-3-540-24730-2_15.",
-    "[30] Antonio Iacobelli, Lorenzo Rinieri, Andrea Melis, Amir Al Sadi, Marco Prandini, and Franco Callegati. Detection of ladder logic bombs in PLC control programs: An architecture based on formal verification. In2024 IEEE 7th International Conference on Industrial Cyber-Physical Systems (ICPS), pages 1–7, St. Louis, MO, USA, May 2024. IEEE. doi: 10.1109/ICPS59941.2024.10639995.",
-    "[31] Kamil Rosiak et al. IEC 61131-3 clone detection dataset (plcopen xml / structured text). https://github.com/ KamilRosiak/IEC_61131_3_Clone_Detection, 2022. Accessed 2026-06-28.",
-    "[32] Rafael Sá Menezes, Mohannad Aldughaim, Bruno Farias, Xianzhiyu Li, Edoardo Manino, Fedor Shmarov, Kunjian Song, Franz Brauße, Mikhail R. Gadelha, Norbert Tihanyi, Konstantin Korovin, and Lucas C. Cordeiro. ESBMC v7.4: Harnessing the Power of Intervals: (Competition Contribution). InTools and Algorithms for the Construction and Analysis of Systems (TACAS 2024), volume 14572 ofLecture Notes in Computer Science, pages 376–380, Luxembourg City, Luxembourg, 2024. Springer Nature Switzerland. doi: 10.1007/978-3-031-57256-2_24."
+    "6.2 Implementation A design goal of the method is to beminimally invasive: the deployment model should reuse a mature verifier rather than reimplement one. We therefore realize the lowering inside the existing ESBMC LD frontend, changing only where the model meets the hardware boundary.",
+    "6.2.1 Where the Hook Sits The LD frontend builds a GOTO IR.",
+    "6.2.2 What the Hook Emits For an input variable of integer type, the hook synthesizes a guard 0≤v≤ADCMAX as a relational IR expression. It wraps it in a assume node inserted into the scan body (Listing 2). The bound is taken from the board descriptor (HAL_ADC_MAX, default 1,023 for the A VR 10-bit ADC); Boolean inputs already range over{0,1} by type and need no guard, and floating-point inputs are left unconstrained (they fall under the non-linear abstraction). Gating on the static type keeps the transformation sound for mixed-type programs. 1codet ld_converter::hal_input_bound(constsymbol_exprt &in)const{ 2if(getenv(\"HAL_ANNOTATE\") == nullptr)returncode_skipt();// baseline 3if(!is_integer(in.type()))returncode_skipt();// BOOL / REAL 4longadcmax = env_long(\"HAL_ADC_MAX\", 1023);// board param 5exprt lo = binary_relation_exprt(in, \">=\", from_integer(0, in.type())); 6exprt hi = binary_relation_exprt(in, \"= 0 && adc = 0 && IN1 32,767 ) requires the arithmetic to magnifyv past the word range:multiply by a constant ≳33 (e.g. percentage or milli-unit scaling,v×100 ),accumulationof many readings, orsquaring. Conversely, multiply-by-small- constant (v×2 ), additive offsets (v±c ), and comparisons all remain within range and are provably safe – which is why the_okvariants, and the bulk of real code, do not flip. The Gap is Rare in the Corpora We Surveyed We surveyed the real corpus and a larger pool of public Structured-Text libraries for the vulnerable pattern. Within these corpora, the pattern is essentially absent: across 341 ST programs in a verification benchmark library,none contained a multiply-by-a-three-or-more-digit constant; the integer arithmetic that does occur is dominated by ×2, offsets, clamping, and comparisons – operations that bounded inputs keep safe. The public PLC code we could ingest is overwhelmingly Boolean and timer logic with small-magnitude integer arithmetic. We therefore report, honestly, that in these corpora the deployment gap isgenuine and sound to detect but infrequent; the analog-scaling regime in which it bites (e.g. ADC-to-engineering-unit conversion on a narrow-word board) is real but not the common case here. We caution that this prevalence finding is scoped to the integer/Boolean LD programs our frontend ingests (§10); analog-heavy process-control corpora may exhibit it more often. This finding reframes the contribution: the value of hardware-faithful verification lies less in bug count than in thesoundnessit restores (RQ2–RQ3).",
+    "8.3 RQ2: Naive Width-Aware Verification Is Unusable A natural first attempt at hardware-faithful verification is to set the word width and check overflow,withoutmodeling the inputs. We ran exactly this on the 123 real programs at 16 bits (Table 5, “Naive”). 54/123 (44 %) report unsafe, and Table 4: Verdict matrix: identical logic and properties, abstract model vs. per-board deployed model.Unsafe = ESBMC found a counterexample Class Abstract CTRL Micro CTRL Maxi M-Duino Arduino OPTA 16-bit 16-bit 16-bit 32-bit A_bugsafe unsafe unsafe unsafe safe A_oksafe safe safe safe safe B_bugsafe unsafe unsafe unsafe safe B_oksafe safe safe safe safe."
   ],
   "sdPublisher": {
     "@type": "SoftwareApplication",
     "name": "CorpusLD",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Desktop",
-    "description": "Your Academic Knowledge Partner & PDF to JSON-LD Semantic Extractor",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
     "url": "https://github.com/sharriffajar/CorpusLD",
-    "softwareVersion": "2.0"
+    "softwareVersion": "3.0"
   },
   "datePublished": "2026-07-09",
   "dateModified": "2026-07-09",
