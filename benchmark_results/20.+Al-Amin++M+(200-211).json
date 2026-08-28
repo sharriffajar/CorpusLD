@@ -103,20 +103,31 @@
       "@type": "CreativeWork",
       "name": "Conclusion",
       "description": "Detailed analysis, methodology, and findings presented under section 'Conclusion'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 2. Case-based Learning Intervention on Nursing Students.",
+      "description": "Structured descriptive data table (6 rows)",
+      "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3. The result of Case-Based Learning Implementation on Nursing Students.",
+      "description": "Structured quantitative data table (28 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4. Critical Appraisal: Intervention and Mixed Methods.",
+      "description": "Structured quantitative data table (22 rows)",
+      "additionalType": "quantitative"
     }
   ],
   "additionalProperty": [
     {
       "@type": "PropertyValue",
-      "name": "Lectures",
-      "value": 8.0,
-      "unitText": "months",
-      "description": "Teridentifikasi pada halaman 5"
-    },
-    {
-      "@type": "PropertyValue",
       "name": "Intervention Group",
-      "value": 73.0,
+      "value": 141.0,
       "unitText": "respondents",
       "description": "Teridentifikasi pada halaman 5"
     },
@@ -161,6 +172,13 @@
       "value": 6.0,
       "unitText": "articles",
       "description": "Kuantitas terukur pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Lectures",
+      "value": 8.0,
+      "unitText": "months",
+      "description": "Teridentifikasi pada halaman 5"
     }
   ],
   "citation": [

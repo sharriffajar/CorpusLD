@@ -1,7 +1,7 @@
 [
   {
     "file_name": "20.+Al-Amin++M+(200-211).pdf",
-    "duration_seconds": 18.45,
+    "duration_seconds": 18.36,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -107,20 +107,31 @@
           "@type": "CreativeWork",
           "name": "Conclusion",
           "description": "Detailed analysis, methodology, and findings presented under section 'Conclusion'."
+        },
+        {
+          "@type": "Table",
+          "name": "Table 2. Case-based Learning Intervention on Nursing Students.",
+          "description": "Structured descriptive data table (6 rows)",
+          "additionalType": "descriptive"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 3. The result of Case-Based Learning Implementation on Nursing Students.",
+          "description": "Structured quantitative data table (28 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 4. Critical Appraisal: Intervention and Mixed Methods.",
+          "description": "Structured quantitative data table (22 rows)",
+          "additionalType": "quantitative"
         }
       ],
       "additionalProperty": [
         {
           "@type": "PropertyValue",
-          "name": "Lectures",
-          "value": 8.0,
-          "unitText": "months",
-          "description": "Teridentifikasi pada halaman 5"
-        },
-        {
-          "@type": "PropertyValue",
           "name": "Intervention Group",
-          "value": 73.0,
+          "value": 141.0,
           "unitText": "respondents",
           "description": "Teridentifikasi pada halaman 5"
         },
@@ -165,6 +176,13 @@
           "value": 6.0,
           "unitText": "articles",
           "description": "Kuantitas terukur pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Lectures",
+          "value": 8.0,
+          "unitText": "months",
+          "description": "Teridentifikasi pada halaman 5"
         }
       ],
       "citation": [
@@ -259,7 +277,7 @@
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "0 structured tables",
+          "value": "3 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -280,7 +298,7 @@
   },
   {
     "file_name": "2406.00442v1.pdf",
-    "duration_seconds": 80.72,
+    "duration_seconds": 84.77,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -418,9 +436,253 @@
         },
         {
           "@type": "Table",
-          "name": "Table 2",
-          "description": "Structured quantitative data table (6 rows)",
+          "name": "Table 2 - Overview of e-methanol plants in EU (commercial or engineering phase)",
+          "description": "Structured quantitative data table (7 rows)",
           "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 6: Technology data assumptions for 2030 – as model inputs.",
+          "description": "Structured quantitative data table (17 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 7 - Interface between external grids and behind-the-meter market",
+          "description": "Structured quantitative data table (28 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 8 : sensitivity parameters",
+          "description": "Structured quantitative data table (21 rows)",
+          "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Hydrogen Production Capacity From",
+          "value": 65.0,
+          "unitText": "GW",
+          "description": "Teridentifikasi pada halaman 2"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Co",
+          "value": 99.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Biomethane Per Year And",
+          "value": 200.0,
+          "unitText": "GWh",
+          "description": "Teridentifikasi pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Biomethane",
+          "value": 200.0,
+          "unitText": "GWh",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Heat For Each Mw",
+          "value": 0.085,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Injection",
+          "value": 40.0,
+          "unitText": "bar",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Electricity Generated",
+          "value": 22.3,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Increasing Production From Zero",
+          "value": 48.0,
+          "unitText": "h",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Of Each Compression Stage",
+          "value": 130.0,
+          "unitText": "°C",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "High Energy Market Prices",
+          "value": 15.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 19"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Wind Power And",
+          "value": 230.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Solar Which Supply",
+          "value": 40.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Solar",
+          "value": 150.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Lithium -Ion Batteries Provides",
+          "value": 15.0,
+          "unitText": "MWh",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "The",
+          "value": 100.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Available Co",
+          "value": 90.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 22"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Solar And Increase Up",
+          "value": 25.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 23"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Electrolysis",
+          "value": 26.5,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 23"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Alkaline Electrolysis Cells (Aecs)",
+          "value": 1.0,
+          "unitText": "μS/cm",
+          "description": "Teridentifikasi pada halaman 31"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Mesophilic Digestion Or",
+          "value": 40.0,
+          "unitText": "°C",
+          "description": "Teridentifikasi pada halaman 31"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Thermophilic Digestion",
+          "value": 55.0,
+          "unitText": "°C",
+          "description": "Teridentifikasi pada halaman 31"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Dry Matter In",
+          "value": 46.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 31"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Biogas Input Electricity Demand",
+          "value": 10.32,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 34"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Biogas Input Pyrolysis Of",
+          "value": 1.89,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 34"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pellets Energy (Lhv) Energy",
+          "value": 13.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pellets Energy (Lhv) Losses",
+          "value": 9.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pellets Energy (Lhv) Assumption",
+          "value": 4.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pellets Energy (Lhv) Carbon",
+          "value": 4.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pellets Carbon H/C Ratio",
+          "value": 37.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Carbon In Biochar Assumption",
+          "value": 80.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 35"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Powering Variable Loads",
+          "value": 20.0,
+          "unitText": "kV",
+          "description": "Teridentifikasi pada halaman 39"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Other Steady Industrial",
+          "value": 10.0,
+          "unitText": "kV",
+          "description": "Teridentifikasi pada halaman 39"
         }
       ],
       "citation": [
@@ -532,13 +794,13 @@
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "32 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "1 structured tables",
+          "value": "4 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -559,7 +821,7 @@
   },
   {
     "file_name": "2607.08550v1.pdf",
-    "duration_seconds": 35.57,
+    "duration_seconds": 34.93,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -719,18 +981,8 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "6. end for 7:foreach analog output writeo←edo",
-          "description": "Detailed analysis, methodology, and findings presented under section '6. end for 7:foreach analog output writeo←edo'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "6.2 Implementation",
           "description": "Detailed analysis, methodology, and findings presented under section '6.2 Implementation'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "7. foreach analog output writeo←edo",
-          "description": "Detailed analysis, methodology, and findings presented under section '7. foreach analog output writeo←edo'."
         },
         {
           "@type": "CreativeWork",
@@ -746,6 +998,11 @@
           "@type": "CreativeWork",
           "name": "6.2.3 Configurability and Engineering",
           "description": "Detailed analysis, methodology, and findings presented under section '6.2.3 Configurability and Engineering'."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "7. The Approach in Practice",
+          "description": "Detailed analysis, methodology, and findings presented under section '7. The Approach in Practice'."
         },
         {
           "@type": "CreativeWork",
@@ -769,23 +1026,8 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "8.2 RQ1: The Gap Is Real but Rare",
-          "description": "Detailed analysis, methodology, and findings presented under section '8.2 RQ1: The Gap Is Real but Rare'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "8.3 RQ2: Naive Width-Aware Verification Is Unusable",
-          "description": "Detailed analysis, methodology, and findings presented under section '8.3 RQ2: Naive Width-Aware Verification Is Unusable'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
           "description": "Detailed analysis, methodology, and findings presented under section '8.4 RQ3: The HAL Annotator Restores Soundness'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific",
-          "description": "Detailed analysis, methodology, and findings presented under section '8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific'."
         },
         {
           "@type": "CreativeWork",
@@ -804,6 +1046,12 @@
         },
         {
           "@type": "Table",
+          "name": "Table 1: Positioning: who models the deployment target. “Auto inputs” = hardware input ranges derived automatically",
+          "description": "Structured quantitative data table (11 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
           "name": "Table LetP be a program andφ a safety property. Existing tools checkMabs(P) - =φ , whereMabs is the abstract scan-cycle (Page 8)",
           "description": "Structured quantitative data table (6 rows)",
           "additionalType": "quantitative"
@@ -813,6 +1061,58 @@
           "name": "Table Mabs:wlarge,D(i) =Z - M dev(P,H): both fromH (Page 10)",
           "description": "Structured descriptive data table (2 rows)",
           "additionalType": "descriptive"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 3: Evaluation corpora. The real corpus is third-party and pinned; the controlled corpus is authored to isolate the",
+          "description": "Structured descriptive data table (9 rows)",
+          "additionalType": "descriptive"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 4: Verdict matrix: identical logic and properties, abstract model vs. per-board deployed model.Unsafe = ESBMC",
+          "description": "Structured quantitative data table (6 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 5: Real corpus (123 programs), 16-bit overflow checking: naive vs. HAL-annotated.",
+          "description": "Structured quantitative data table (3 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table (Page 16)",
+          "description": "Structured quantitative data table (8 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 7: Per-program solve time (ESBMC v8.3.0, Z3 backend, commodity laptop)",
+          "description": "Structured quantitative data table (3 rows)",
+          "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Violation With Counterexample Adc",
+          "value": 898.0,
+          "description": "Teridentifikasi pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Any Physically Realizable Input",
+          "value": 16.0,
+          "unitText": "bits",
+          "description": "Teridentifikasi pada halaman 15"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Median Solve Time",
+          "value": 168.0,
+          "unitText": "ms",
+          "description": "Teridentifikasi pada halaman 16"
         }
       ],
       "citation": [
@@ -860,19 +1160,19 @@
         "Structure": {
           "score": 100,
           "label": "Section Hierarchy",
-          "value": "41 sections, monotonic, no affiliation leak",
+          "value": "37 sections, monotonic, no affiliation leak",
           "status": "PASS"
         },
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "3 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "2 structured tables",
+          "value": "8 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -893,7 +1193,7 @@
   },
   {
     "file_name": "2607.22092v1.pdf",
-    "duration_seconds": 14.23,
+    "duration_seconds": 16.38,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -932,6 +1232,7 @@
         {
           "@type": "Person",
           "name": "Felipe Buendia",
+          "identifier": "felipe.buendia@inrae.fr",
           "affiliation": {
             "@type": "EducationalOrganization",
             "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
@@ -991,9 +1292,87 @@
         },
         {
           "@type": "Table",
-          "name": "Table 1: Configuration performance: break-even distances and",
-          "description": "Structured quantitative data table (5 rows)",
+          "name": "Table (Page 2)",
+          "description": "Structured descriptive data table (22 rows)",
+          "additionalType": "descriptive"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 1: Configuration performance: break-even distances and transport distances at which transport accounts for",
+          "description": "Structured quantitative data table (8 rows)",
           "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Diesel",
+          "value": 16.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Electric Trucks",
+          "value": 15.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Biogas Trucks",
+          "value": 13.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Ad With Electric Trucks",
+          "value": 40.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Composting With Electric And",
+          "value": 35.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Total Impact Are",
+          "value": 50.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Total Environmental Impact",
+          "value": 50.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Small Facilities",
+          "value": 40.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Medium Facilities",
+          "value": 58.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Large Facilities When Diesel",
+          "value": 66.0,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 4"
         }
       ],
       "citation": [
@@ -1055,13 +1434,13 @@
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "10 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "1 structured tables",
+          "value": "2 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -1082,7 +1461,7 @@
   },
   {
     "file_name": "2607.24075v1.pdf",
-    "duration_seconds": 17.46,
+    "duration_seconds": 18.21,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -1091,7 +1470,7 @@
       ],
       "headline": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
       "name": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
-      "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues. This paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits. A key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization. Validation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
+      "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues.\n\nThis paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits.\n\nA key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization.\n\nValidation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
       "inLanguage": "en",
       "keywords": [
         "Battery Energy Storage Systems",
@@ -1149,13 +1528,50 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "1. schedule to the schedule at 3 p.m. (IDA 1) can be explained",
-          "description": "Detailed analysis, methodology, and findings presented under section '1. schedule to the schedule at 3 p.m. (IDA 1) can be explained'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "V. CONCLUSION",
           "description": "Detailed analysis, methodology, and findings presented under section 'V. CONCLUSION'."
+        },
+        {
+          "@type": "Table",
+          "name": "Table (Page 5)",
+          "description": "Structured quantitative data table (95 rows)",
+          "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Fcr",
+          "value": 0.91,
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Frr",
+          "value": 1.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Maximized While Other",
+          "value": 0.0,
+          "unitText": "Lb",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Optimal Dis- Tribution Of",
+          "value": 1.0,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Q Daa",
+          "value": 0.1,
+          "unitText": "MW",
+          "description": "Teridentifikasi pada halaman 7"
         }
       ],
       "citation": [
@@ -1192,7 +1608,7 @@
       "dateModified": "2026-07-27",
       "@id": "corpusld:2026-07-27/data-driven-sequential-market-optimization-for-fro"
     },
-    "meta_tags": "<!-- Google Scholar & Academic Discoverability Meta Tags (Generated by CorpusLD) -->\n<meta name=\"citation_title\" content=\"Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems\">\n<meta name=\"citation_author\" content=\"Steffen Kortmann\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_author\" content=\"Hannah Sanders\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_author\" content=\"Andreas Ulbig\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_publication_date\" content=\"2026/07/27\">\n<meta name=\"citation_online_date\" content=\"2026/07/27\">\n<meta name=\"citation_language\" content=\"en\">\n<meta name=\"citation_keywords\" content=\"Battery Energy Storage Systems; Sequential Op- timization; Multi-Market Coordination; Opportunity-Cost Bid- ding; Data-Driven Forecasting\">\n<meta name=\"citation_abstract\" content=\"The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues. This paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits. A key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization. Validation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.\">\n<meta name=\"citation_fulltext_world_readable\" content=\"\">\n<meta name=\"citation_reference\" content=\"[1] European Commission, Directorate-General for Climate Action, “2050 long-term strategy: Striving to become the world’s first climate- neutral continent by 2050,” https://climate.ec.europa.eu/eu-action/ climate-strategies-targets/2050-long-term-strategy_en, 2020, accessed on August 12, 2025.\">\n<meta name=\"citation_reference\" content=\"[2] DNV, “The need for flexibility in the german power grid and the contribution of large-scale battery storage systems,” https://www. dnv.com/article/the-need-for-flexibility-in-the-german-power-grid/, Jul.\">\n<meta name=\"citation_reference\" content=\"[3] Reuters, “German power grid battery capacity up nearly a third in 2024, data shows,” https://www.reuters.com/business/energy/german-power- grid-battery-capacity-up-nearly-third-2024-data-shows-2024-09-19/, sep 2024, accessed on August 12, 2025.\">\n<meta name=\"citation_reference\" content=\"[4] S. P. Englberger, “Optimized energy management for battery energy storage via multi-use and multi-storage operation,” Ph.D. dissertation, TU München, München, Nov. 2021.\">\n<meta name=\"citation_reference\" content=\"[5] A. Mohamed, R. Rigo-Mariani, V . Debusschere, and L. Pin, “Stacked revenues for energy storage participating in energy and reserve markets with an optimal frequency regulation modeling,”Applied Energy, vol. 350, p. 121721, Nov. 2023. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S0306261923010851.\">\n<meta name=\"citation_reference\" content=\"[6] M. C. Cortés, N. Nsir, L. Koltermann, S. Zurmühlen, J. Van Ouwerkerk, and D. Uwe Sauer, “M5Use: An Optimization Framework for the Multi- Use Operation Scheduling of Large-Scale Battery Storage Systems,” in2024 IEEE PES Innovative Smart Grid Technologies Europe (ISGT EUROPE). Dubrovnik, Croatia: IEEE, Oct. 2024, pp. 1–5.\">\n<meta name=\"citation_reference\" content=\"[7] K. Baltputnis, Z. Broka, G. Cingels, A. S ¯ılis, and G. Jungh ¯ans, “Robust market-based battery energy storage management strategy for operation in European balancing markets,”Journal of Energy Storage, vol. 102, p. 114082, Nov. 2024.\">\n<meta name=\"citation_reference\" content=\"[8] D. Cremoncini, G. F. Frate, A. Bischi, T. T. Pedersen, G. B. Andresen, A. Bentien, and L. Ferrari, “Optimal participation of a wind and hybrid battery storage system in the day-ahead and automatic frequency restoration reserve markets,”Journal of Energy Storage, vol. 94, p. 112309, Jul. 2024.\">\n<meta name=\"citation_reference\" content=\"[9] J. Martinez-Rico, I. R. De Argandona, E. Zulueta, U. Fernandez-Gamiz, and M. Armendia, “Energy Storage Sizing Based on Automatic Fre- quency Restoration Reserve Market Participation of Hybrid Renewable Power Plants,” in2021 International Conference on Smart Energy Systems and Technologies (SEST). Vaasa, Finland: IEEE, Sep. 2021, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[10] Á. Paredes, J. A. Aguado, and P. Rodríguez, “Virtual Energy Storage Stacking in Day-Ahead and mFRR markets - A Spanish Case Study,” in2024 IEEE 15th International Symposium on Power Electronics for Distributed Generation Systems (PEDG). Luxembourg, Luxembourg: IEEE, Jun. 2024, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[11] Á. Paredes and J. A. Aguado, “Revenue stacking of BESSs in wholesale and aFRR markets with delivery guarantees,”Electric Power Systems Research, vol. 234, p. 110633, Sep. 2024.\">\n<meta name=\"citation_reference\" content=\"[12] L. Tadayon and G. Frey, “Multi-Level Simulation Framework for Degradation-Aware Operation of a Large-Scale Battery Energy Storage Systems,”Energies, vol. 18, no. 11, p. 2708, May 2025.\">\n<meta name=\"citation_reference\" content=\"[13] S. Kortmann, C. Starkulla, and A. Ulbig, “Using Deep-Learning based Probabilistic Forecasting for Multi-Use Operation of Battery Energy Storage Systems,” in2025 IEEE Kiel PowerTech. Kiel, //ieeexplore.ieee.org/document/11180348/.\">\n<meta name=\"citation_reference\" content=\"[14] M. Merten, “Participation of battery storage systems in the automatic frequency restoration reserve market based on machine learning,” Ph.D. dissertation, RWTH Aachen University, Aachen, Jul. 2020.\">\n<meta name=\"citation_reference\" content=\"[15] F. Biggins, S. Homan, J. Ejeh, and S. Brown, “To trade or not to trade: Simultaneously optimising battery storage for arbitrage and ancillary services,”Journal of Energy Storage, vol. 50, p. 104234, Jun. 2022. [Online]. Available: https://linkinghub.elsevier.com/retrieve/ pii/S2352152X22002638.\">\n<meta name=\"citation_reference\" content=\"[16] Y . Dong, Z. Dong, T. Zhao, and Z. Ding, “A Strategic Day-ahead bidding strategy and operation for battery energy storage system by reinforcement learning,”Electric Power Systems Research, vol. 196, p. 107229, Jul. 2021. [Online]. Available: https://linkinghub.elsevier.com/ retrieve/pii/S0378779621002108.\">\n<meta name=\"citation_reference\" content=\"[17] G. He, Q. Chen, C. Kang, P. Pinson, and Q. Xia, “Optimal Bidding Strategy of Battery Storage in Power Markets Considering Performance- Based Regulation and Battery Cycle Life,”IEEE Transactions on Smart Grid, vol. 7, no. 5, pp. 2359–2367, Sep. 2016. [Online]. Available.\">\n<meta name=\"citation_reference\" content=\"[18] M. Spiller, G. Rancilio, F. Bovera, and M. Merlo, “Stochastic vs Monte Carlo-Based Bidding Strategy for Sequential Electricity Markets,” in (EEM). Istanbul, Turkiye: IEEE, Jun. 2024, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[19] G. Rancilio, F. Bovera, M. Spiller, M. Merlo, and M. Delfanti, “BESS and the ancillary services markets: A symbiosis yet? Impact of market design on performance,”Applied Energy, vol. 375, p. 124153, Dec. 2024.\">",
+    "meta_tags": "<!-- Google Scholar & Academic Discoverability Meta Tags (Generated by CorpusLD) -->\n<meta name=\"citation_title\" content=\"Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems\">\n<meta name=\"citation_author\" content=\"Steffen Kortmann\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_author\" content=\"Hannah Sanders\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_author\" content=\"Andreas Ulbig\">\n<meta name=\"citation_author_institution\" content=\"IAEW at RWTH Aachen University, Aachen, Germany, and Center Digital Energy, Fraunhofer FIT, Aachen, Germany\">\n<meta name=\"citation_publication_date\" content=\"2026/07/27\">\n<meta name=\"citation_online_date\" content=\"2026/07/27\">\n<meta name=\"citation_language\" content=\"en\">\n<meta name=\"citation_keywords\" content=\"Battery Energy Storage Systems; Sequential Op- timization; Multi-Market Coordination; Opportunity-Cost Bid- ding; Data-Driven Forecasting\">\n<meta name=\"citation_abstract\" content=\"The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues.\n\nThis paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits.\n\nA key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization.\n\nValidation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.\">\n<meta name=\"citation_fulltext_world_readable\" content=\"\">\n<meta name=\"citation_reference\" content=\"[1] European Commission, Directorate-General for Climate Action, “2050 long-term strategy: Striving to become the world’s first climate- neutral continent by 2050,” https://climate.ec.europa.eu/eu-action/ climate-strategies-targets/2050-long-term-strategy_en, 2020, accessed on August 12, 2025.\">\n<meta name=\"citation_reference\" content=\"[2] DNV, “The need for flexibility in the german power grid and the contribution of large-scale battery storage systems,” https://www. dnv.com/article/the-need-for-flexibility-in-the-german-power-grid/, Jul.\">\n<meta name=\"citation_reference\" content=\"[3] Reuters, “German power grid battery capacity up nearly a third in 2024, data shows,” https://www.reuters.com/business/energy/german-power- grid-battery-capacity-up-nearly-third-2024-data-shows-2024-09-19/, sep 2024, accessed on August 12, 2025.\">\n<meta name=\"citation_reference\" content=\"[4] S. P. Englberger, “Optimized energy management for battery energy storage via multi-use and multi-storage operation,” Ph.D. dissertation, TU München, München, Nov. 2021.\">\n<meta name=\"citation_reference\" content=\"[5] A. Mohamed, R. Rigo-Mariani, V . Debusschere, and L. Pin, “Stacked revenues for energy storage participating in energy and reserve markets with an optimal frequency regulation modeling,”Applied Energy, vol. 350, p. 121721, Nov. 2023. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S0306261923010851.\">\n<meta name=\"citation_reference\" content=\"[6] M. C. Cortés, N. Nsir, L. Koltermann, S. Zurmühlen, J. Van Ouwerkerk, and D. Uwe Sauer, “M5Use: An Optimization Framework for the Multi- Use Operation Scheduling of Large-Scale Battery Storage Systems,” in2024 IEEE PES Innovative Smart Grid Technologies Europe (ISGT EUROPE). Dubrovnik, Croatia: IEEE, Oct. 2024, pp. 1–5.\">\n<meta name=\"citation_reference\" content=\"[7] K. Baltputnis, Z. Broka, G. Cingels, A. S ¯ılis, and G. Jungh ¯ans, “Robust market-based battery energy storage management strategy for operation in European balancing markets,”Journal of Energy Storage, vol. 102, p. 114082, Nov. 2024.\">\n<meta name=\"citation_reference\" content=\"[8] D. Cremoncini, G. F. Frate, A. Bischi, T. T. Pedersen, G. B. Andresen, A. Bentien, and L. Ferrari, “Optimal participation of a wind and hybrid battery storage system in the day-ahead and automatic frequency restoration reserve markets,”Journal of Energy Storage, vol. 94, p. 112309, Jul. 2024.\">\n<meta name=\"citation_reference\" content=\"[9] J. Martinez-Rico, I. R. De Argandona, E. Zulueta, U. Fernandez-Gamiz, and M. Armendia, “Energy Storage Sizing Based on Automatic Fre- quency Restoration Reserve Market Participation of Hybrid Renewable Power Plants,” in2021 International Conference on Smart Energy Systems and Technologies (SEST). Vaasa, Finland: IEEE, Sep. 2021, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[10] Á. Paredes, J. A. Aguado, and P. Rodríguez, “Virtual Energy Storage Stacking in Day-Ahead and mFRR markets - A Spanish Case Study,” in2024 IEEE 15th International Symposium on Power Electronics for Distributed Generation Systems (PEDG). Luxembourg, Luxembourg: IEEE, Jun. 2024, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[11] Á. Paredes and J. A. Aguado, “Revenue stacking of BESSs in wholesale and aFRR markets with delivery guarantees,”Electric Power Systems Research, vol. 234, p. 110633, Sep. 2024.\">\n<meta name=\"citation_reference\" content=\"[12] L. Tadayon and G. Frey, “Multi-Level Simulation Framework for Degradation-Aware Operation of a Large-Scale Battery Energy Storage Systems,”Energies, vol. 18, no. 11, p. 2708, May 2025.\">\n<meta name=\"citation_reference\" content=\"[13] S. Kortmann, C. Starkulla, and A. Ulbig, “Using Deep-Learning based Probabilistic Forecasting for Multi-Use Operation of Battery Energy Storage Systems,” in2025 IEEE Kiel PowerTech. Kiel, //ieeexplore.ieee.org/document/11180348/.\">\n<meta name=\"citation_reference\" content=\"[14] M. Merten, “Participation of battery storage systems in the automatic frequency restoration reserve market based on machine learning,” Ph.D. dissertation, RWTH Aachen University, Aachen, Jul. 2020.\">\n<meta name=\"citation_reference\" content=\"[15] F. Biggins, S. Homan, J. Ejeh, and S. Brown, “To trade or not to trade: Simultaneously optimising battery storage for arbitrage and ancillary services,”Journal of Energy Storage, vol. 50, p. 104234, Jun. 2022. [Online]. Available: https://linkinghub.elsevier.com/retrieve/ pii/S2352152X22002638.\">\n<meta name=\"citation_reference\" content=\"[16] Y . Dong, Z. Dong, T. Zhao, and Z. Ding, “A Strategic Day-ahead bidding strategy and operation for battery energy storage system by reinforcement learning,”Electric Power Systems Research, vol. 196, p. 107229, Jul. 2021. [Online]. Available: https://linkinghub.elsevier.com/ retrieve/pii/S0378779621002108.\">\n<meta name=\"citation_reference\" content=\"[17] G. He, Q. Chen, C. Kang, P. Pinson, and Q. Xia, “Optimal Bidding Strategy of Battery Storage in Power Markets Considering Performance- Based Regulation and Battery Cycle Life,”IEEE Transactions on Smart Grid, vol. 7, no. 5, pp. 2359–2367, Sep. 2016. [Online]. Available.\">\n<meta name=\"citation_reference\" content=\"[18] M. Spiller, G. Rancilio, F. Bovera, and M. Merlo, “Stochastic vs Monte Carlo-Based Bidding Strategy for Sequential Electricity Markets,” in (EEM). Istanbul, Turkiye: IEEE, Jun. 2024, pp. 1–6.\">\n<meta name=\"citation_reference\" content=\"[19] G. Rancilio, F. Bovera, M. Spiller, M. Merlo, and M. Delfanti, “BESS and the ancillary services markets: A symbiosis yet? Impact of market design on performance,”Applied Energy, vol. 375, p. 124153, Dec. 2024.\">",
     "evaluation": {
       "overall_score": 100.0,
       "dimensions": {
@@ -1217,19 +1633,19 @@
         "Structure": {
           "score": 100,
           "label": "Section Hierarchy",
-          "value": "6 sections, monotonic, no affiliation leak",
+          "value": "5 sections, monotonic, no affiliation leak",
           "status": "PASS"
         },
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "5 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "0 structured tables",
+          "value": "1 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -1250,7 +1666,7 @@
   },
   {
     "file_name": "2608.19908v1.pdf",
-    "duration_seconds": 37.8,
+    "duration_seconds": 37.99,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -1300,8 +1716,8 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "2. Deeper priors suit more concentrated targets, and averaging over depth removes the need to",
-          "description": "Detailed analysis, methodology, and findings presented under section '2. Deeper priors suit more concentrated targets, and averaging over depth removes the need to'."
+          "name": "2. The Information-Theoretic Setting, in Brief",
+          "description": "Detailed analysis, methodology, and findings presented under section '2. The Information-Theoretic Setting, in Brief'."
         },
         {
           "@type": "CreativeWork",
@@ -1315,18 +1731,8 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "5. Certified computation.All probabilities are evaluated from explicit formulas rather than by",
-          "description": "Detailed analysis, methodology, and findings presented under section '5. Certified computation.All probabilities are evaluated from explicit formulas rather than by'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "3.1 Exact regret via count profiles",
           "description": "Detailed analysis, methodology, and findings presented under section '3.1 Exact regret via count profiles'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "3.2 The shallow end of the family is Laplace’s rule",
-          "description": "Detailed analysis, methodology, and findings presented under section '3.2 The shallow end of the family is Laplace’s rule'."
         },
         {
           "@type": "CreativeWork",
@@ -1377,6 +1783,171 @@
           "@type": "CreativeWork",
           "name": "8. Conclusion",
           "description": "Detailed analysis, methodology, and findings presented under section '8. Conclusion'."
+        },
+        {
+          "@type": "Table",
+          "name": "Table 3:Data scaling.Predicted and measured exponents over the tested range 100≤N≤10 4.",
+          "description": "Structured quantitative data table (6 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 4:Depth scaling.Measured dependence of the regret per discovered symbol on depth at",
+          "description": "Structured quantitative data table (2 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 5: MeanD(p∥ˆq) in bits atn= 2·10 4,d= 10 4, 20 trials; standard errors≤0.001 bits",
+          "description": "Structured quantitative data table (1 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table (Page 23)",
+          "description": "Structured quantitative data table (10 rows)",
+          "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Yi Pd J",
+          "value": 1.0,
+          "unitText": "Yj",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Qn)",
+          "value": 1.0,
+          "unitText": "N",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "D",
+          "value": 103.0,
+          "unitText": "N",
+          "description": "Teridentifikasi pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "All L L",
+          "value": 1.0,
+          "unitText": "L",
+          "description": "Teridentifikasi pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "L",
+          "value": 23.0,
+          "unitText": "L",
+          "description": "Teridentifikasi pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "It",
+          "value": 4.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Of Count Atd",
+          "value": 10.0,
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Count Atd",
+          "value": 4.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Alphabet",
+          "value": 42.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Alphabet And",
+          "value": 42.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 13"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Mass And Its",
+          "value": 96.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 15"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Natural Oracle (",
+          "value": 8.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 17"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Natural Oracle",
+          "value": 8.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 18"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Mass Onl",
+          "value": 86.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 18"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Broad",
+          "value": 94.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 19"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Mass Onl",
+          "value": 94.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 19"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Alphabet",
+          "value": 14.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 20"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Alphabet That Never",
+          "value": 86.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 20"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Tol",
+          "value": 15.0,
+          "unitText": "as",
+          "description": "Teridentifikasi pada halaman 21"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Shares Identical\nSamples",
+          "value": 5.0,
+          "unitText": "samples",
+          "description": "Kuantitas terukur pada halaman 28"
         }
       ],
       "citation": [
@@ -1439,19 +2010,19 @@
         "Structure": {
           "score": 100,
           "label": "Section Hierarchy",
-          "value": "18 sections, monotonic, no affiliation leak",
+          "value": "16 sections, monotonic, no affiliation leak",
           "status": "PASS"
         },
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "20 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "0 structured tables",
+          "value": "4 structured tables",
           "status": "PASS"
         },
         "Citations": {
@@ -1472,7 +2043,7 @@
   },
   {
     "file_name": "ijsdp_21.03_03.pdf",
-    "duration_seconds": 34.41,
+    "duration_seconds": 34.33,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -1703,11 +2274,6 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "3.0 meters), facilitating evidence -based decision -making for sustainable urban planning and environmental management",
-          "description": "Detailed analysis, methodology, and findings presented under section '3.0 meters) from agricultural productivity functions (depth <'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "3.4.2 Final demarcation mapping products",
           "description": "Detailed analysis, methodology, and findings presented under section '3.4.2 Final demarcation mapping products'."
         },
@@ -1715,6 +2281,346 @@
           "@type": "CreativeWork",
           "name": "4. CONCLUSION",
           "description": "Detailed analysis, methodology, and findings presented under section '4. CONCLUSION'."
+        },
+        {
+          "@type": "Table",
+          "name": "Table 3. Comparison of total area with estimates on",
+          "description": "Structured quantitative data table (13 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 4. Land use criteria for each district based on the 2013",
+          "description": "Structured quantitative data table (20 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 6. Ash content examination results",
+          "description": "Structured quantitative data table (4 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 7. Organic content ranges and peat soil classification",
+          "description": "Structured quantitative data table (6 rows)",
+          "additionalType": "quantitative"
+        },
+        {
+          "@type": "Table",
+          "name": "Table 8. Spatial area comparison between Pontianak City",
+          "description": "Structured quantitative data table (39 rows)",
+          "additionalType": "quantitative"
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "District Area)",
+          "value": 42.14,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Terrestrial Soil Carbon Despite",
+          "value": 30.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Earth",
+          "value": 3.0,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "City",
+          "value": 20.15,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Administrative Districts Containing Peatland Formations",
+          "value": 23.8649,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Verified Peatland Formations",
+          "value": 23.118,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Observation Points",
+          "value": 614.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Undisturbed Soil Specimens",
+          "value": 68.0,
+          "unitText": "specimens",
+          "description": "Kuantitas terukur pada halaman 1"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "District Area)",
+          "value": 5.66,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 2"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pontianak City",
+          "value": 20.15,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 2"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Pontianak City",
+          "value": 20.149,
+          "unitText": "percent",
+          "description": "Teridentifikasi pada halaman 3"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "City",
+          "value": 53.5,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Land Use Observation For",
+          "value": 1.0,
+          "unitText": "Points",
+          "description": "Teridentifikasi pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Land Use Observation Points",
+          "value": 4.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 4"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Land Use Observation Points",
+          "value": 6.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Points Distributed As Follows",
+          "value": 13.0,
+          "unitText": "points",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Systematic Observation Points",
+          "value": 614.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Km Between Sample Points",
+          "value": 3.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Candidate Points",
+          "value": 68.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "District Maximum Longitudinal Distance",
+          "value": 1.368,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Maximum Transverse Distance",
+          "value": 0.886,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Determining The Points",
+          "value": 2.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Peat Soil Samples",
+          "value": 12.0,
+          "unitText": "samples",
+          "description": "Kuantitas terukur pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Navigation For Points",
+          "value": 13.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 7"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Systematically Distributed Points",
+          "value": 614.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 7"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Systematically Distributed Observation Points",
+          "value": 614.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 8"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Systematically Collected Undisturbed Samples",
+          "value": 68.0,
+          "unitText": "samples",
+          "description": "Kuantitas terukur pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Sampling Points",
+          "value": 13.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Classification Threshold ( Means",
+          "value": 6.41,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Organic Content",
+          "value": 28.2,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Observation Points Exceedi Ng",
+          "value": 95.65,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Observation Points",
+          "value": 23.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 9"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Individual Monitoring Stations Within",
+          "value": 66.67,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Monitoring Stations Detecting Peat",
+          "value": 66.67,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Observation Points Detecting Peat",
+          "value": 95.65,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "District Area) For Southeast",
+          "value": 35.95,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Undisturbed Soil\nSpecimens",
+          "value": 68.0,
+          "unitText": "specimens",
+          "description": "Kuantitas terukur pada halaman 10"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Observation Points",
+          "value": 22.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 11"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Surveyed Soil Profiles",
+          "value": 95.45,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 11"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Total Samples) Displayed",
+          "value": 63.6,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 12"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Surveyed Profiles Consist",
+          "value": 95.45,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 12"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "District Area",
+          "value": 35.95,
+          "unitText": "%",
+          "description": "Teridentifikasi pada halaman 13"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Confirmed Peatland Formations Within",
+          "value": 23.118,
+          "unitText": "km",
+          "description": "Teridentifikasi pada halaman 13"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Systematically Distributed\nObservation Points",
+          "value": 614.0,
+          "unitText": "points",
+          "description": "Kuantitas terukur pada halaman 14"
         }
       ],
       "citation": [
@@ -1807,19 +2713,19 @@
         "Structure": {
           "score": 100,
           "label": "Section Hierarchy",
-          "value": "29 sections, monotonic, no affiliation leak",
+          "value": "28 sections, monotonic, no affiliation leak",
           "status": "PASS"
         },
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "44 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
           "score": 100,
           "label": "Table Catalog",
-          "value": "0 structured tables",
+          "value": "5 structured tables",
           "status": "PASS"
         },
         "Citations": {

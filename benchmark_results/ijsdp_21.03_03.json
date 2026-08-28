@@ -228,11 +228,6 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "3.0 meters), facilitating evidence -based decision -making for sustainable urban planning and environmental management",
-      "description": "Detailed analysis, methodology, and findings presented under section '3.0 meters) from agricultural productivity functions (depth <'."
-    },
-    {
-      "@type": "CreativeWork",
       "name": "3.4.2 Final demarcation mapping products",
       "description": "Detailed analysis, methodology, and findings presented under section '3.4.2 Final demarcation mapping products'."
     },
@@ -240,6 +235,346 @@
       "@type": "CreativeWork",
       "name": "4. CONCLUSION",
       "description": "Detailed analysis, methodology, and findings presented under section '4. CONCLUSION'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3. Comparison of total area with estimates on",
+      "description": "Structured quantitative data table (13 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4. Land use criteria for each district based on the 2013",
+      "description": "Structured quantitative data table (20 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 6. Ash content examination results",
+      "description": "Structured quantitative data table (4 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 7. Organic content ranges and peat soil classification",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 8. Spatial area comparison between Pontianak City",
+      "description": "Structured quantitative data table (39 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "District Area)",
+      "value": 42.14,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Terrestrial Soil Carbon Despite",
+      "value": 30.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Earth",
+      "value": 3.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "City",
+      "value": 20.15,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Administrative Districts Containing Peatland Formations",
+      "value": 23.8649,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Verified Peatland Formations",
+      "value": 23.118,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Undisturbed Soil Specimens",
+      "value": 68.0,
+      "unitText": "specimens",
+      "description": "Kuantitas terukur pada halaman 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area)",
+      "value": 5.66,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 2"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pontianak City",
+      "value": 20.15,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 2"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pontianak City",
+      "value": 20.149,
+      "unitText": "percent",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "City",
+      "value": 53.5,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation For",
+      "value": 1.0,
+      "unitText": "Points",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation Points",
+      "value": 4.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation Points",
+      "value": 6.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Points Distributed As Follows",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Teridentifikasi pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematic Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Km Between Sample Points",
+      "value": 3.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Candidate Points",
+      "value": 68.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Maximum Longitudinal Distance",
+      "value": 1.368,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Maximum Transverse Distance",
+      "value": 0.886,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Determining The Points",
+      "value": 2.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Peat Soil Samples",
+      "value": 12.0,
+      "unitText": "samples",
+      "description": "Kuantitas terukur pada halaman 6"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Navigation For Points",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 7"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Distributed Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 7"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Distributed Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Collected Undisturbed Samples",
+      "value": 68.0,
+      "unitText": "samples",
+      "description": "Kuantitas terukur pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Sampling Points",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Classification Threshold ( Means",
+      "value": 6.41,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Organic Content",
+      "value": 28.2,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points Exceedi Ng",
+      "value": 95.65,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 23.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Individual Monitoring Stations Within",
+      "value": 66.67,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Monitoring Stations Detecting Peat",
+      "value": 66.67,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points Detecting Peat",
+      "value": 95.65,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area) For Southeast",
+      "value": 35.95,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Undisturbed Soil\nSpecimens",
+      "value": 68.0,
+      "unitText": "specimens",
+      "description": "Kuantitas terukur pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 22.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 11"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Surveyed Soil Profiles",
+      "value": 95.45,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 11"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Total Samples) Displayed",
+      "value": 63.6,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 12"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Surveyed Profiles Consist",
+      "value": 95.45,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 12"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area",
+      "value": 35.95,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 13"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Confirmed Peatland Formations Within",
+      "value": 23.118,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 13"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Distributed\nObservation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Kuantitas terukur pada halaman 14"
     }
   ],
   "citation": [

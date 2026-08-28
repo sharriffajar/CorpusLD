@@ -36,6 +36,7 @@
     {
       "@type": "Person",
       "name": "Felipe Buendia",
+      "identifier": "felipe.buendia@inrae.fr",
       "affiliation": {
         "@type": "EducationalOrganization",
         "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
@@ -95,9 +96,87 @@
     },
     {
       "@type": "Table",
-      "name": "Table 1: Configuration performance: break-even distances and",
-      "description": "Structured quantitative data table (5 rows)",
+      "name": "Table (Page 2)",
+      "description": "Structured descriptive data table (22 rows)",
+      "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1: Configuration performance: break-even distances and transport distances at which transport accounts for",
+      "description": "Structured quantitative data table (8 rows)",
       "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Diesel",
+      "value": 16.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Electric Trucks",
+      "value": 15.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biogas Trucks",
+      "value": 13.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Ad With Electric Trucks",
+      "value": 40.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Composting With Electric And",
+      "value": 35.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Total Impact Are",
+      "value": 50.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Total Environmental Impact",
+      "value": 50.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Small Facilities",
+      "value": 40.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Medium Facilities",
+      "value": 58.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Large Facilities When Diesel",
+      "value": 66.0,
+      "unitText": "km",
+      "description": "Teridentifikasi pada halaman 4"
     }
   ],
   "citation": [

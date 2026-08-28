@@ -47,8 +47,8 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "2. Deeper priors suit more concentrated targets, and averaging over depth removes the need to",
-      "description": "Detailed analysis, methodology, and findings presented under section '2. Deeper priors suit more concentrated targets, and averaging over depth removes the need to'."
+      "name": "2. The Information-Theoretic Setting, in Brief",
+      "description": "Detailed analysis, methodology, and findings presented under section '2. The Information-Theoretic Setting, in Brief'."
     },
     {
       "@type": "CreativeWork",
@@ -62,18 +62,8 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "5. Certified computation.All probabilities are evaluated from explicit formulas rather than by",
-      "description": "Detailed analysis, methodology, and findings presented under section '5. Certified computation.All probabilities are evaluated from explicit formulas rather than by'."
-    },
-    {
-      "@type": "CreativeWork",
       "name": "3.1 Exact regret via count profiles",
       "description": "Detailed analysis, methodology, and findings presented under section '3.1 Exact regret via count profiles'."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "3.2 The shallow end of the family is Laplace’s rule",
-      "description": "Detailed analysis, methodology, and findings presented under section '3.2 The shallow end of the family is Laplace’s rule'."
     },
     {
       "@type": "CreativeWork",
@@ -124,6 +114,171 @@
       "@type": "CreativeWork",
       "name": "8. Conclusion",
       "description": "Detailed analysis, methodology, and findings presented under section '8. Conclusion'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3:Data scaling.Predicted and measured exponents over the tested range 100≤N≤10 4.",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4:Depth scaling.Measured dependence of the regret per discovered symbol on depth at",
+      "description": "Structured quantitative data table (2 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5: MeanD(p∥ˆq) in bits atn= 2·10 4,d= 10 4, 20 trials; standard errors≤0.001 bits",
+      "description": "Structured quantitative data table (1 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 23)",
+      "description": "Structured quantitative data table (10 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Yi Pd J",
+      "value": 1.0,
+      "unitText": "Yj",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Qn)",
+      "value": 1.0,
+      "unitText": "N",
+      "description": "Teridentifikasi pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "D",
+      "value": 103.0,
+      "unitText": "N",
+      "description": "Teridentifikasi pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "All L L",
+      "value": 1.0,
+      "unitText": "L",
+      "description": "Teridentifikasi pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "L",
+      "value": 23.0,
+      "unitText": "L",
+      "description": "Teridentifikasi pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "It",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Of Count Atd",
+      "value": 10.0,
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Count Atd",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet",
+      "value": 42.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet And",
+      "value": 42.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 13"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass And Its",
+      "value": 96.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 15"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Natural Oracle (",
+      "value": 8.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 17"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Natural Oracle",
+      "value": 8.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 18"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass Onl",
+      "value": 86.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 18"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Broad",
+      "value": 94.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass Onl",
+      "value": 94.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet",
+      "value": 14.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet That Never",
+      "value": 86.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Tol",
+      "value": 15.0,
+      "unitText": "as",
+      "description": "Teridentifikasi pada halaman 21"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Shares Identical\nSamples",
+      "value": 5.0,
+      "unitText": "samples",
+      "description": "Kuantitas terukur pada halaman 28"
     }
   ],
   "citation": [

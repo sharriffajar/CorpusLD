@@ -135,9 +135,253 @@
     },
     {
       "@type": "Table",
-      "name": "Table 2",
-      "description": "Structured quantitative data table (6 rows)",
+      "name": "Table 2 - Overview of e-methanol plants in EU (commercial or engineering phase)",
+      "description": "Structured quantitative data table (7 rows)",
       "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 6: Technology data assumptions for 2030 – as model inputs.",
+      "description": "Structured quantitative data table (17 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 7 - Interface between external grids and behind-the-meter market",
+      "description": "Structured quantitative data table (28 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 8 : sensitivity parameters",
+      "description": "Structured quantitative data table (21 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Hydrogen Production Capacity From",
+      "value": 65.0,
+      "unitText": "GW",
+      "description": "Teridentifikasi pada halaman 2"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Co",
+      "value": 99.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biomethane Per Year And",
+      "value": 200.0,
+      "unitText": "GWh",
+      "description": "Teridentifikasi pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biomethane",
+      "value": 200.0,
+      "unitText": "GWh",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Heat For Each Mw",
+      "value": 0.085,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Injection",
+      "value": 40.0,
+      "unitText": "bar",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Electricity Generated",
+      "value": 22.3,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Increasing Production From Zero",
+      "value": 48.0,
+      "unitText": "h",
+      "description": "Teridentifikasi pada halaman 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Of Each Compression Stage",
+      "value": 130.0,
+      "unitText": "°C",
+      "description": "Teridentifikasi pada halaman 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "High Energy Market Prices",
+      "value": 15.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Wind Power And",
+      "value": 230.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Solar Which Supply",
+      "value": 40.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Solar",
+      "value": 150.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Lithium -Ion Batteries Provides",
+      "value": 15.0,
+      "unitText": "MWh",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "The",
+      "value": 100.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Available Co",
+      "value": 90.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 22"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Solar And Increase Up",
+      "value": 25.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 23"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Electrolysis",
+      "value": 26.5,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 23"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alkaline Electrolysis Cells (Aecs)",
+      "value": 1.0,
+      "unitText": "μS/cm",
+      "description": "Teridentifikasi pada halaman 31"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mesophilic Digestion Or",
+      "value": 40.0,
+      "unitText": "°C",
+      "description": "Teridentifikasi pada halaman 31"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Thermophilic Digestion",
+      "value": 55.0,
+      "unitText": "°C",
+      "description": "Teridentifikasi pada halaman 31"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Dry Matter In",
+      "value": 46.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 31"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biogas Input Electricity Demand",
+      "value": 10.32,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 34"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biogas Input Pyrolysis Of",
+      "value": 1.89,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 34"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pellets Energy (Lhv) Energy",
+      "value": 13.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pellets Energy (Lhv) Losses",
+      "value": 9.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pellets Energy (Lhv) Assumption",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pellets Energy (Lhv) Carbon",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pellets Carbon H/C Ratio",
+      "value": 37.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Carbon In Biochar Assumption",
+      "value": 80.0,
+      "unitText": "%",
+      "description": "Teridentifikasi pada halaman 35"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Powering Variable Loads",
+      "value": 20.0,
+      "unitText": "kV",
+      "description": "Teridentifikasi pada halaman 39"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Other Steady Industrial",
+      "value": 10.0,
+      "unitText": "kV",
+      "description": "Teridentifikasi pada halaman 39"
     }
   ],
   "citation": [

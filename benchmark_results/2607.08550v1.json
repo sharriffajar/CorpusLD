@@ -157,18 +157,8 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "6. end for 7:foreach analog output writeo←edo",
-      "description": "Detailed analysis, methodology, and findings presented under section '6. end for 7:foreach analog output writeo←edo'."
-    },
-    {
-      "@type": "CreativeWork",
       "name": "6.2 Implementation",
       "description": "Detailed analysis, methodology, and findings presented under section '6.2 Implementation'."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "7. foreach analog output writeo←edo",
-      "description": "Detailed analysis, methodology, and findings presented under section '7. foreach analog output writeo←edo'."
     },
     {
       "@type": "CreativeWork",
@@ -184,6 +174,11 @@
       "@type": "CreativeWork",
       "name": "6.2.3 Configurability and Engineering",
       "description": "Detailed analysis, methodology, and findings presented under section '6.2.3 Configurability and Engineering'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7. The Approach in Practice",
+      "description": "Detailed analysis, methodology, and findings presented under section '7. The Approach in Practice'."
     },
     {
       "@type": "CreativeWork",
@@ -207,23 +202,8 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "8.2 RQ1: The Gap Is Real but Rare",
-      "description": "Detailed analysis, methodology, and findings presented under section '8.2 RQ1: The Gap Is Real but Rare'."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "8.3 RQ2: Naive Width-Aware Verification Is Unusable",
-      "description": "Detailed analysis, methodology, and findings presented under section '8.3 RQ2: Naive Width-Aware Verification Is Unusable'."
-    },
-    {
-      "@type": "CreativeWork",
       "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
       "description": "Detailed analysis, methodology, and findings presented under section '8.4 RQ3: The HAL Annotator Restores Soundness'."
-    },
-    {
-      "@type": "CreativeWork",
-      "name": "8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific",
-      "description": "Detailed analysis, methodology, and findings presented under section '8.5 Cross-Tool Validation: the Gap Is Not Tool-Specific'."
     },
     {
       "@type": "CreativeWork",
@@ -242,6 +222,12 @@
     },
     {
       "@type": "Table",
+      "name": "Table 1: Positioning: who models the deployment target. “Auto inputs” = hardware input ranges derived automatically",
+      "description": "Structured quantitative data table (11 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
       "name": "Table LetP be a program andφ a safety property. Existing tools checkMabs(P) - =φ , whereMabs is the abstract scan-cycle (Page 8)",
       "description": "Structured quantitative data table (6 rows)",
       "additionalType": "quantitative"
@@ -251,6 +237,58 @@
       "name": "Table Mabs:wlarge,D(i) =Z - M dev(P,H): both fromH (Page 10)",
       "description": "Structured descriptive data table (2 rows)",
       "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3: Evaluation corpora. The real corpus is third-party and pinned; the controlled corpus is authored to isolate the",
+      "description": "Structured descriptive data table (9 rows)",
+      "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4: Verdict matrix: identical logic and properties, abstract model vs. per-board deployed model.Unsafe = ESBMC",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5: Real corpus (123 programs), 16-bit overflow checking: naive vs. HAL-annotated.",
+      "description": "Structured quantitative data table (3 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 16)",
+      "description": "Structured quantitative data table (8 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 7: Per-program solve time (ESBMC v8.3.0, Z3 backend, commodity laptop)",
+      "description": "Structured quantitative data table (3 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Violation With Counterexample Adc",
+      "value": 898.0,
+      "description": "Teridentifikasi pada halaman 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Any Physically Realizable Input",
+      "value": 16.0,
+      "unitText": "bits",
+      "description": "Teridentifikasi pada halaman 15"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Median Solve Time",
+      "value": 168.0,
+      "unitText": "ms",
+      "description": "Teridentifikasi pada halaman 16"
     }
   ],
   "citation": [

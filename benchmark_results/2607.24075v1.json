@@ -6,7 +6,7 @@
   ],
   "headline": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
   "name": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
-  "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues. This paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits. A key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization. Validation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
+  "description": "The growing integration of Battery Energy Storage Systems (BESSs) into electricity markets has highlighted the importance of coordinated participation across energy and balancing services to fully exploit their operational flexibility. However, existing revenue-stacking models often simplify market sequences and neglect the impact of rolling forecasts, leading to unrealistic scheduling and overestimated revenues.\n\nThis paper addresses this gap by introducing a sequential, data-driven optimization framework for Front-of-the-Meter (FTM) BESSs that mirrors actual market operations. The framework explicitly models market mechanisms and its respective Gate Closure Time (GCT) across Frequency Containment Reserve (FCR), automatic Frequency Restoration Reserve (aFRR), Day Ahead Auction (DAA), and Intraday Auction (IDA) markets. Each market stage optimizes expected revenue over all remaining markets using updated price forecasts while maintaining feasibility within both technical and regulatory limits.\n\nA key contribution is the opportunity-cost-based bidding strategy, which endogenously derives market-consistent bid prices and quantities from residual capacity optimization.\n\nValidation for a representative operating day demonstrates that the framework yields consistent and feasible schedules, effectively adapts to updated forecasts, and minimizes deviations between planned and realized dispatch, thereby enhancing the realism and profitability of BESS operation.",
   "inLanguage": "en",
   "keywords": [
     "Battery Energy Storage Systems",
@@ -64,13 +64,50 @@
     },
     {
       "@type": "CreativeWork",
-      "name": "1. schedule to the schedule at 3 p.m. (IDA 1) can be explained",
-      "description": "Detailed analysis, methodology, and findings presented under section '1. schedule to the schedule at 3 p.m. (IDA 1) can be explained'."
-    },
-    {
-      "@type": "CreativeWork",
       "name": "V. CONCLUSION",
       "description": "Detailed analysis, methodology, and findings presented under section 'V. CONCLUSION'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 5)",
+      "description": "Structured quantitative data table (95 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Fcr",
+      "value": 0.91,
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Frr",
+      "value": 1.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Maximized While Other",
+      "value": 0.0,
+      "unitText": "Lb",
+      "description": "Teridentifikasi pada halaman 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Optimal Dis- Tribution Of",
+      "value": 1.0,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 6"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Q Daa",
+      "value": 0.1,
+      "unitText": "MW",
+      "description": "Teridentifikasi pada halaman 7"
     }
   ],
   "citation": [
