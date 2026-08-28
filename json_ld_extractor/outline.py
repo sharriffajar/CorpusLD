@@ -61,6 +61,13 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
             continue
         if re.search(r'\.\s*[A-Z]', name) and len(name.split()) > 6:
             continue
+        # Tolak kalimat naratif yang memuat tanda titik-koma, titik di tengah kata, atau verba isi paragraf
+        if ';' in name or re.search(r'\.\s+[A-Za-z]', name):
+            continue
+        if re.search(r'\b(?:students|tutors|groups|articles|hours|weeks|days|months|sessions|samples|participants|patients|respondents|analysed|analyzed|assessed|explained|evaluated|conducted|achieved|observed|suggests|indicates|improves|demonstrates|guiding|removes\s+the\s+need|suit\s+more)\b', name, re.I) and len(name.split()) >= 3:
+            continue
+        if name and (name[0].islower() or re.match(r'^\d+\s+[a-z]', name)):
+            continue
 
         # Tolak bab >= 3 yang muncul sebelum halaman Bab 2 (poin daftar kontribusi di dalam Section 1)
         m_major = re.match(r'^([3-9]|1\d|2\d)[\.\:\s]', name)
@@ -251,6 +258,12 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 # Tolak jika memuat tanda persen, simbol sama dengan, atau angka berganda (bukan judul seksi)
                 if '%' in p2 or '=' in p2 or len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 2:
                     continue
+                if ';' in p2 or re.search(r'\.\s+[A-Za-z]', p2):
+                    continue
+                if re.search(r'\b(?:were|was|are|is|hours|weeks|days|months|sessions|articles|samples|participants|patients|respondents|analysed|analyzed|assessed|explained|evaluated|conducted|achieved|observed|suggests|indicates|improves|demonstrates|removes\s+the\s+need|suit\s+more)\b', p2, re.I) and len(p2.split()) >= 4:
+                    continue
+                if p2 and p2[0].islower():
+                    continue
                 if len(p2.split()) <= 14 and len(p2) >= 3:
                     h_full = f"{p1} {p2}"
                     if h_full.lower() not in seen_names:
@@ -266,6 +279,12 @@ def extract_agnostic_structural_outline(chunks: List[Dict[str, Any]]) -> List[tu
                 if p2.lower().strip() in cardinal_directions or (re.match(r'^(?:north|south|east|west|utara|selatan|timur|barat)\b', p2.lower()) and len(p2.split()) <= 2):
                     continue
                 if '%' in p2 or '=' in p2 or len(re.findall(r'\b\d+(?:[.,]\d+)?\b', p2)) >= 3:
+                    continue
+                if ';' in p2 or re.search(r'\.\s+[A-Za-z]', p2):
+                    continue
+                if re.search(r'\b(?:students|tutors|groups|articles|hours|weeks|days|months|sessions|samples|participants|patients|respondents|analysed|analyzed|assessed|explained|evaluated|conducted|achieved|observed|suggests|indicates|improves|demonstrates|guiding|removes\s+the\s+need|suit\s+more)\b', p2, re.I) and len(p2.split()) >= 3:
+                    continue
+                if p2 and (p2[0].islower() or re.match(r'^\d+\s+[a-z]', p2)):
                     continue
                 if len(p2.split()) <= 14 and len(p2) >= 3:
                     h_full = f"{p1}. {p2}"

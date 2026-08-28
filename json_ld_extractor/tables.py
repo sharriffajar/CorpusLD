@@ -274,42 +274,84 @@ def parse_markdown_table_direct(table_text: str, page_number: int = 1, in_langua
 
 def parse_flat_text_table(text: str, page_number: int = 1, in_language: str = "id") -> Optional[Dict[str, Any]]:
     """
-    Ekstraksi deterministik tabel flat tanpa pipe '|' yang diekstrak oleh pypdf.
-    Contoh: 'Table 1. Method Success Rates Method Image Splicing Copy-Move Error Level Analysis (ELA) 70,40% 64,00% Noise Analysis 39,20% 28,00% Clone Detection 46,40% 81,60%'
+    Ekstraksi deterministik tabel flat tanpa pipe '|' (multiline layout maupun compact inline).
     """
     clean = text.replace("DATA TABEL / METRIK SPESIFIK:", "").strip()
+    if not clean:
+        return None
+        
+    lines = [l.strip() for l in clean.splitlines() if l.strip()]
+    
+    # 1. Multiline Flat Table Strategy
+    if len(lines) >= 3:
+        caption = None
+        data_lines = list(lines)
+        if re.match(r'^(?:Tabel|Table)\s+\d+', data_lines[0], re.IGNORECASE):
+            caption = data_lines[0]
+            data_lines = data_lines[1:]
+            
+        if len(data_lines) >= 2:
+            # Parse header row
+            first_l = data_lines[0]
+            if "\t" in first_l or re.search(r'\s{2,}', first_l):
+                headers = [c.strip() for c in re.split(r'\t+|\s{2,}', first_l) if c.strip()]
+            else:
+                headers = [c.strip() for c in first_l.split() if c.strip()]
+                
+            if len(headers) >= 2:
+                rows = []
+                for dl in data_lines[1:]:
+                    if "\t" in dl or re.search(r'\s{2,}', dl):
+                        cols = [c.strip() for c in re.split(r'\t+|\s{2,}', dl) if c.strip()]
+                    else:
+                        cols = [c.strip() for c in dl.split() if c.strip()]
+                        
+                    if len(cols) >= len(headers):
+                        if len(cols) > len(headers):
+                            cols = cols[:len(headers)-1] + [" ".join(cols[len(headers)-1:])]
+                        rows.append(cols)
+                    elif len(cols) >= 2:
+                        padded = cols + [""] * (len(headers) - len(cols))
+                        rows.append(padded)
+                        
+                if len(rows) >= 1 and is_valid_tabular_data(headers, rows):
+                    table_type = "descriptive" if is_descriptive_table(headers, rows) else "quantitative"
+                    return {
+                        "caption": caption or f"Tabel (Halaman {page_number})",
+                        "page_number": page_number,
+                        "headers": headers,
+                        "rows": rows,
+                        "table_type": table_type
+                    }
+
+    # 2. Compact Inline Flat Table Strategy (Single-paragraph table dump)
     m_cap = re.search(r'^(?:Tabel|Table)\s+\d+[\.\:\-\—\s]+', clean, re.IGNORECASE)
-    if not m_cap:
-        return None
-    
-    # Cari baris-baris data yang memuat entitas dan angka/persentase di akhir
-    row_re = re.compile(r'([A-Za-z\(\)\s\-\/]+?)\s+([\d\.,]+%?)\s+([\d\.,]+%?)(?=\s+[A-Z]|\s*$)', re.IGNORECASE)
-    matches = list(row_re.finditer(clean))
-    if len(matches) < 2:
-        return None
-        
-    first_row_start = matches[0].start()
-    header_part = clean[:first_row_start].strip()
-    
-    caption_m = re.match(r'^((?:Tabel|Table)\s+\d+[\.\:\-\—\s]+(?:Method\s+Success\s+Rates|[A-Za-z\s]+?))\s+(Method|Param|Variable|Jenis|Kategori|Surface|No\b|[A-Z][a-z]+)\s+(.+)$', header_part, re.IGNORECASE)
-    if caption_m:
-        caption = caption_m.group(1).strip()
-        headers = [caption_m.group(2).strip()] + [c.strip() for c in re.split(r'\s{2,}|\t+|(?<=[a-z])\s+(?=[A-Z])', caption_m.group(3)) if c.strip()]
-    else:
-        caption = header_part[:60].strip()
-        headers = ["Item", "Column 1", "Column 2"]
-        
-    rows = []
-    for m in matches:
-        rows.append([m.group(1).strip(), m.group(2).strip(), m.group(3).strip()])
-        
-    if is_valid_tabular_data(headers, rows):
-        table_type = "descriptive" if is_descriptive_table(headers, rows) else "quantitative"
-        return {
-            "caption": caption,
-            "page_number": page_number,
-            "headers": headers,
-            "rows": rows,
-            "table_type": table_type
-        }
+    if m_cap:
+        row_re = re.compile(r'([A-Za-z\(\)\s\-\/]+?)\s+([\d\.,]+%?)\s+([\d\.,]+%?)(?=\s+[A-Z]|\s*$)', re.IGNORECASE)
+        matches = list(row_re.finditer(clean))
+        if len(matches) >= 2:
+            first_row_start = matches[0].start()
+            header_part = clean[:first_row_start].strip()
+            
+            caption_m = re.match(r'^((?:Tabel|Table)\s+\d+[\.\:\-\—\s]+(?:Method\s+Success\s+Rates|[A-Za-z\s]+?))\s+(Method|Param|Variable|Jenis|Kategori|Surface|No\b|[A-Z][a-z]+)\s+(.+)$', header_part, re.IGNORECASE)
+            if caption_m:
+                caption = caption_m.group(1).strip()
+                headers = [caption_m.group(2).strip()] + [c.strip() for c in re.split(r'\s{2,}|\t+|(?<=[a-z])\s+(?=[A-Z])', caption_m.group(3)) if c.strip()]
+            else:
+                caption = header_part[:60].strip()
+                headers = ["Item", "Column 1", "Column 2"]
+                
+            rows = []
+            for m in matches:
+                rows.append([m.group(1).strip(), m.group(2).strip(), m.group(3).strip()])
+                
+            if is_valid_tabular_data(headers, rows):
+                table_type = "descriptive" if is_descriptive_table(headers, rows) else "quantitative"
+                return {
+                    "caption": caption,
+                    "page_number": page_number,
+                    "headers": headers,
+                    "rows": rows,
+                    "table_type": table_type
+                }
     return None
