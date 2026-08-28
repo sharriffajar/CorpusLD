@@ -20,7 +20,7 @@ except ImportError:
 def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
     """
     Pemulihan heuristik untuk respons LLM berupa JSON yang terpotong,
-    memiliki trailing commas, atau unclosed braces/brackets.
+    memiliki trailing commas, backslash LaTeX tidak ter-escape, atau unclosed braces/brackets.
     """
     cleaned = text.strip()
     cleaned = re.sub(r'^```(?:json)?\s*', '', cleaned, flags=re.IGNORECASE)
@@ -32,8 +32,15 @@ def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
     except Exception:
         pass
 
-    # 2. Cari blok objek {...} atau array [...]
-    m = re.search(r'(\{[\s\S]*\}|\[[\s\S]*\])', cleaned)
+    # 2. Perbaiki backslash LaTeX unescaped (\frac, \sum, \alpha, etc.)
+    fixed_escapes = re.sub(r'\\(?![/"\\bfnrtu])', r'\\\\', cleaned)
+    try:
+        return json.loads(fixed_escapes)
+    except Exception:
+        pass
+
+    # 3. Cari blok objek {...} atau array [...]
+    m = re.search(r'(\{[\s\S]*\}|\[[\s\S]*\])', fixed_escapes)
     if m:
         candidate = m.group(1)
         try:
@@ -41,16 +48,18 @@ def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
         except Exception:
             # Hapus trailing commas: ,} -> } atau ,] -> ]
             candidate = re.sub(r',\s*([\}\]])', r'\1', candidate)
+            # Perbaiki unquoted / numeric dictionary keys: { 1: ... } atau { key: ... }
+            candidate = re.sub(r'(?<=[{,])\s*([A-Za-z0-9_]+)\s*:', r' "\1":', candidate)
             try:
                 return json.loads(candidate)
             except Exception:
                 pass
 
-    # 3. Upaya penutupan bracket/brace yang menggantung akibat token limit
-    open_braces = cleaned.count('{') - cleaned.count('}')
-    open_brackets = cleaned.count('[') - cleaned.count(']')
+    # 4. Upaya penutupan bracket/brace yang menggantung akibat token limit
+    open_braces = fixed_escapes.count('{') - fixed_escapes.count('}')
+    open_brackets = fixed_escapes.count('[') - fixed_escapes.count(']')
     
-    patched = cleaned
+    patched = fixed_escapes
     # Hapus trailing comma di ujung jika ada
     patched = re.sub(r',\s*$', '', patched)
     if open_brackets > 0:
@@ -68,9 +77,13 @@ def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
 
 def _post_process_json_response(raw_json: Any, pydantic_schema: Any) -> Dict[str, Any]:
     """Menormalisasi sinonim keys dan menyesuaikan format ke skema Pydantic."""
+    schema_fields = getattr(pydantic_schema, 'model_fields', {})
+    
     if isinstance(raw_json, list):
         schema_name = getattr(pydantic_schema, '__name__', str(pydantic_schema))
-        if 'Metric' in schema_name or 'Property' in schema_name:
+        if 'metrics' in schema_fields:
+            raw_json = {"metrics": raw_json}
+        elif 'Metric' in schema_name or 'Property' in schema_name:
             raw_json = {"properties_and_metrics": raw_json}
         elif 'Section' in schema_name:
             raw_json = {"sections": raw_json}
@@ -103,10 +116,17 @@ def _post_process_json_response(raw_json: Any, pydantic_schema: Any) -> Dict[str
         if "tags" in raw_json and "keywords" not in raw_json:
             raw_json["keywords"] = raw_json.pop("tags")
 
-        if "metrics" in raw_json and "properties_and_metrics" not in raw_json:
-            raw_json["properties_and_metrics"] = raw_json.pop("metrics")
-        elif "properties" in raw_json and "properties_and_metrics" not in raw_json:
-            raw_json["properties_and_metrics"] = raw_json.pop("properties")
+        # Sinkronisasi dua arah 'metrics' vs 'properties_and_metrics' tergantung skema tujuan
+        if "metrics" in schema_fields:
+            if "properties_and_metrics" in raw_json and "metrics" not in raw_json:
+                raw_json["metrics"] = raw_json.pop("properties_and_metrics")
+            elif "properties" in raw_json and "metrics" not in raw_json:
+                raw_json["metrics"] = raw_json.pop("properties")
+        else:
+            if "metrics" in raw_json and "properties_and_metrics" not in raw_json:
+                raw_json["properties_and_metrics"] = raw_json.pop("metrics")
+            elif "properties" in raw_json and "properties_and_metrics" not in raw_json:
+                raw_json["properties_and_metrics"] = raw_json.pop("properties")
             
         if "chapters" in raw_json and "sections" not in raw_json:
             raw_json["sections"] = raw_json.pop("chapters")
@@ -138,15 +158,21 @@ def _post_process_json_response(raw_json: Any, pydantic_schema: Any) -> Dict[str
                         for x in v
                     ]
                     continue
-                clean[k] = _sanitize_for_pydantic(v)
+                clean[str(k)] = _sanitize_for_pydantic(v)
             return clean
         elif isinstance(item, list):
             return [_sanitize_for_pydantic(x) for x in item]
         return item
 
     clean_raw_json = _sanitize_for_pydantic(raw_json)
-    parsed = pydantic_schema.model_validate(clean_raw_json)
-    return parsed.model_dump(by_alias=True)
+    try:
+        parsed = pydantic_schema.model_validate(clean_raw_json)
+        return parsed.model_dump(by_alias=True)
+    except Exception:
+        try:
+            return pydantic_schema().model_dump(by_alias=True)
+        except Exception:
+            return clean_raw_json if isinstance(clean_raw_json, dict) else {}
 
 
 def run_agentic_step(
@@ -253,8 +279,14 @@ def run_agentic_step(
 
     raw_json = repair_malformed_json(content)
     if raw_json is None:
-        parsed = pydantic_schema.model_validate_json(content)
-        return parsed.model_dump(by_alias=True)
+        try:
+            parsed = pydantic_schema.model_validate_json(content)
+            return parsed.model_dump(by_alias=True)
+        except Exception:
+            try:
+                return pydantic_schema().model_dump(by_alias=True)
+            except Exception:
+                return {}
 
     return _post_process_json_response(raw_json, pydantic_schema)
 
@@ -329,7 +361,13 @@ async def run_agentic_step_async(
 
     raw_json = repair_malformed_json(content)
     if raw_json is None:
-        parsed = pydantic_schema.model_validate_json(content)
-        return parsed.model_dump(by_alias=True)
+        try:
+            parsed = pydantic_schema.model_validate_json(content)
+            return parsed.model_dump(by_alias=True)
+        except Exception:
+            try:
+                return pydantic_schema().model_dump(by_alias=True)
+            except Exception:
+                return {}
 
     return _post_process_json_response(raw_json, pydantic_schema)

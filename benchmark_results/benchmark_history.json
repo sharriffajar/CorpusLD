@@ -1,7 +1,7 @@
 [
   {
     "file_name": "20.+Al-Amin++M+(200-211).pdf",
-    "duration_seconds": 18.61,
+    "duration_seconds": 18.45,
     "schema_json_ld": {
       "@context": "https://schema.org",
       "@type": [
@@ -33,7 +33,6 @@
         {
           "@type": "Person",
           "name": "Mariyati Mardjuky",
-          "identifier": "0009-0009-9765-2921",
           "affiliation": {
             "@type": "EducationalOrganization",
             "name": "Department Maternity Nursing, Nursing Study Program, Sekolah Tinggi Ilmu Kesehatan Maluku Husada, Indonesia"
@@ -66,7 +65,6 @@
         {
           "@type": "Person",
           "name": "Afni Yan Syah",
-          "identifier": "0009-0003-8411-6667",
           "affiliation": {
             "@type": "EducationalOrganization",
             "name": "Department of Nursing, Akademi Keperawatan Kesdam Iskandar Muda Banda Aceh, Indonesia"
@@ -75,7 +73,6 @@
         {
           "@type": "Person",
           "name": "Yunita",
-          "identifier": "0009-0002-7214-2334",
           "affiliation": {
             "@type": "EducationalOrganization",
             "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
@@ -84,7 +81,6 @@
         {
           "@type": "Person",
           "name": "Evi Gustia Kesuma",
-          "identifier": "0009-0005-4402-4447",
           "affiliation": {
             "@type": "EducationalOrganization",
             "name": "Department of Nursing, Faculty of Nursing, Stikes Griya Husada, Sumbawa, Indonesia"
@@ -104,26 +100,6 @@
         },
         {
           "@type": "CreativeWork",
-          "name": "12. hours or 6 weeks; each session is 2 hours.",
-          "description": "Detailed analysis, methodology, and findings presented under section '12. hours or 6 weeks; each session is 2 hours.'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "2. articles were analyzed to assess motivation",
-          "description": "Detailed analysis, methodology, and findings presented under section '2. articles were analyzed to assess motivation'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "4. studies measure the critical thinking skills",
-          "description": "Detailed analysis, methodology, and findings presented under section '4. studies measure the critical thinking skills'."
-        },
-        {
-          "@type": "CreativeWork",
-          "name": "7. 8 students, with each tutor guiding 2 groups.",
-          "description": "Detailed analysis, methodology, and findings presented under section '7. 8 students, with each tutor guiding 2 groups.'."
-        },
-        {
-          "@type": "CreativeWork",
           "name": "Discussion",
           "description": "Detailed analysis, methodology, and findings presented under section 'Discussion'."
         },
@@ -131,6 +107,64 @@
           "@type": "CreativeWork",
           "name": "Conclusion",
           "description": "Detailed analysis, methodology, and findings presented under section 'Conclusion'."
+        }
+      ],
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Lectures",
+          "value": 8.0,
+          "unitText": "months",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Intervention Group",
+          "value": 73.0,
+          "unitText": "respondents",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Respondents Intervention Group",
+          "value": 141.0,
+          "unitText": "respondents",
+          "description": "Teridentifikasi pada halaman 5"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Lectures)",
+          "value": 8.0,
+          "unitText": "months",
+          "description": "Teridentifikasi pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Implementing Cbl",
+          "value": 9.0,
+          "unitText": "weeks",
+          "description": "Teridentifikasi pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Hospitalized Patients",
+          "value": 23.0,
+          "unitText": "patients",
+          "description": "Kuantitas terukur pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Nursing Cases",
+          "value": 8.0,
+          "unitText": "cases",
+          "description": "Kuantitas terukur pada halaman 6"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Research Articles",
+          "value": 6.0,
+          "unitText": "articles",
+          "description": "Kuantitas terukur pada halaman 9"
         }
       ],
       "citation": [
@@ -213,13 +247,13 @@
         "Structure": {
           "score": 100,
           "label": "Section Hierarchy",
-          "value": "8 sections, monotonic, no affiliation leak",
+          "value": "4 sections, monotonic, no affiliation leak",
           "status": "PASS"
         },
         "Metrics": {
           "score": 100,
           "label": "Quantitative Metrics",
-          "value": "0 calibrated properties, zero null units",
+          "value": "8 calibrated properties, zero null units",
           "status": "PASS"
         },
         "Tables": {
