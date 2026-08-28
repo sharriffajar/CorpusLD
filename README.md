@@ -18,7 +18,7 @@
 [![W3C RDF](https://img.shields.io/badge/W3C%20RDF-Turtle%20.ttl-blue.svg?style=flat-square&logo=w3c)](https://www.w3.org/TR/turtle/)
 [![Google Rich Results](https://img.shields.io/badge/Google%20Rich%20Results-Ready-orange.svg?style=flat-square&logo=google)](https://search.google.com/test/rich-results)
 [![Benchmark](https://img.shields.io/badge/Benchmark%20Quality-100%25%20(7%2F7%20Passed)-brightgreen.svg?style=flat-square)](benchmark_results/dashboard.html)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-87%20Passed-success.svg?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-89%20Passed-success.svg?style=flat-square)](tests/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat-square)](LICENSE)
 
 > **"Don't just extract knowledge. Partner with it."**
@@ -38,6 +38,7 @@
 | **Surface Metadata Only** | **Dual-Layer Linked Data**: Schema.org macro publication metadata + micro Deep Knowledge Graph triples with 10 standard relations. |
 | **Hallucination-Prone Chatbot** | **Evidence-Grounded Neural Studio**: Every answer binds to verifiable source page citations. |
 | **Blind Acceptance** | **Adversarial Audit Engine**: Actively stress-tests data for trade-off context, contradictions, and numerical bounds. |
+| **Unprotected Endpoints** | **Hardened Security & Reliability**: DOM XSS escaping, strict CSP, SSRF firewall, header-based auth, and SQLite WAL concurrency. |
 
 ---
 
@@ -67,24 +68,26 @@
 - **Zero Truncation Loss**: Eliminates the RAG top-4 similarity sampling bottleneck on technical papers by systematically analyzing every structural section and page cluster in sequential batches.
 - **Deterministic Pre-Scanners**: Extracts exact LaTeX equations (`\begin{equation}`, `$$...$$`), technical hardware/parameter codes (`ESP32-S3`, `ACS712`, `FCR`), and calibrated quantitative metrics deterministically before LLM refinement.
 
-### 4. 🚀 4-Tier Layout-Aware Parser & Cost-Saver Engine
+### 5. 🚀 4-Tier Layout-Aware Parser & Cost-Saver Engine
 - **Tier 1 (Vision/Layout)**: LlamaParse Markdown Table & Hierarchy Parser.
 - **Tier 2 (Structured)**: Unstructured.io API Parser.
 - **Tier 3 (Local Offline)**: PyPDF standalone parser with zero internet requirement.
 - **Tier 4 (Hybrid Cost-Saver)**: PyPDF parses *everything* for free; pages whose tables fail local grid reconstruction are detected automatically and **only those pages** escalate to LlamaParse via `target_pages` (~75% cheaper).
 
-### 5. 🛡️ Disambiguated Adversarial Validation Engine
+### 6. 🛡️ Disambiguated Adversarial Validation Engine
 - **Trade-Off Context Disambiguation**: Differentiates authentic engineering trade-offs (e.g. *"increases throughput and decreases latency"*) from actual factual contradictions.
 - **Graph Health Diagnostics**: Evaluates graph connectivity, node density, average degree, and orphan entity count.
 - **Numerical & Range Consistency**: Validates reasonable percentage boundaries and unit calibrations.
 
-### 6. 💾 SQLite Persistent Workspace Store
+### 7. 💾 SQLite Persistent Workspace Store (WAL Concurrency)
 - Automatically persists uploaded documents, chunked vector records, and extracted knowledge graphs to `corpusld_store.db`.
-- Server restarts retain complete workspace state and previously extracted knowledge bases.
+- Operates in **Write-Ahead Logging (WAL)** mode with `busy_timeout=5000` to guarantee high concurrency during simultaneous SSE streaming and RAG retrieval.
 
-### 7. ⚡ Non-Blocking Async LLM Adapters & Self-Healing JSON
-- Uses high-throughput `httpx.AsyncClient` streaming without event-loop starvation.
-- Automatic heuristic JSON repair recovers truncated or markdown-fenced LLM payloads seamlessly.
+### 8. 🔒 Security Hardening & Enterprise Reliability
+- **DOM-based XSS Defense**: Universal HTML escaping across the interactive web dashboard and metadata viewers, coupled with a strict Content Security Policy (CSP).
+- **SSRF Protection**: Rigorous parameter validation against loopback, private subnets, and cloud metadata services (`169.254.169.254`).
+- **Header-Based Auth**: Secure API key transport via `x-goog-api-key` HTTP headers instead of vulnerable URL query parameters.
+- **Non-Blocking Async Execution**: CPU-bound embedding and document ingestion run inside `asyncio.to_thread` pools without starving server heartbeat and streaming events.
 
 ---
 

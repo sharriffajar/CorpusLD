@@ -90,7 +90,8 @@ from json_ld_extractor import (
     export_to_json_ld_graph,
     calculate_graph_health_metrics,
     generate_google_scholar_meta_tags,
-    generate_html_head_package
+    generate_html_head_package,
+    is_safe_custom_endpoint,
 )
 from json_ld_extractor.storage import CorpusStorage
 
@@ -185,10 +186,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True if ALLOWED_ORIGINS != ["*"] else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -885,54 +887,60 @@ async def sync_knowledge_base(req: SyncRequest):
     if not WORKSPACE_FILES:
         raise HTTPException(status_code=400, detail="Tidak ada dokumen dalam workspace untuk di-index.")
     
-    all_chunks = []
-    for fname, fpath in WORKSPACE_FILES.items():
-        chunks = parse_document(
-            file_path=fpath, 
-            file_name=fname, 
-            parser_choice=req.parser,
-            llamaparse_key=req.llamaparse_key or "",
-            unstructured_key=req.unstructured_key or ""
-        )
-        STORAGE.save_chunks(fname, chunks)
-        all_chunks.extend(chunks)
-    
-    if not all_chunks:
-        raise HTTPException(status_code=400, detail="Parsing selesai namun tidak ada konten yang bisa diekstrak dari dokumen.")
-    
-    EXTRACTED_CHUNKS = all_chunks
-    
-    # Qdrant Indexing
-    embedder = get_embedder()
-    qdrant = get_qdrant()
-    
-    if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
-        qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+    def _execute_sync():
+        all_chunks = []
+        for fname, fpath in list(WORKSPACE_FILES.items()):
+            chunks = parse_document(
+                file_path=fpath, 
+                file_name=fname, 
+                parser_choice=req.parser,
+                llamaparse_key=req.llamaparse_key or "",
+                unstructured_key=req.unstructured_key or ""
+            )
+            STORAGE.save_chunks(fname, chunks)
+            all_chunks.extend(chunks)
         
-    qdrant.create_collection(
-        collection_name=Config.QDRANT_COLLECTION_NAME,
-        vectors_config=VectorParams(size=Config.EMBEDDING_DIMENSION, distance=Distance.COSINE)
-    )
-
-    # Batch encoding jauh lebih cepat daripada encode satu-per-satu
-    texts = [item["text"] for item in EXTRACTED_CHUNKS]
-    vectors = embedder.encode(texts, batch_size=32, show_progress_bar=False).tolist()
-    points = [
-        PointStruct(id=idx + 1, vector=vec, payload=item)
-        for idx, (item, vec) in enumerate(zip(EXTRACTED_CHUNKS, vectors))
-    ]
-    qdrant.upsert(collection_name=Config.QDRANT_COLLECTION_NAME, points=points)
-
-    # Payload index untuk filter per-dokumen (metadata.source) agar retrieval tetap cepat saat korpus membesar
-    try:
-        qdrant.create_payload_index(
+        if not all_chunks:
+            return None
+        
+        # Qdrant Indexing
+        embedder = get_embedder()
+        qdrant = get_qdrant()
+        
+        if qdrant.collection_exists(Config.QDRANT_COLLECTION_NAME):
+            qdrant.delete_collection(Config.QDRANT_COLLECTION_NAME)
+            
+        qdrant.create_collection(
             collection_name=Config.QDRANT_COLLECTION_NAME,
-            field_name="metadata.source",
-            field_schema=PayloadSchemaType.KEYWORD
+            vectors_config=VectorParams(size=Config.EMBEDDING_DIMENSION, distance=Distance.COSINE)
         )
-    except Exception as e:
-        print(f"⚠️ [Sync] Payload index notice: {e}")
 
+        # Batch encoding jauh lebih cepat daripada encode satu-per-satu
+        texts = [item["text"] for item in all_chunks]
+        vectors = embedder.encode(texts, batch_size=32, show_progress_bar=False).tolist()
+        points = [
+            PointStruct(id=idx + 1, vector=vec, payload=item)
+            for idx, (item, vec) in enumerate(zip(all_chunks, vectors))
+        ]
+        qdrant.upsert(collection_name=Config.QDRANT_COLLECTION_NAME, points=points)
+
+        # Payload index untuk filter per-dokumen (metadata.source) agar retrieval tetap cepat saat korpus membesar
+        try:
+            qdrant.create_payload_index(
+                collection_name=Config.QDRANT_COLLECTION_NAME,
+                field_name="metadata.source",
+                field_schema=PayloadSchemaType.KEYWORD
+            )
+        except Exception as e:
+            print(f"⚠️ [Sync] Payload index notice: {e}")
+            
+        return all_chunks
+
+    result_chunks = await asyncio.to_thread(_execute_sync)
+    if not result_chunks:
+        raise HTTPException(status_code=400, detail="Parsing selesai namun tidak ada konten yang bisa diekstrak dari dokumen.")
+
+    EXTRACTED_CHUNKS = result_chunks
     IS_INDEXED = True
     
     return {
@@ -954,6 +962,8 @@ async def extract_jsonld_stream(req: ExtractRequest):
     file_name = req.file_name
     if file_name not in WORKSPACE_FILES:
         raise HTTPException(status_code=404, detail="File belum diunggah ke workspace.")
+    if req.base_url and not is_safe_custom_endpoint(req.base_url):
+        raise HTTPException(status_code=400, detail="Disallowed or unsafe custom base_url parameter.")
     
     # SSE Generator for real-time extraction logs
     async def event_generator():
@@ -1048,6 +1058,8 @@ class ChatRequest(BaseModel):
 async def chat_rag(req: ChatRequest):
     if not IS_INDEXED or not EXTRACTED_CHUNKS:
         raise HTTPException(status_code=400, detail="Knowledge base belum di-sync. Unggah PDF & klik Sync terlebih dahulu.")
+    if req.base_url and not is_safe_custom_endpoint(req.base_url):
+        raise HTTPException(status_code=400, detail="Disallowed or unsafe custom base_url parameter.")
     
     t_start = time.time()
     embedder = get_embedder()
@@ -1127,9 +1139,13 @@ Jawaban Profesional, Terstruktur & Terverifikasi:"""
         if provider == "gemini" and (req.api_key or Config.GEMINI_API_KEY):
             key = req.api_key or Config.GEMINI_API_KEY
             m_name = model_to_use if "gemini" in model_to_use else Config.GEMINI_MODEL_NAME
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent"
             payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
-            rq = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
+            headers = {
+                "Content-Type": "application/json",
+                "x-goog-api-key": key
+            }
+            rq = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
             with urllib.request.urlopen(rq, timeout=45) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 return data["candidates"][0]["content"]["parts"][0]["text"]

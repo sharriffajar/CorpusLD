@@ -86,6 +86,7 @@ from .llm_adapters import (
     run_agentic_step,
     run_agentic_step_async,
     repair_malformed_json,
+    is_safe_custom_endpoint,
 )
 from .validation import (
     ANTONYM_PAIRS_BILINGUAL,

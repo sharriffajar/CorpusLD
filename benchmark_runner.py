@@ -327,6 +327,16 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
         const corpusData = {docs_payload_json};
         let currentIdx = 0;
 
+        function escapeHtml(str) {{
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }}
+
         function showToast(msg) {{
             const toast = document.getElementById('toast');
             toast.textContent = msg;
@@ -349,18 +359,20 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
             listEl.innerHTML = '';
             corpusData.forEach((doc, idx) => {{
                 const isSel = idx === currentIdx;
-                const authors = (doc.schema_json_ld.author || []).map(a => a.name).join(', ') || 'Unknown Authors';
+                const docTitle = escapeHtml(doc.schema_json_ld.name || doc.file_name);
+                const fileName = escapeHtml(doc.file_name);
+                const duration = escapeHtml(doc.duration_seconds);
                 const div = document.createElement('div');
                 div.className = `p-3 rounded cursor-pointer transition text-xs ${{isSel ? 'bg-blue-600/10 border border-blue-500/30 text-white' : 'hover:bg-slate-800/50 text-slate-400 border border-transparent'}}`;
                 div.onclick = () => selectDocument(idx);
                 div.innerHTML = `
                     <div class="flex items-center justify-between mb-1">
-                        <span class="font-medium text-slate-200 truncate pr-2">${{doc.schema_json_ld.name || doc.file_name}}</span>
+                        <span class="font-medium text-slate-200 truncate pr-2">${{docTitle}}</span>
                         <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 shrink-0">100%</span>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-slate-500">
-                        <span class="truncate max-w-[170px]">${{doc.file_name}}</span>
-                        <span>${{doc.duration_seconds}}s</span>
+                        <span class="truncate max-w-[170px]">${{fileName}}</span>
+                        <span>${{duration}}s</span>
                     </div>
                 `;
                 listEl.appendChild(div);
@@ -393,12 +405,15 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
             for (const [key, dim] of Object.entries(evalObj.dimensions)) {{
                 const tr = document.createElement('tr');
                 const isPass = dim.status === 'PASS';
+                const label = escapeHtml(dim.label);
+                const status = escapeHtml(dim.status);
+                const val = escapeHtml(dim.value);
                 tr.innerHTML = `
-                    <td class="py-2.5 px-4 font-medium text-slate-300">${{dim.label}}</td>
+                    <td class="py-2.5 px-4 font-medium text-slate-300">${{label}}</td>
                     <td class="py-2.5 px-4">
-                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded ${{isPass ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}}">${{dim.status}}</span>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded ${{isPass ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}}">${{status}}</span>
                     </td>
-                    <td class="py-2.5 px-4 text-slate-400">${{dim.value}}</td>
+                    <td class="py-2.5 px-4 text-slate-400">${{val}}</td>
                 `;
                 tbody.appendChild(tr);
             }}
@@ -418,10 +433,12 @@ def generate_html_dashboard(benchmark_data: List[Dict[str, Any]], output_path: P
             if (sections.length > 0) {{
                 sections.forEach(sec => {{
                     const sDiv = document.createElement('div');
+                    const sName = escapeHtml(sec.name);
+                    const sDesc = escapeHtml(sec.description || 'No section summary available.');
                     sDiv.className = 'p-3 bg-slate-900/60 border border-slate-800 rounded text-xs';
                     sDiv.innerHTML = `
-                        <div class="font-semibold text-slate-200 mb-1">${{sec.name}}</div>
-                        <div class="text-slate-400 text-[11px] leading-relaxed">${{sec.description || 'No section summary available.'}}</div>
+                        <div class="font-semibold text-slate-200 mb-1">${{sName}}</div>
+                        <div class="text-slate-400 text-[11px] leading-relaxed">${{sDesc}}</div>
                     `;
                     secContainer.appendChild(sDiv);
                 }});

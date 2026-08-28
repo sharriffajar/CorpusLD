@@ -405,13 +405,14 @@ document.addEventListener('DOMContentLoaded', () => {
     appState.documents.forEach(doc => {
       const item = document.createElement('div');
       const isActive = appState.selectedDoc === doc.name;
+      const safeName = escapeHtml(doc.name);
       item.className = `source-item ${isActive ? 'active-source' : ''}`;
       item.innerHTML = `
         <div class="source-info">
           <span class="source-icon">📄</span>
-          <span class="source-name" title="${doc.name}">${doc.name}</span>
+          <span class="source-name" title="${safeName}">${safeName}</span>
         </div>
-        <button class="btn-del-source" data-name="${doc.name}" title="Delete Document">🗑️</button>
+        <button class="btn-del-source" data-name="${safeName}" title="Delete Document">🗑️</button>
       `;
       
       item.addEventListener('click', (e) => {
@@ -889,15 +890,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('author-content');
     const authors = data.author || [];
     let html = `
-      <p><strong>Language (<code>inLanguage</code>):</strong> <code>${data.inLanguage || 'en'}</code></p>
-      <p><strong>Date Published (<code>datePublished</code>):</strong> <code>${data.datePublished || 'null (Not identified in document)'}</code></p>
+      <p><strong>Language (<code>inLanguage</code>):</strong> <code>${escapeHtml(data.inLanguage || 'en')}</code></p>
+      <p><strong>Date Published (<code>datePublished</code>):</strong> <code>${escapeHtml(data.datePublished || 'null (Not identified in document)')}</code></p>
       <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
       <h4>Official Author List:</h4>
     `;
     if (authors.length) {
       html += '<table class="data-table"><thead><tr><th>Name</th><th>Identifier / ID</th><th>Affiliation</th></tr></thead><tbody>';
       authors.forEach(a => {
-        html += `<tr><td><strong>${a.name || '-'}</strong></td><td>${a.identifier || '-'}</td><td>${a.affiliation || '-'}</td></tr>`;
+        const aName = escapeHtml(a.name || '-');
+        const aId = escapeHtml(a.identifier || '-');
+        const aAff = escapeHtml(typeof a.affiliation === 'object' ? (a.affiliation?.name || '-') : (a.affiliation || '-'));
+        html += `<tr><td><strong>${aName}</strong></td><td>${aId}</td><td>${aAff}</td></tr>`;
       });
       html += '</tbody></table>';
     } else {
@@ -915,9 +919,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let html = '<table class="data-table"><thead><tr><th>Type (Schema.org)</th><th>Entity Name</th><th>Role / Description</th></tr></thead><tbody>';
     entities.forEach(e => {
-      const typeStr = e['@type'] || e.type || 'Thing';
-      const descStr = e.description || e.role_or_description || '-';
-      html += `<tr><td><code>${typeStr}</code></td><td><strong>${e.name || '-'}</strong></td><td>${descStr}</td></tr>`;
+      const typeStr = escapeHtml(e['@type'] || e.type || 'Thing');
+      const nameStr = escapeHtml(e.name || '-');
+      const descStr = escapeHtml(e.description || e.role_or_description || '-');
+      html += `<tr><td><code>${typeStr}</code></td><td><strong>${nameStr}</strong></td><td>${descStr}</td></tr>`;
     });
     html += '</tbody></table>';
     el.innerHTML = html;
@@ -932,10 +937,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let html = '<table class="data-table"><thead><tr><th>Parameter (PropertyValue)</th><th>Value</th><th>Unit</th><th>Page Reference</th><th>Condition / Context</th></tr></thead><tbody>';
     rawProps.forEach(m => {
-      const uText = m.unitText || m.unit_text || '-';
-      const refPage = m.valueReference || (m.page_number ? `Page ${m.page_number}` : '-');
-      const descText = m.description || m.condition_or_context || m.context_or_condition || '-';
-      html += `<tr><td><strong>${m.name || '-'}</strong></td><td><code>${m.value || '-'}</code></td><td>${uText}</td><td>${refPage}</td><td>${descText}</td></tr>`;
+      const mName = escapeHtml(m.name || '-');
+      const mVal = escapeHtml(m.value !== undefined ? m.value : '-');
+      const uText = escapeHtml(m.unitText || m.unit_text || '-');
+      const refPage = escapeHtml(m.valueReference || (m.page_number ? `Page ${m.page_number}` : '-'));
+      const descText = escapeHtml(m.description || m.condition_or_context || m.context_or_condition || '-');
+      html += `<tr><td><strong>${mName}</strong></td><td><code>${mVal}</code></td><td>${uText}</td><td>${refPage}</td><td>${descText}</td></tr>`;
     });
     html += '</tbody></table>';
     el.innerHTML = html;
@@ -953,9 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
     sections.forEach(s => {
-      const sName = s.name || s.section_name || 'Section';
-      const pageInfo = s.pagination ? `(Page ${s.pagination})` : (s.page_start ? `(Page ${s.page_start} - ${s.page_end})` : '');
-      const sDesc = s.description || s.summary || '-';
+      const sName = escapeHtml(s.name || s.section_name || 'Section');
+      const pageInfo = escapeHtml(s.pagination ? `(Page ${s.pagination})` : (s.page_start ? `(Page ${s.page_start} - ${s.page_end})` : ''));
+      const sDesc = escapeHtml(s.description || s.summary || '-');
       html += `
         <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <h4 style="font-family: var(--font-brand); color: #ffffff;">📌 ${sName} <span style="font-size: 11px; color: var(--text-accent); font-weight: normal;">${pageInfo}</span></h4>
@@ -975,10 +982,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tParts.length && !tables.length) {
         let html = '<div style="display: flex; flex-direction: column; gap: 14px;">';
         tParts.forEach((t, idx) => {
+          const tName = escapeHtml(t.name || 'Table');
+          const tPage = escapeHtml(t.pagination || '?');
+          const tDesc = escapeHtml(t.description || '-');
           html += `
             <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-              <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">📊 Table #${idx + 1}: ${t.name || 'Table'} <span style="font-size: 11px; color: var(--text-muted);">(Page ${t.pagination || '?'})</span></h4>
-              <p style="font-size: 12px; color: var(--text-secondary);">${t.description || '-'}</p>
+              <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">📊 Table #${idx + 1}: ${tName} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
+              <p style="font-size: 12px; color: var(--text-secondary);">${tDesc}</p>
             </div>
           `;
         });
@@ -993,12 +1003,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let html = '<div style="display: flex; flex-direction: column; gap: 20px;">';
     tables.forEach((t, idx) => {
+      const tCap = escapeHtml(t.caption || 'Untitled Table');
+      const tPage = escapeHtml(t.page_number || '?');
       html += `
         <div>
-          <h4 style="font-family: var(--font-brand); margin-bottom: 8px;">📊 Table #${idx + 1}: ${t.caption || 'Untitled Table'} <span style="font-size: 11px; color: var(--text-muted);">(Page ${t.page_number})</span></h4>
+          <h4 style="font-family: var(--font-brand); margin-bottom: 8px;">📊 Table #${idx + 1}: ${tCap} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
           <table class="data-table">
-            <thead><tr>${(t.headers || []).map(h => `<th>${h}</th>`).join('')}</tr></thead>
-            <tbody>${(t.rows || []).map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+            <thead><tr>${(t.headers || []).map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>
+            <tbody>${(t.rows || []).map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
           </table>
         </div>
       `;
@@ -1019,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const refText = typeof r === 'string' ? r : (r.name || JSON.stringify(r));
       html += `
         <div style="background: var(--bg-surface-elevated); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 12px; line-height: 1.5;">
-          ${refText}
+          ${escapeHtml(refText)}
         </div>
       `;
     });
@@ -1030,9 +1042,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderLogsTab(telemetry) {
     const el = document.getElementById('logs-content');
     const logs = telemetry.logs || [];
-    let html = `<p><strong>Total Extraction Time:</strong> <code>${telemetry.duration_seconds || '?'} seconds</code></p><hr style="border:0; border-top:1px solid var(--border-subtle); margin:10px 0;"><div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: #a7f3d0;">`;
+    const totalTime = escapeHtml(telemetry.duration_seconds || '?');
+    let html = `<p><strong>Total Extraction Time:</strong> <code>${totalTime} seconds</code></p><hr style="border:0; border-top:1px solid var(--border-subtle); margin:10px 0;"><div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: #a7f3d0;">`;
     logs.forEach(l => {
-      html += `<div>${l}</div>`;
+      html += `<div>${escapeHtml(l)}</div>`;
     });
     html += '</div>';
     el.innerHTML = html;
@@ -1344,7 +1357,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Utility Helper
   function escapeHtml(text) {
-    return text
+    if (text === null || text === undefined) return '';
+    return String(text)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")

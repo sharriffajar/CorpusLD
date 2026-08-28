@@ -2,10 +2,13 @@
 """Adapter inference multi-provider (Ollama/Gemini/Groq/OpenAI/DeepSeek) dengan validasi output dan dukungan async."""
 
 import html
+import ipaddress
 import json
 import logging
 import re
+import socket
 import time
+import urllib.parse
 import urllib.request
 from typing import List, Optional, Union, Dict, Any, Callable
 from config import Config
@@ -15,6 +18,47 @@ try:
     HAS_HTTPX = True
 except ImportError:
     HAS_HTTPX = False
+
+
+def is_safe_custom_endpoint(endpoint_url: str) -> bool:
+    """
+    Validasi keamanan SSRF untuk parameter custom base_url:
+    - Hanya memperbolehkan scheme http/https.
+    - Memblokir Cloud Metadata IP (169.254.169.254) dan private IP blocks.
+    """
+    if not endpoint_url or not isinstance(endpoint_url, str):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(endpoint_url.strip())
+        if parsed.scheme not in ('http', 'https'):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        
+        # Local development loopback exceptions
+        if hostname.lower() in ('localhost', '127.0.0.1', '::1'):
+            return True
+
+        # Check if IP address directly
+        try:
+            ip_obj = ipaddress.ip_address(hostname)
+            if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
+                return False
+        except ValueError:
+            # Domain name resolution check
+            try:
+                addr_info = socket.getaddrinfo(hostname, None)
+                for res in addr_info:
+                    sock_ip = res[4][0]
+                    ip_obj = ipaddress.ip_address(sock_ip)
+                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or str(ip_obj) == "169.254.169.254":
+                        return False
+            except Exception:
+                pass
+        return True
+    except Exception:
+        return False
 
 
 def repair_malformed_json(text: str) -> Optional[Dict[str, Any]]:
@@ -199,7 +243,7 @@ def run_agentic_step(
                 "Jalankan benchmark dengan argumen '--api-key YOUR_KEY' atau simpan GEMINI_API_KEY di file .env."
             )
         m_name = model_to_use if "gemini" in model_to_use else Config.GEMINI_MODEL_NAME
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent"
         payload = {
             "contents": [
                 {"role": "user", "parts": [{"text": f"SYSTEM DIRECTIVE:\n{system_prompt}\n\nDATA TO EXTRACT:\n{user_text}"}]}
@@ -209,22 +253,31 @@ def run_agentic_step(
                 "temperature": 0.1
             }
         }
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": key
+        }
         
         if HAS_HTTPX:
             with httpx.Client(timeout=25.0) as client:
-                resp = client.post(url, json=payload)
+                resp = client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()
                 content = res_data["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
             with urllib.request.urlopen(req, timeout=25) as resp:
                 res_data = json.loads(resp.read().decode('utf-8'))
                 content = res_data["candidates"][0]["content"]["parts"][0]["text"]
 
     # 2. OpenAI / Groq / DeepSeek / Custom Endpoint BYOK
     elif provider in ["openai", "groq", "deepseek", "custom", "openrouter"]:
-        api_endpoint = base_url or ("https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1")
+        if base_url:
+            if not is_safe_custom_endpoint(base_url):
+                raise ValueError(f"Disallowed or unsafe custom base_url: {base_url}")
+            api_endpoint = base_url
+        else:
+            api_endpoint = "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
         url = f"{api_endpoint.rstrip('/')}/chat/completions"
         payload = {
             "model": model_to_use,
@@ -311,7 +364,7 @@ async def run_agentic_step_async(
         if not key:
             raise RuntimeError("GEMINI_API_KEY belum diset.")
         m_name = model_to_use if "gemini" in model_to_use else Config.GEMINI_MODEL_NAME
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent?key={key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m_name}:generateContent"
         payload = {
             "contents": [
                 {"role": "user", "parts": [{"text": f"SYSTEM DIRECTIVE:\n{system_prompt}\n\nDATA TO EXTRACT:\n{user_text}"}]}
@@ -321,9 +374,13 @@ async def run_agentic_step_async(
                 "temperature": 0.1
             }
         }
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": key
+        }
         if HAS_HTTPX:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                resp = await client.post(url, json=payload)
+                resp = await client.post(url, json=payload, headers=headers)
                 resp.raise_for_status()
                 res_data = resp.json()
                 content = res_data["candidates"][0]["content"]["parts"][0]["text"]
@@ -331,7 +388,12 @@ async def run_agentic_step_async(
             return run_agentic_step(system_prompt, user_text, pydantic_schema, num_ctx, llm_provider, llm_model, api_key, base_url)
 
     elif provider in ["openai", "groq", "deepseek", "custom", "openrouter"]:
-        api_endpoint = base_url or ("https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1")
+        if base_url:
+            if not is_safe_custom_endpoint(base_url):
+                raise ValueError(f"Disallowed or unsafe custom base_url: {base_url}")
+            api_endpoint = base_url
+        else:
+            api_endpoint = "https://api.groq.com/openai/v1" if provider == "groq" else "https://api.openai.com/v1"
         url = f"{api_endpoint.rstrip('/')}/chat/completions"
         payload = {
             "model": model_to_use,
