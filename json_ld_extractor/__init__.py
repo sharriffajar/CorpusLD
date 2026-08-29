@@ -110,6 +110,7 @@ from .merging import (
     merge_tables,
     merge_citations,
 )
+from .pipeline_basic import extract_basic_rule_based
 from .pipeline import (
     extract_json_ld_agentic_rag,
     extract_json_ld_from_chunks,
@@ -117,6 +118,19 @@ from .pipeline import (
     extract_technical_terms_deterministic,
     extract_quantitative_metrics_deterministic,
 )
+
+# Multi-Level Engine Detection (Open-Core vs Production Tier)
+try:
+    from corpusld_engine import (
+        extract_production_agentic_rag,
+        ENGINE_TIER,
+        IS_PRODUCTION_ENGINE,
+    )
+except ImportError:
+    extract_production_agentic_rag = extract_basic_rule_based
+    ENGINE_TIER = "Community Starter"
+    IS_PRODUCTION_ENGINE = False
+
 from .unit_ontology import (
     is_valid_scientific_unit,
     sanitize_text_strip_superscript_citations,
@@ -125,6 +139,7 @@ from .unit_ontology import (
 from .storage import CorpusStorage
 
 __all__ = [
+    'ENGINE_TIER', 'IS_PRODUCTION_ENGINE', 'extract_production_agentic_rag', 'extract_basic_rule_based',
     'EducationalOrganization', 'Author', 'UniversalEntity', 'DocumentSection',
     'UniversalProperty', 'UniversalTable', 'UniversalJSONLD', 'KGNode', 'KGEdge',
     'DeepKnowledgeGraph', 'HowToStep', 'DefinedTerm', 'MathFormula',

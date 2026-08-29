@@ -69,3 +69,8 @@ benchmark_results/.chunk_cache/
 benchmark_corpus/*.pdf
 !benchmark_corpus/README.md
 !benchmark_corpus/.gitkeep
+
+# Private Production Engine (Independent Private Repository)
+corpusld_engine/
+engine_private/
+private/
