@@ -96,8 +96,8 @@ python tests/eval_benchmark.py
 
 ---
 
-## 📄 License & Commercial Inquiries
+## 📄 License & Maintainer
 
 * **Open-Source Core**: Distributed under the [Apache License, Version 2.0](LICENSE).
-* **Enterprise Edition & Custom Integrations**: For enterprise deployment, custom ontology mapping, or dedicated SLA support, contact: `enterprise@corpusld.org` or open an inquiry on GitHub.
+* **Enterprise Edition & Commercial Inquiries**: Developed by **[Sharrif Fajar](https://sharriffajar.pages.dev)**. For enterprise deployment, custom ontology mapping, or dedicated integrations, connect via portfolio at **[sharriffajar.pages.dev](https://sharriffajar.pages.dev)** or open an issue on [GitHub](https://github.com/sharriffajar/CorpusLD).
 
