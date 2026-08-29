@@ -328,27 +328,29 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
             
         # Pola baris nama penulis jamak (dengan koma atau 'and')
         if (l.count(',') >= 1 or ' and ' in l.lower() or ' & ' in l or ' dan ' in l.lower()) and any(c.isupper() for c in l):
-            clean_test = re.sub(r'[\*\d†‡§]', '', l)
+            clean_test = re.sub(r'[∗\*\d†‡§\u2217\u2020\u2021\u00a7\^]', '', l)
             parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_test) if p.strip()]
             if len(parts) >= 2 and all(len(p.split()) >= 2 for p in parts):
                 auth_lines.append(l)
                     
         # Pola baris nama penulis tunggal (1-3 nama kapital tanpa kata kerja/preposisi)
-        elif re.match(r'^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}$', re.sub(r'[\*\d†‡§]', '', l).strip()):
-            clean_single = re.sub(r'[\*\d†‡§]', '', l).strip()
-            auth_lines.append(clean_single)
+        else:
+            clean_cand = re.sub(r'^(?:and|dan|&)\s+', '', re.sub(r'[∗\*\d†‡§\u2217\u2020\u2021\u00a7\^]', '', l).strip(), flags=re.IGNORECASE)
+            if re.match(r'^[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}$', clean_cand):
+                auth_lines.append(clean_cand)
 
     seen_author_names = set()
     membership_noise_re = re.compile(r'\b(?:Student\s+)?(?:Senior\s+)?(?:Member|Fellow|Graduate\s+Student\s+Member)(?:,\s*IEEE|\s+IEEE)?\b', re.IGNORECASE)
     for al in auth_lines:
-        clean_l = re.sub(r'[\*\d†‡§]', '', al)
+        clean_l = re.sub(r'[∗\*\d†‡§\u2217\u2020\u2021\u00a7\^]', '', al)
         parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_l) if p.strip()]
         for raw_p in parts:
             p = membership_noise_re.sub('', raw_p).strip().rstrip(',').strip()
             p = re.sub(r'^(?:and|dan|&\s*)\s+', '', p, flags=re.IGNORECASE).strip()
+            p = re.sub(r'[∗\*\d†‡§\u2217\u2020\u2021\u00a7\^]', '', p).strip()
             if not p:
                 continue
-            p_words = [pw.strip('.,;:-()[]').lower() for pw in p.split() if pw.strip('.,;:-()[]')]
+            p_words = [pw.strip('.,;:-()[]∗*†‡§\u2217').lower() for pw in p.split() if pw.strip('.,;:-()[]∗*†‡§\u2217')]
             if any(pw in prose_noise for pw in p_words):
                 continue
             # Accept full names (e.g. 'Albert Gu') or initial + surname (e.g. 'S. Kortmann')

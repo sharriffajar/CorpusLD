@@ -84,18 +84,35 @@ def cmd_extract(args):
 
     print(f"[+] Output successfully saved to: {out_path}")
 
-    # Validation report
-    if args.validate:
-        print("\n[*] Running Adversarial & Knowledge Graph Validation...")
-        val_res = validate_json_ld_rich_results(res)
-        print(f"  Score: {val_res.get('score', 0)}/100")
-        print(f"  Schema Score: {val_res.get('schema_score', 0)} | KG Integrity: {val_res.get('kg_integrity_score', 0)}")
-        for chk in val_res.get("checks", []):
-            print(f"  [{chk.get('status')}] {chk.get('title')}: {chk.get('desc')}")
+    # Observable Extraction Inventory Report
+    data_payload = res.get("schema_json_ld") or res
+    authors = data_payload.get("author", [])
+    author_names = [a.get("name") if isinstance(a, dict) else str(a) for a in authors if a]
+    sections = data_payload.get("sections") or [p for p in data_payload.get("hasPart", []) if p.get("@type") == "CreativeWork" or not p.get("@type")]
+    tables = data_payload.get("tables") or [p for p in data_payload.get("hasPart", []) if p.get("@type") == "Table"]
+    citations = data_payload.get("references_or_sources") or data_payload.get("citation", [])
+    metrics = data_payload.get("properties_and_metrics") or data_payload.get("additionalProperty", [])
+    formulas = data_payload.get("math_formulas", [])
+    procedures = data_payload.get("procedures", [])
+
+    print("\n" + "=" * 65)
+    print("📋 EXTRACTION YIELD & DATA INVENTORY")
+    print("=" * 65)
+    print(f"  • Title       : {data_payload.get('name') or data_payload.get('headline') or '-'}")
+    print(f"  • Authors ({len(author_names)}) : {', '.join(author_names) if author_names else 'None detected'}")
+    print(f"  • Sections    : {len(sections)} structured sections")
+    print(f"  • Tables      : {len(tables)} formatted data tables")
+    print(f"  • Citations   : {len(citations)} reference citations")
+    print(f"  • Metrics     : {len(metrics)} calibrated parameters")
+    if formulas:
+        print(f"  • Formulas    : {len(formulas)} mathematical equations")
+    if procedures:
+        print(f"  • Procedures  : {len(procedures)} algorithmic steps")
+    print("=" * 65)
 
 
 def cmd_validate(args):
-    """Validate an existing extracted JSON-LD document."""
+    """Inspect and inventory an existing extracted JSON-LD document."""
     json_path = args.input
     if not os.path.exists(json_path):
         print(f"[-] Error: File not found at '{json_path}'")
@@ -104,20 +121,21 @@ def cmd_validate(args):
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    print(f"[*] Validating JSON-LD document: {json_path}")
-    val_res = validate_json_ld_rich_results(data)
-    print(f"\n[+] Validation Results:")
-    print(f"  Total Score: {val_res.get('score', 0)}/100")
-    print(f"  Resolution: {val_res.get('resolution', '')}")
-    print(f"  Recommendation: {val_res.get('recommendation', '')}\n")
+    data_payload = data.get("schema_json_ld") or data
+    authors = data_payload.get("author", [])
+    author_names = [a.get("name") if isinstance(a, dict) else str(a) for a in authors if a]
+    sections = data_payload.get("sections") or [p for p in data_payload.get("hasPart", []) if p.get("@type") == "CreativeWork" or not p.get("@type")]
+    tables = data_payload.get("tables") or [p for p in data_payload.get("hasPart", []) if p.get("@type") == "Table"]
+    citations = data_payload.get("references_or_sources") or data_payload.get("citation", [])
+    metrics = data_payload.get("properties_and_metrics") or data_payload.get("additionalProperty", [])
 
-    for chk in val_res.get("checks", []):
-        print(f"  [{chk.get('status')}] {chk.get('title')}: {chk.get('desc')}")
-
-    if val_res.get("kg_checks"):
-        print("\n[*] Deep Knowledge Graph Checks:")
-        for kchk in val_res.get("kg_checks", []):
-            print(f"  [{kchk.get('status')}] {kchk.get('title')}: {kchk.get('details')}")
+    print(f"[*] Document Inventory: {json_path}")
+    print(f"  • Title       : {data_payload.get('name') or data_payload.get('headline') or '-'}")
+    print(f"  • Authors ({len(author_names)}) : {', '.join(author_names) if author_names else 'None detected'}")
+    print(f"  • Sections    : {len(sections)} sections")
+    print(f"  • Tables      : {len(tables)} tables")
+    print(f"  • Citations   : {len(citations)} citations")
+    print(f"  • Metrics     : {len(metrics)} parameters")
 
 
 def cmd_batch(args):

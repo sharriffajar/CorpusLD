@@ -1,0 +1,326 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "ESBMC-ARDUINO: CLOSING THEDEPLOYMENTGAP FOR FORMALVERIFICATION OFOPEN-HARDWAREPLCS",
+  "name": "ESBMC-ARDUINO: CLOSING THEDEPLOYMENTGAP FOR FORMALVERIFICATION OFOPEN-HARDWAREPLCS",
+  "description": "OpenPLC, Arduino OPTA, CONTROLLINO, and Industrial Shields M-Duino – bring IEC 61131-3\nprogramming to low-cost, microcontroller-class devices increasingly used in real automation and in\nIndustrial Control Systems (ICS) security research. Existing open-source verifiers for IEC 61131-3,\nincluding the ESBMC-PLC line, prove safety over anabstractscan-cycle model with idealized\nunbounded integers. The artifact that runs on the board, however, executes on a resource-constrained\nMicrocontroller Unit (MCU) with a 16-bit machine word (8-bit A VR Arduinos), and sensors are\nread through a finite-resolution Analog-to-Digital Converter (ADC). We show that thisdeployment\ngapmakes naive width-aware verificationunsound in practice: on 123 real third-party programs,\nchecking 16-bit arithmetic overflow without a hardware input model raises a 44 % false-alarm rate\n(54/123) and finds zero genuine defects, because it explores sensor values no ADC can produce.\nBecause the gap sits exactly where computation meets the physical process – a bounded sensor\nreading scaled by finite-width integer arithmetic into an actuation command – an overflow can\nsilently suppress a physical safety action such as a high-level alarm. At the same time, an unbounded\ninput model fabricates alarms that no environment can trigger. We present a method forhardware-\nfaithful verification of IEC 61131-3 on open hardware: a declarative Hardware Abstraction Layer\n(HAL) descriptor (word width, ADC/Pulse-Width Modulation (PWM) resolution, I/O binding) and\na sound lowering that interprets arithmetic at the target word width and constrains each input to its\nhardware-realizable range, transferring to the Programmable Logic Controller (PLC) domain the\ntarget-model discipline established for safety-critical embedded C (Frama-C, Astrée). We instantiate\nit for Arduino asESBMC-Arduino, deriving HAL parameters from the official Arduino cores and\nrealizing the input-range model as a lightweight hook in the Efficient SMT-based Context-Bounded\nModel Checker (ESBMC) Ladder Diagram (LD) frontend. On the 123-program corpus, the HAL\nannotatoreliminates all 54 false alarms (54→0)while preserving every robustness proof, and a\ncontrolled corpus demonstrates the genuine – but rare – width-dependent defects the method detects\nwith physically realizable witnesses.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Pierre Dantas",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Lucas Cordeiro",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Waldir Junior",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Electrical Engineering",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Department of Computer Science"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "Abstract",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Abstract'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.1 The Deployment Gap",
+      "description": "Detailed analysis, methodology, and findings presented under section '1.1 The Deployment Gap'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.2 Contributions",
+      "description": "Detailed analysis, methodology, and findings presented under section '1.2 Contributions'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1.3 Scope",
+      "description": "Detailed analysis, methodology, and findings presented under section '1.3 Scope'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. Background",
+      "description": "Detailed analysis, methodology, and findings presented under section '2. Background'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.1 The PLC Scan Cycle",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 The PLC Scan Cycle'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.2 Open-Hardware PLCs and the OpenPLC Toolchain",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Open-Hardware PLCs and the OpenPLC Toolchain'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.4 PLCopen XML",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.4 PLCopen XML'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5 From PLCopen XML to a Binary: the OpenPLC Toolchain'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.6 Machine Models of Arduino-Class Targets",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.6 Machine Models of Arduino-Class Targets'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.7 Bounded Model Checking andk-Induction for PLCs",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.7 Bounded Model Checking andk-Induction for PLCs'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. Related Work",
+      "description": "Detailed analysis, methodology, and findings presented under section '3. Related Work'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2 Target-Faithful Analysis of Embedded Software",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Target-Faithful Analysis of Embedded Software'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3 Code-Generation Correctness",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Code-Generation Correctness'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. The Deployment Gap, Formally",
+      "description": "Detailed analysis, methodology, and findings presented under section '4. The Deployment Gap, Formally'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1 Physical Process and Fault Model",
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1 Physical Process and Fault Model'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.1 Fault model",
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.1 Fault model'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.2 Assumptions",
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.2 Assumptions'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1.3 Motivating example",
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1.3 Motivating example'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5. Hardware-Faithful Verification",
+      "description": "Detailed analysis, methodology, and findings presented under section '5. Hardware-Faithful Verification'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.1 Scan-Cycle Execution Model",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.1 Scan-Cycle Execution Model'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.2 The Hardware Abstraction Layer (HAL) Descriptor",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.2 The Hardware Abstraction Layer (HAL) Descriptor'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.3 Faithful Lowering",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.3 Faithful Lowering'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.4 Soundness and Gap Diagnosis",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.4 Soundness and Gap Diagnosis'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2 Implementation",
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2 Implementation'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.1 Where the Hook Sits",
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.1 Where the Hook Sits'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.2 What the Hook Emits",
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.2 What the Hook Emits'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6.2.3 Configurability and Engineering",
+      "description": "Detailed analysis, methodology, and findings presented under section '6.2.3 Configurability and Engineering'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7. The Approach in Practice",
+      "description": "Detailed analysis, methodology, and findings presented under section '7. The Approach in Practice'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7.1.1 Engineer’s View",
+      "description": "Detailed analysis, methodology, and findings presented under section '7.1.1 Engineer’s View'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7.1.2 Under the Hood",
+      "description": "Detailed analysis, methodology, and findings presented under section '7.1.2 Under the Hood'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8. Evaluation",
+      "description": "Detailed analysis, methodology, and findings presented under section '8. Evaluation'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.1 Setup and Methodology",
+      "description": "Detailed analysis, methodology, and findings presented under section '8.1 Setup and Methodology'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.4 RQ3: The HAL Annotator Restores Soundness",
+      "description": "Detailed analysis, methodology, and findings presented under section '8.4 RQ3: The HAL Annotator Restores Soundness'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8.6 RQ4: Performance and Completeness",
+      "description": "Detailed analysis, methodology, and findings presented under section '8.6 RQ4: Performance and Completeness'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "12. Conclusion",
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "9. Discussion",
+      "description": "Detailed analysis, methodology, and findings presented under section '9. Discussion'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1.",
+      "description": "Structured quantitative data table (8 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1: Positioning: who models the deployment target. “Auto inputs” = hardware input ranges derived automatically",
+      "description": "Structured quantitative data table (11 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table LetP be a program andφ a safety property. Existing tools checkMabs(P) - =φ , whereMabs is the abstract scan-cycle (Page 8)",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 10)",
+      "description": "Structured quantitative data table (8 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 2: Board HAL descriptors (parameters from the official Arduino cores)",
+      "description": "Structured quantitative data table (8 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3: Evaluation corpora. The real corpus is third-party and pinned; the controlled corpus is authored to isolate the",
+      "description": "Structured descriptive data table (9 rows)",
+      "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4: Verdict matrix: identical logic and properties, abstract model vs. per-board deployed model.Unsafe = ESBMC",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5: Real corpus (123 programs), 16-bit overflow checking: naive vs. HAL-annotated.",
+      "description": "Structured quantitative data table (3 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 16)",
+      "description": "Structured quantitative data table (41 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Violation With Counterexample Adc",
+      "value": 898.0,
+      "description": "Page 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Physically Realizable Input",
+      "value": 16.0,
+      "unitText": "bits",
+      "description": "Page 15"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Median Solve Time",
+      "value": 168.0,
+      "unitText": "ms",
+      "description": "Page 16"
+    }
+  ],
+  "citation": [
+    "6.2 Implementation A design goal of the method is to beminimally invasive: the deployment model should reuse a mature verifier rather than reimplement one. We therefore realize the lowering inside the existing ESBMC LD frontend, changing only where the model meets the hardware boundary.",
+    "6.2.1 Where the Hook Sits The LD frontend.",
+    "6.2.2 What the Hook Emits For an input variable of integer type, the hook synthesizes a guard 0≤v≤ADCMAX as a relational IR expression. It wraps it in a assume node inserted into the scan body (Listing 2). The bound is taken from the board descriptor (HAL_ADC_MAX, default 1,023 for the A VR 10-bit ADC); Boolean inputs already range over{0,1} by type and need no guard, and floating-point inputs are left unconstrained (they fall under the non-linear abstraction). Gating on the static type keeps the transformation sound for mixed-type programs. 1codet ld_converter::hal_input_bound(constsymbol_exprt &in)const{ 2if(getenv(\"HAL_ANNOTATE\") == nullptr)returncode_skipt();// baseline 3if(!is_integer(in.type()))returncode_skipt();// BOOL / REAL 4longadcmax = env_long(\"HAL_ADC_MAX\", 1023);// board param 5exprt lo = binary_relation_exprt(in, \">=\", from_integer(0, in.type())); 6exprt hi = binary_relation_exprt(in, \"= 0 && adc = 0 && IN1 32,767 ) requires the arithmetic to magnifyv past the word range:multiply by a constant ≳33 (e.g. percentage or milli-unit scaling,v×100 ),accumulationof many readings, orsquaring. Conversely, multiply-by-small- constant (v×2 ), additive offsets (v±c ), and comparisons all remain within range and are provably safe – which is why the_okvariants, and the bulk of real code, do not flip. The Gap is Rare in the Corpora We Surveyed We surveyed the real corpus and a larger pool of public Structured-Text libraries for the vulnerable pattern. Within these corpora, the pattern is essentially absent: across 341 ST programs in a verification benchmark library,none contained a multiply-by-a-three-or-more-digit constant; the integer arithmetic that does occur is dominated by ×2, offsets, clamping, and comparisons – operations that bounded inputs keep safe. The public PLC code we could ingest is overwhelmingly Boolean and timer logic with small-magnitude integer arithmetic. We therefore report, honestly, that in these corpora the deployment gap isgenuine and sound to detect but infrequent; the analog-scaling regime in which it bites (e.g. ADC-to-engineering-unit conversion on a narrow-word board) is real but not the common case here. We caution that this prevalence finding is scoped to the integer/Boolean LD programs our frontend ingests (§10); analog-heavy process-control corpora may exhibit it more often. This finding reframes the contribution: the value of hardware-faithful verification lies less in bug count than in thesoundnessit restores (RQ2–RQ3).",
+    "8.3 RQ2: Naive Width-Aware Verification Is Unusable A natural first attempt at hardware-faithful verification is to set the word width and check overflow,withoutmodeling the inputs. We ran exactly this on the 123 real programs at 16 bits (Table 5, “Naive”). 54/123 (44 %) report unsafe, and Table 4: Verdict matrix: identical logic and properties, abstract model vs. per-board deployed model.Unsafe = ESBMC found a counterexample Class Abstract CTRL Micro CTRL Maxi M-Duino Arduino OPTA 16-bit 16-bit 16-bit 32-bit A_bugsafe unsafe unsafe unsafe safe A_oksafe safe safe safe safe B_bugsafe unsafe unsafe unsafe safe B_oksafe safe safe safe safe."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "3.0"
+  },
+  "datePublished": "2026-07-09",
+  "dateModified": "2026-07-09",
+  "@id": "corpusld:2026-07-09/esbmc-arduino-closing-thedeploymentgap-for-formalv"
+}

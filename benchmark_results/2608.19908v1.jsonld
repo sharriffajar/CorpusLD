@@ -1,0 +1,335 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "A Layered Simplex Architecture for Large Alphabets",
+  "name": "A Layered Simplex Architecture for Large Alphabets",
+  "description": "Probability estimation over large alphabets under log loss is a well-studied problem, with cel-\nebrated methods such as the Good–Turing estimator. We introduce and study a new Bayesian\nestimator with four notable properties. First, its construction is exceptionally simple: multi-\nply independent uniform draws from the probability simplex coordinate-wise and renormalize.\nDepth is the only structural parameter, and averaging over depths eliminates the need to tune\nit. Second, the regret of the resulting mixture, the excess code length it pays relative to a code\nthat knows the source, admits an explicit and efficiently computable expression. Third, despite\nits simplicity and lack of tuned constants, the estimator is competitive across a diverse set\nof synthetic and real-text benchmarks with substantially more specialized methods, including\nGood–Turing. Fourth, the tractability of its regret allows us to identify scaling laws in data,\nalphabet size, and depth. For Zipf targets with exponent above one, the regret has a simple\nreading as long as the sample reveals only a small fraction of the alphabet. It closely matches\nthe description length of the set of discovered symbols, at one bit of code per bit of description,\nplus a further cost per symbol. The data exponent is therefore the rate at which new symbols\nare discovered.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Meir Feder",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "School of Electrical and Computer Engineering"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Yaniv Fogel",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "School of Electrical and Computer Engineering"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Ruediger Urbanke",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "School of Electrical and Computer Engineering"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "Abstract",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Abstract'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "1. Introduction",
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. The Information-Theoretic Setting, in Brief",
+      "description": "Detailed analysis, methodology, and findings presented under section '2. The Information-Theoretic Setting, in Brief'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. A scaling law with an identifiable mechanism.For Zipf targets withα >1 at logarithmic",
+      "description": "Detailed analysis, methodology, and findings presented under section '3. A scaling law with an identifiable mechanism.For Zipf targets withα >1 at logarithmic'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. The depth-averaged predictor competes with the best classical estimators.On a benchmark of",
+      "description": "Detailed analysis, methodology, and findings presented under section '4. The depth-averaged predictor competes with the best classical estimators.On a benchmark of'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1 Exact regret via count profiles",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Exact regret via count profiles'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Section 5 below, instead score an estimator by the divergence between the target and the single",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Section 5 below, instead score an estimator by the divergence between the target and the single'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3 The deep end of the family: depth tilts the complexity spectrum",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 The deep end of the family: depth tilts the complexity spectrum'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4.1 Three numerical tests",
+      "description": "Detailed analysis, methodology, and findings presented under section '4.1 Three numerical tests'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.1 Setup",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.1 Setup'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.2 Findings",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.2 Findings'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.3 Compressing the Bible",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.3 Compressing the Bible'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "5.4 Adding memory",
+      "description": "Detailed analysis, methodology, and findings presented under section '5.4 Adding memory'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "6. The Broader Setting: Architectures as Priors in Modern Ma chine Learning",
+      "description": "Detailed analysis, methodology, and findings presented under section '6. The Broader Setting: Architectures as Priors in Modern Ma chine Learning'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "7. Discussion",
+      "description": "Detailed analysis, methodology, and findings presented under section '7. Discussion'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "8. Conclusion",
+      "description": "Detailed analysis, methodology, and findings presented under section '8. Conclusion'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5. Grouping symbols by count and writingS r(m) = P",
+      "description": "Structured quantitative data table (25 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1. Atd= 10 6,α= 3, the family envelope improves onL= 1 by a factor of",
+      "description": "Structured quantitative data table (5 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1: Best tested depth per target for the three alphabet sizes of Figure 2 (bits/symbol in the last",
+      "description": "Structured quantitative data table (3 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 2:Alphabet scaling.For eachN, the alphabet size varies from 10 3 to 105. Equation (12)",
+      "description": "Structured quantitative data table (28 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 4:Depth scaling.Measured dependence of the regret per discovered symbol on depth at",
+      "description": "Structured quantitative data table (19 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 5: MeanD(p∥ˆq) in bits atn= 2·10 4,d= 10 4, 20 trials; standard errors≤0.001 bits",
+      "description": "Structured quantitative data table (1 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 6: Mean posterior weightsw L∝q L(xn) of the depth-averaged predictor (entries below 0.05",
+      "description": "Structured quantitative data table (29 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 23)",
+      "description": "Structured quantitative data table (9 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Yi Pd J",
+      "value": 1.0,
+      "unitText": "Yj",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Qn)",
+      "value": 1.0,
+      "unitText": "N",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "D",
+      "value": 103.0,
+      "unitText": "N",
+      "description": "Page 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "L L",
+      "value": 1.0,
+      "unitText": "L",
+      "description": "Page 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "L",
+      "value": 23.0,
+      "unitText": "L",
+      "description": "Page 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "It",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Count Atd",
+      "value": 10.0,
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Count Atd",
+      "value": 4.0,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet",
+      "value": 42.0,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass",
+      "value": 96.0,
+      "unitText": "%",
+      "description": "Page 15"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Natural Oracle (",
+      "value": 8.0,
+      "unitText": "%",
+      "description": "Page 17"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Natural Oracle",
+      "value": 8.0,
+      "unitText": "%",
+      "description": "Page 18"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass Onl",
+      "value": 86.0,
+      "unitText": "%",
+      "description": "Page 18"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Broad",
+      "value": 94.0,
+      "unitText": "%",
+      "description": "Page 19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Mass Onl",
+      "value": 94.0,
+      "unitText": "%",
+      "description": "Page 19"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet",
+      "value": 14.0,
+      "unitText": "%",
+      "description": "Page 20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Alphabet That Never",
+      "value": 86.0,
+      "unitText": "%",
+      "description": "Page 20"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Tol",
+      "value": 15.0,
+      "unitText": "as",
+      "description": "Page 21"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Shares Identical Samples",
+      "value": 5.0,
+      "unitText": "samples",
+      "description": "Page 28"
+    }
+  ],
+  "citation": [
+    "[1] Jayadev Acharya, Ashkan Jafarpour, Alon Orlitsky, and Ananda Theertha Suresh. Optimal proba- bility estimation with applications to prediction and classification. InProceedings of the 26th Annual Conference on Learning Theory, 2013.",
+    "[2] Anton Bovier.Statistical Mechanics of Disordered Systems: A Mathematical Perspective. Cambridge University Press, 2006.",
+    "[3] Dietrich Braess and Thomas Sauer. Bernstein polynomials and learning theory.Journal of Approxima- tion Theory, 128(2):187–206, 2004.",
+    "[4] Bernard Derrida. Random-energy model: An exactly solvable model of disordered systems.Physical Review B, 24(5):2613–2626, 1981.",
+    "[5] Meir Feder and Neri Merhav. Hierarchical universal coding.IEEE Transactions on Information Theory, 42(5):1354–1364, 1996.",
+    "[6] Meir Feder, Neri Merhav, and Michael Gutman. Universal prediction of individual sequences.IEEE transactions on Information Theory, 38(4):1258–1270, 1992.",
+    "[7] Meir Feder, R¨ udiger Urbanke, and Yaniv Fogel. Information-theoretic framework for understanding modern machine-learning.Preprint, 2025.",
+    "[8] Irving John Good. The population frequencies of species and the estimation of population parameters. Biometrika, 40(3–4):237–264, 1953.",
+    "[9] Geoffrey E. Hinton. Products of experts. InNinth International Conference on Artificial Neural Net- works (ICANN), volume 1, pages 1–6, 1999.",
+    "[10] Marcus Hutter. Offline to online conversion. InAlgorithmic Learning Theory (ALT), pages 230–244.",
+    "[11] Ryan Jeong. A phase transition for layered multiplicative priors on the simplex. Unpublished manuscript, 2026.",
+    "[12] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. Scaling laws for neural language models.arXiv preprint arXiv:2001.08361, 2020.",
+    "[13] Raphail Krichevsky and Victor Trofimov. The performance of universal encoding.IEEE Transactions on Information Theory, 27(2):199–207, 1981.",
+    "[14] David McAllester and Robert E. Schapire. On the convergence rate of Good-Turing estimators. In Proceedings of the 13th Annual Conference on Computational Learning Theory, 2000.",
+    "[15] Neri Merhav and Meir Feder. Universal prediction.IEEE Transactions on Information Theory, 44(6):2124–2147, 1998.",
+    "[16] Alon Orlitsky, Narayana P. Santhanam, and Junan Zhang. Always Good Turing: Asymptotically optimal probability estimation.Science, 302(5644):427–431, 2003.",
+    "[17] Alon Orlitsky and Ananda Theertha Suresh. Competitive distribution estimation: Why is Good-Turing good.Advances in Neural Information Processing Systems, 28, 2015.",
+    "[18] Eric Sven Ristad. A natural law of succession.Technical Report CS-TR-495-95, Princeton University.",
+    "[19] Frans MJ Willems. The context-tree weighting method: Extensions.IEEE Transactions on Information Theory, 44(2):792–798, 1998.",
+    "[20] Frans MJ Willems, Yuri M Shtarkov, and Tjalling J Tjalkens. The context-tree weighting method: Basic properties.IEEE transactions on information theory, 41(3):653–664, 1995."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "3.0"
+  },
+  "datePublished": "2026-08-20",
+  "dateModified": "2026-08-20",
+  "@id": "corpusld:2026-08-20/a-layered-simplex-architecture-for-large-alphabets"
+}

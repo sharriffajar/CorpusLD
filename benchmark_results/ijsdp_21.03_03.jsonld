@@ -1,0 +1,565 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "Tropical Equatorial Peatland Demarcation and Land Use Analysis in Borneo's Pontianak Delta Using Geospatial Approach",
+  "name": "Tropical Equatorial Peatland Demarcation and Land Use Analysis in Borneo's Pontianak Delta Using Geospatial Approach",
+  "description": "This investigation addresses critical deficiencies in Indonesian Indicative Map of Delay in\nGranting New Permits (IMDGNP) peatland boundary estimations through systematic\nverification of peat soil distributions in Pontianak City, West Kalimantan Province.\nPreliminary IMDGNP cartographic products at 1:250,000 scale identified four administrative\ndistricts containing peatland formations totaling 23.8649 km² , exhibiting documented\naccuracy limitations requiring comprehensive field validation. The research methodology\nintegrated systematic field reconnaissance encompassing 614 observation points at 250-meter\nintervals, laboratory classification testing of 68 undisturbed soil specimens following ASTM\nD4427 (organic content > 75% threshold) and ASTM D2974 (ash content < 25% threshold)\nstandardized procedures, and Geographic Information Systems (GIS) spatial analysis for\nrefined boundary demarcation at 1:50,000 scale. Results demonstrate that peat soil formations\nare confined to only two districts —Southeast Pontianak (5.798 km² , 35.95% of district area)\nand North Pontianak (17.320 km² , 42.14% of district area) —contrary to preliminary four -\ndistrict estimations. Contrary to the preliminary four -district IMDGNP estimate of 23.8649\nkm² , verified peatland formations total 23.118 km² and are confined to only two districts.\nWithin North Pontianak District specifically, the verified extent (17.320 km² ) exceeds the\npreliminary district-level IMDGNP estimate (12.7683 km² ) by 35.76%, while Pontianak City\nand East Pontianak districts contain organic soils rather than peat formations. The updated\ndemarcation mapping incorporates peat layer depth information within a comprehensive\ngeospatial database suitable for infrastructure planning , foundation design optimization, and\nbuilding conserv ation, thereby supporting evidence -based urban development and\nenvironmental management aligned with tropical peatland ecosystem governance principles.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Tropical Equatorial Peatland Demarcation"
+    },
+    {
+      "@type": "Person",
+      "name": "Land Use Analysis in Borneo's Pontianak"
+    },
+    {
+      "@type": "Person",
+      "name": "Delta Using Geospatial Approach"
+    },
+    {
+      "@type": "Person",
+      "name": "Arif Parabi"
+    },
+    {
+      "@type": "Person",
+      "name": "Siti Noor Linda Taib"
+    },
+    {
+      "@type": "Person",
+      "name": "Raudhah Ahmadi"
+    },
+    {
+      "@type": "Person",
+      "name": "Alsidqi Hasan"
+    },
+    {
+      "@type": "Person",
+      "name": "Ashraf Dhowian Parabi"
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "1. INTRODUCTION",
+      "description": "Detailed analysis, methodology, and findings presented under section '1. INTRODUCTION'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. RESEARCH METHODS",
+      "description": "Detailed analysis, methodology, and findings presented under section '2. RESEARCH METHODS'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.1 Study area",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Study area'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.2 Field investigation and data collection",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Field investigation and data collection'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.3 Sampling strategy",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Sampling strategy'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.3.1 Sampling location determination",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3.1 Sampling location determination'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.3.2 Field sampling procedures",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3.2 Field sampling procedures'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.4 Organic content and ash content testing",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.4 Organic content and ash content testing'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5 Geographic Information System analysis",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5 Geographic Information System analysis'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5.1 Spatial data components",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5.1 Spatial data components'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.5.2 Geographic Information System development and processing",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.5.2 Geographic Information System development and processing'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.6 Research flowchart",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.6 Research flowchart'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. RESULTS AND ANALYSIS",
+      "description": "Detailed analysis, methodology, and findings presented under section '3. RESULTS AND ANALYSIS'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1 Field investigation results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Field investigation results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1.1 Preliminary peatland distribution from Indicative Map of Delay in Granting New Permits map",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1.1 Preliminary peatland distribution from Indicative Map of Delay in Granting New Permits map'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1.2 Land use classification results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1.2 Land use classification results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2 Laboratory classification results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Laboratory classification results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2.1 Organic content testing results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2.1 Organic content testing results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2.2 Ash content testing results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2.2 Ash content testing results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3 Data analysis and evaluation",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Data analysis and evaluation'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3.1 Land use assessment in verified peatland areas",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.1 Land use assessment in verified peatland areas'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3.2 Peatland demarcation refinement and boundary",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.2 Peatland demarcation refinement and boundary'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3.3 Peat soil layer depth classification",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3.3 Peat soil layer depth classification'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "Results",
+      "description": "Detailed analysis, methodology, and findings presented under section 'Results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.4 Geospatial mapping and GIS assessment",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4 Geospatial mapping and GIS assessment'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.4.1 Comparative analysis: IMDGNP vs verified boundaries",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4.1 Comparative analysis: IMDGNP vs verified boundaries'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.4.2 Final demarcation mapping products",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.4.2 Final demarcation mapping products'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. CONCLUSION",
+      "description": "Detailed analysis, methodology, and findings presented under section '4. CONCLUSION'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table 3. Comparison of total area with estimates on",
+      "description": "Structured quantitative data table (67 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 7. Organic content ranges and peat soil classification",
+      "description": "Structured quantitative data table (6 rows)",
+      "additionalType": "quantitative"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 8. Spatial area comparison between Pontianak City",
+      "description": "Structured quantitative data table (50 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "District Area)",
+      "value": 42.14,
+      "unitText": "%",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Terrestrial Soil Carbon Despite",
+      "value": 30.0,
+      "unitText": "%",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Earth",
+      "value": 3.0,
+      "unitText": "%",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "City",
+      "value": 20.15,
+      "unitText": "%",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Administrative Districts Containing Peatland Formations",
+      "value": 23.8649,
+      "unitText": "km",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Verified Peatland Formations",
+      "value": 23.118,
+      "unitText": "km",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Undisturbed Soil Specimens",
+      "value": 68.0,
+      "unitText": "specimens",
+      "description": "Page 1"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area)",
+      "value": 5.66,
+      "unitText": "%",
+      "description": "Page 2"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pontianak City",
+      "value": 20.15,
+      "unitText": "%",
+      "description": "Page 2"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Pontianak City",
+      "value": 20.149,
+      "unitText": "percent",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "City",
+      "value": 53.5,
+      "unitText": "%",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation",
+      "value": 1.0,
+      "unitText": "Points",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation Points",
+      "value": 4.0,
+      "unitText": "points",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Land Use Observation Points",
+      "value": 6.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Points Distributed As Follows",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematic Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Km Between Sample Points",
+      "value": 3.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Candidate Points",
+      "value": 68.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Maximum Longitudinal Distance",
+      "value": 1.368,
+      "unitText": "km",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Maximum Transverse Distance",
+      "value": 0.886,
+      "unitText": "km",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Determining The Points",
+      "value": 2.0,
+      "unitText": "points",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Peat Soil Samples",
+      "value": 12.0,
+      "unitText": "samples",
+      "description": "Page 6"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Navigation For Points",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Page 7"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Distributed Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Page 7"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Distributed Observation Points",
+      "value": 614.0,
+      "unitText": "points",
+      "description": "Page 8"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Classification Threshold ( Means",
+      "value": 6.41,
+      "unitText": "%",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Organic Content",
+      "value": 28.2,
+      "unitText": "%",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points Exceedi Ng",
+      "value": 95.65,
+      "unitText": "%",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Systematically Collected Undisturbed Samples",
+      "value": 68.0,
+      "unitText": "samples",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Sampling Points",
+      "value": 13.0,
+      "unitText": "points",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 23.0,
+      "unitText": "points",
+      "description": "Page 9"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Individual Monitoring Stations Within",
+      "value": 66.67,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Monitoring Stations Detecting Peat",
+      "value": 66.67,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points Detecting Peat",
+      "value": 95.65,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area) For Southeast",
+      "value": 35.95,
+      "unitText": "%",
+      "description": "Page 10"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Observation Points",
+      "value": 22.0,
+      "unitText": "points",
+      "description": "Page 11"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Surveyed Soil Profiles",
+      "value": 95.45,
+      "unitText": "%",
+      "description": "Page 11"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Samples) Displayed",
+      "value": 63.6,
+      "unitText": "%",
+      "description": "Page 12"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Surveyed Profiles Consist",
+      "value": 95.45,
+      "unitText": "%",
+      "description": "Page 12"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "District Area",
+      "value": 35.95,
+      "unitText": "%",
+      "description": "Page 13"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Confirmed Peatland Formations Within",
+      "value": 23.118,
+      "unitText": "km",
+      "description": "Page 13"
+    }
+  ],
+  "citation": [
+    "[1] Raturi, A., Raturi, A., Singh, H. (2024). Climate change impacts on wetland ecosystem functioning with special reference to greenhouse gas emissions. In Forests and Climate Change, pp. 345-364. https://doi.org/10.1007/978-981-97-3905-9_18.",
+    "[2] Harenda, K.M., Lamentowicz, M., Samson, M., Chojnicki, B.H. (2017). The role of peatlands and their carbon storage function in the context of climate change. In GeoPlanet: Earth and Planetary Sciences, pp. 169-187. https://doi.org/10.1007/978-3-319-71788-3_12.",
+    "[3] Reed, M.R., Sari, D. (2020). Indonesia's contribution to macro sustainability. SSRN Electronic Journal. https://doi.org/10.2139/ssrn.3526758.",
+    "[4] Lestariningsih, S.P., Hamkani, H., Nurwendi, A.F., Harahap, R.N. (2024). Karakteristik lahan gambut dan tinggi muka air gambut di Kecamatan Siantan Hilir, Pontianak Utara. Jurnal Lingkungan Hutan Tropis, 3(1): 102-112.",
+    "[5] Lesmana, R. (2022). Identifikasi kenampakan fisik tanah gambut (peat soil) di Kelurahan Tanjung Selor Timur Kabupaten Bulungan Provinsi Kalimantan Utara. Jurnal Pendidikan Tambusai, 6(3): 13688-13693. https://doi.org/10.31004/jptam.v6i3.4492.",
+    "[6] Kolay, P.K., Taib, S.N.L. (2018). Physical and geotechnical properties of tropical peat and its stabilization. In Peat. InTech. https://doi.org/10.5772/intechopen.74173.",
+    "[7] Mahyan, N., Taib, S., Sa'don, N., Truna, L., John, J. (2023). Correlation of different peat soil index properties. 21-30. https://doi.org/10.30880/ijie.2023.15.06.003.",
+    "[8] Amaludin, A.E., Asrah, H., Mohamad, H.M. (2023). A review of advances in peat soil stabilisation technology: Exploring the potential of palm oil fuel ash geopolymer as a soil stabiliser material. Civil Engineering Journal, 9(8): 2085-2104. https://doi.org/10.28991/cej-2023-09- 08-017.",
+    "[9] Xu, J., Morris, P.J., Liu, J., Holden, J. (2018). PEATMAP: Refining estimates of global peatland distribution based on a meta-analysis. CATENA, 160: 134-140. https://doi.org/10.1016/j.catena.2017.09.010.",
+    "[10] Trappe, J., Kneisel, C. (2019). Geophysical and sedimentological investigations of peatlands for the assessment of lithology and subsurface water pathways. Geosciences, 9(3): 118. https://doi.org/10.3390/geosciences9030118.",
+    "[11] Agus, F., Wahyunto, Dariah, A., Setyanto, P., Subiksa, I.G.M., Runtunuwu, E., Susanti, E., Supriatna, W. (2010). Carbon budget and management strategies for conserving carbon in peatland: Case study in Kubu Raya and Pontianak districts, West Kalimantan, Indonesia. In Proceedings of the International Workshop on Evaluation and Sustainable Management of Soil Carbon Sequestration in Asian Countries, Bogor, Indonesia, pp. 217-234.",
+    "[12] Tunar Özcan, N., Ulusay, R., Işık, N.S. (2020). Geo- engineering characterization and an approach to estimate the in-situ long-term settlement of a peat deposit at an industrial district. Engineering Geology, 265: 105329. https://doi.org/10.1016/j.enggeo.2019.105329.",
+    "[13] Wahyunto, W., Supriatna, W., Agus, F. (2013). Land use change and recommendation for sustainable development of peatland for agriculture: Case study at Kubu Raya and Pontianak districts, West Kalimantan. https://doi.org/10.21082/ijas.v11n1.2010.p32-40.",
+    "[14] Comas, X., Slater, L., Reeve, A. (2004). Geophysical evidence for peat basin morphology and stratigraphic controls on vegetation observed in a northern peatland. Journal of Hydrology, 295(1-4): 173-184. https://doi.org/10.1016/j.jhydrol.2004.03.008.",
+    "[15] Hooimeijer, F.L., Maring, L. (2018). The significance of the subsurface in urban renewal. Journal of Urbanism: International Research on Placemaking and Urban Sustainability, 11(3): 303-328. https://doi.org/10.1080/17549175.2017.1422532.",
+    "[16] Gunawan, I., Soemardiono, B., Septanti, D. (2022). Typology of settlement development in riverbanks in Pontianak. International Journal of Environment, Architecture, and Societies, 2(2): 73-84. https://doi.org/10.26418/ijeas.2022.2.02.73-84.",
+    "[17] Affrilyno, A., Gultom, B.J., Jati, D.R., Zhang, A. (2024). Quantifying fire risks in Pontianak for future planning and development. International Journal of Environment, Architecture, and Societies, 4(1): 1-12. https://doi.org/10.26418/ijeas.2024.4.01.1-12.",
+    "[18] Flood, K., Wilson, D., Renou-Wilson, F. (2025). Evidence synthesis and knowledge integration for sustainable peatland management. Land, 14(7): 1397. https://doi.org/10.3390/land14071397.",
+    "[19] Taskin, E., Rastorgueva, N., Foley, L., Noto, R., Borruso, L., Cesco, S., Mimmo, T. (2025). Living labs for sustainable soil management: A systematic review of global practices and perspectives. Journal of Soils and Sediments, 25(11): 3342-3359. https://doi.org/10.1007/S11368-025-04100-Z.",
+    "[20] Evers, S., Yule, C.M., Padfield, R., O'Reilly, P., Varkkey, H. (2016). Keep wetlands wet: The myth of sustainable development of tropical peatlands - Implications for policies and management. Global Change Biology, 23(2): 534-549. https://doi.org/10.1111/gcb.13422.",
+    "[21] Wahyunto, W., Nugroho, K., Ritung, S., Sulaeman, Y. (2014). Indonesian peatland map: Method, certainty, and uses. In Pengelolaan Berkelanjutan Lahan Gambut Terdegradasi, Jakarta, pp. 81-96. http://balittanah.litbang.pertanian.go.id/ind/dokumentasi /prosiding_gambut_icctf/05.",
+    "[22] Pertanian, K., Penelitian, B., Pertanian, P. (2011). Peta lahan gambut Indonesia skala 1:250.000. https://repository.pertanian.go.id/handle/123456789/584 0.",
+    "[23] Minasny, B., Adetsu, D.V., Aitkenhead, M., Artz, R.R.E., et al . (2023). Mapping and monitoring peatland conditions from global to field scale. Biogeochemistry, 167(4): 383-425. https://doi.org/10.1007/s10533-023.",
+    "[24] Cha, S., Lee, J., Choi, E., Lim, J. (2024). Unveiling the past: Deep-learning-based estimation of historical peatland distribution. Land, 13(3): 328. https://doi.org/10.3390/land13030328.",
+    "[25] Indrajaya, Y., Yuwati, T.W., Lestari, S., Winarno, B., et al. (2022). Tropical forest landscape restoration in Indonesia: A review. Land, 11(3): 328. https://doi.org/10.3390/land11030328.",
+    "[26] Leng, S., Lin, J.R., Li, S.W., Hu, Z.Z. (2021). A data integration and simplification framework for improving site planning and building design. IEEE Access, 9: 148845-148861. https://doi.org/10.1109/ACCESS.2021.3124010.",
+    "[27] Ren, S., Song, C., Ye, S., Cheng, F., Akhmadov, V., Kuzyakov, Y. (2023). Land use evaluation considering soil properties and agricultural infrastructure in black soil region. Land Degradation & Development, 34(17): 5373.",
+    "[28] Anda, M., Ritung, S., Suryani, E., Sukarman, Hikmat, M., Yatno, E., Mulyani, A., Subandiono, R.E., Suratman, Husnain. (2021). Revisiting tropical peatlands in Indonesia: Semi-detailed mapping, extent and depth distribution assessment. Geoderma, 402: 115235. https://doi.org/10.1016/j.geoderma.2021.115235.",
+    "[29] Kunarso, A., Bonner, M.T.L., Blanch, E.W., Grover, S. (2022). Differences in tropical peat soil physical and chemical properties under different land uses: A systematic review and meta-analysis. Journal of Soil Science and Plant Nutrition, 22(4): 4063-4083. https://doi.org/10.1007/S42729-022-01008-2.",
+    "[30] Zheng, Y., Li, X., Pang, S., Chen, J. (2025). Evaluation of soft soil consolidation parameters before and after dynamic compaction in port areas. Geotechnical and Geological Engineering, 43(8). https://doi.org/10.1007/S10706-025-03386-7.",
+    "[31] Carless, D., Kulessa, B., Booth, A.D., Drocourt, Y., Sinnadurai, P., Street-Perrott, F.A., Jansson, P. (2021). An integrated geophysical and GIS based approach improves estimation of peatland carbon stocks. Geoderma, 402: 115176. https://doi.org/10.1016/j.geoderma.2021.115176.",
+    "[32] Basu, D., Misra, A., Puppala, A.J. (2015). Sustainability and geotechnical engineering: Perspectives and review. Canadian Geotechnical Journal, 52(1): 96-113. https://doi.org/10.1139/CGJ-2013-0120.",
+    "[33] Raihan, A. (2024). A systematic review of geographic information systems (GIS) in agriculture for evidence- based decision making and sustainability. Global Sustainability Research, 3(1): 1-24. https://doi.org/10.56556/GSSR.V3I1.636.",
+    "[34] Sutikno, S., Yusa, M., Andy Hendri, Kusairi, M., Ahmad Muhammad, Nurul Qomar. (2025). Mapping peat thickness and groundwater level using a portable electromagnetic instrument in Indragiri Hilir, Riau, Indonesia. Journal of Degraded and Mining Lands Management, 12(3): 7431-7441. https://doi.org/10.15243/jdmlm.2025.123.7431.",
+    "[35] Stanitsa, A., Hallett, S.H., Jude, S. (2022). The challenges of implementing evidence-based strategies to inform building and urban design decisions: A view from current practice. Journal of Engineering, Design and Technology, 22(4): 1099-1118. https://doi.org/10.1108/JEDT-01-2022-0003.",
+    "[36] Vernimmen, R., Akmalia, R., Fitranatanegara, N., Artiyan, E., Febrianto, T., Yuherdha, A., Mulyadi, D., Syahrozi, O., Anugrah, I. (2018). Peatland mapping for Kubu Raya, West Kalimantan, using limited LiDAR data and peat thickness field measurements. https://cms.deltares.nl/assets/common/downloads/Peatla nd-mapping-for-Kubu-Raya-Team-Deltares-1.pdf.",
+    "[37] Hirose, K., Takeda, T., Anshari, G., Nuriman, M., Tanimoto, T., Christianto, R., Takahara, S., Kobayashi, H., Hidayat, G.G. (2016). Assessment of tropical peatland map in West Kalimantan, Indonesia. In Proceedings of the 15th International Peat Congress, Kuching, pp. 86-90. https://peatlands.org/assets/uploads/2019/06/ipc16p86- 90a392hirose.takeda.etal_.pdf.",
+    "[38] FAO & FAOLEX. (2017). Regulation of the Minister of Environment and Forestry of the R.I. No. P.14/MENLHK/SETJEN/KUM.1/2/2017 on procedures for the peat ecosystem inventory functions. https://www.informea.org/en/legislation/regulation- minister-environment-and-forestry-ri-no- p14menlhksetjenkum122017-procedures."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "3.0"
+  },
+  "identifier": [
+    {
+      "@type": "PropertyValue",
+      "propertyID": "DOI",
+      "value": "10.18280/ijsdp.210303"
+    }
+  ],
+  "sameAs": "https://doi.org/10.18280/ijsdp.210303",
+  "publisher": {
+    "@type": "Organization",
+    "name": "The authors"
+  },
+  "datePublished": "2026-03-31",
+  "dateModified": "2026-03-31",
+  "@id": "corpusld:2026-03-31/tropical-equatorial-peatland-demarcation-and-land"
+}

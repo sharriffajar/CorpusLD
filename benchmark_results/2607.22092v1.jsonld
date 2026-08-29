@@ -1,0 +1,208 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "Designing Eco-Efficint Biowaste Valorisation Systems: Effects",
+  "name": "Designing Eco-Efficint Biowaste Valorisation Systems: Effects",
+  "description": "The increasing deployment of separate biowaste collection across Europe raises questions regarding environmentally and economically  optimal treatment strategies . From this perspective, the balance between decentralised and centralised infrastructure is a potential lever to consider. The choice of technologies is another . Composting and anaerobic digestion (AD) offer viable circular bioeconomy pathways, but their performance depends on transport distance, facility size, seasonal waste fluctuations, and technological efficiency. Threshold distances and scale -dependent interactions affecting the environmental and economic performance of treatment plants remain poorly characterised. This study develops a unified techno -economic and life  cycle assessment framework to quantify how transport constraints and treatment capacities shape biowaste valorisation systems. Three facility scales for composting and AD are evaluated across a range of transport distances and compared with local incineration in terms of environmental and economic performance . Transport burdens are modelled using vehicle life  cycle assessment (LCA) and realistic heavy -duty truck data for electric -, gas-, and diesel -powered vehicles. Results reveal non-linear trade-offs between scale and transport, with zero-distance composting yielding the lowest combined impacts. Across all scenarios, 45 configurations outperform local incineration economically and environmentally, while 111 remain environmentally preferable despite higher costs, thus providing quantitative guidance for infrastructure planning.",
+  "inLanguage": "en",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Christian Ottini",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Gwenola Yannou-Le Bris",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Sandra Domenek",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    },
+    {
+      "@type": "Person",
+      "name": "Felipe Buendia",
+      "affiliation": {
+        "@type": "EducationalOrganization",
+        "name": "Université Paris-Saclay, INRAE, AgroParisTech, UMR SayFood, 91120 Palaiseau, France"
+      }
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "1. Introduction",
+      "description": "Detailed analysis, methodology, and findings presented under section '1. Introduction'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2. Methodology",
+      "description": "Detailed analysis, methodology, and findings presented under section '2. Methodology'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.1 Environmental modelling and system boundaries",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.1 Environmental modelling and system boundaries'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.2 Techno-Economic Analysis",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.2 Techno-Economic Analysis'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "2.3 Scenario construction and assumptions",
+      "description": "Detailed analysis, methodology, and findings presented under section '2.3 Scenario construction and assumptions'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3. Results",
+      "description": "Detailed analysis, methodology, and findings presented under section '3. Results'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.1 Cost Implications of a Centralised versus Decentralised System",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.1 Cost Implications of a Centralised versus Decentralised System'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.2 Environmental assessment of the configurations",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.2 Environmental assessment of the configurations'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations",
+      "description": "Detailed analysis, methodology, and findings presented under section '3.3 Cost-Environmental Trade-Offs and Pareto-Optimal configurations'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "4. Conclusions",
+      "description": "Detailed analysis, methodology, and findings presented under section '4. Conclusions'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 2)",
+      "description": "Structured descriptive data table (50 rows)",
+      "additionalType": "descriptive"
+    },
+    {
+      "@type": "Table",
+      "name": "Table 1: Configuration performance: break-even distances and transport distances at which transport accounts for",
+      "description": "Structured quantitative data table (21 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Diesel",
+      "value": 16.0,
+      "unitText": "km",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Electric Trucks",
+      "value": 15.0,
+      "unitText": "km",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Biogas Trucks",
+      "value": 13.0,
+      "unitText": "km",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Ad With Electric Trucks",
+      "value": 40.0,
+      "unitText": "km",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Composting With Electric",
+      "value": 35.0,
+      "unitText": "km",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Impact",
+      "value": 50.0,
+      "unitText": "%",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Environmental Impact",
+      "value": 50.0,
+      "unitText": "%",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Small Facilities",
+      "value": 40.0,
+      "unitText": "km",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Medium Facilities",
+      "value": 58.0,
+      "unitText": "km",
+      "description": "Page 4"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Large Facilities When Diesel",
+      "value": 66.0,
+      "unitText": "km",
+      "description": "Page 4"
+    }
+  ],
+  "citation": [
+    "Basma, H., Rodríguez, F., 2023. A total cost of ownership comparison of truck decarbonization pathways in Europe.",
+    "CEPCI, 2014. . Chemical Engineering. URL https://www.chemengonline.com/pci-home/ (accessed 12.15.25).",
+    "European Parliament, Council of the European Union, 2018a. European Union. (2018). Directive (EU) 2018/850 of the European Parliament and of the Council of 30 May 2018 amending Directive 1999/31/EC on the landfill of waste. Official Journal of the European Union 100–108.",
+    "European Parliament, Council of the European Union, 2018b. European Union. (2018). Directive (EU) 2018/851 of the European Parliament and of the Council of 30 May 2018 amending Directive 2008/98/EC on waste. Official Journal of the European Union 109–140.",
+    "Eurostat, 2025. Gross domestic product (GDP) and main components (output, expenditure and income). https://doi.org/10.2908/NAMQ_10_GDP.",
+    "Huijbregts, M.A.J., Steinmann, Z.J.N., Elshout, P.M.F., Stam, G., Verones, F., Vieira, M., Zijp, M., Hollander, A., Van Zelm, R., 2017. ReCiPe2016: a harmonised life cycle impact assessment method at midpoint and endpoint level. Int J Life Cycle Assess 22, 138–147. https://doi.org/10.1007/s11367-016-1246-y.",
+    "Kaza, S., Yao, L., Bhada -Tata, P., Van Woerden, F., 2018. What a Waste 2.0: A Global Snapshot of Solid Waste Management to 2050.",
+    "Lewerenz, S., Sailer, G., Pelz, S., Lambrecht, H., 2023. Life cycle assessment of biowaste treatment – Considering uncertainties in emission factors. Cleaner Engineering and Technology 15, 100651. https://doi.org/10.1016/j.clet.2023.100651.",
+    "Mutel, C., 2017. Brightway: An open source framework for Life Cycle Assessment. JOSS 2, 236. https://doi.org/10.21105/joss.00236.",
+    "Normalization scores ReCiPe 2016 | RIVM [WWW Document], 2024. URL https://www.rivm.nl/en/documents/normalization-scores-recipe-2016 (accessed 11.28.25).",
+    "Ottini, C., Bris, G.Y.-L., Domenek, S., Buendia, F., 2025. Towards Sustainable Processing Of Municipal Household Organic Waste: The Role Of Energy Mix Grids. Presented at the The 35th European Symposium on Computer Aided Process Engineering, Ghent, Belgium, pp. 1975 –1980. https://doi.org/10.69997/sct.198612.",
+    "Sacchi, R., Bauer, C., Cox, B.L., 2021. Does Size Matter? The Influence of Size, Load Factor, Range Autonomy, and Application Type on the Life Cycle Assessment of Current and Future Medium - and Heavy -Duty Vehicles. Environ. Sci. Technol. 55, 5224–5235. https://doi.org/10.1021/acs.est.0c07773.",
+    "Syré, A.M., Göhlich, D., 2025. Decarbonization of Long-Haul Heavy-Duty Truck Transport: Technologies, Life Cycle Emissions, and Costs. WEVJ 16, 76. https://doi.org/10.3390/wevj16020076.",
+    "Tian, H., Wang, X., Lim, E.Y., Lee, J.T.E., Ee, A.W.L., Zhang, J., Tong, Y.W., 2021. Life cycle assessment of food waste to energy and resources: Centralized and decentralized anaerobic digestion with different downstream biogas utilization. Renewable and Sustainable Energy Reviews 150, 111489. https://doi.org/10.1016/j.rser.2021.111489.",
+    "Tsilemou, K., Panagiotakopoulos, D., 2006. Approximate cost functions for solid waste treatment facilities. Waste."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "3.0"
+  },
+  "@id": "corpusld:undated/designing-eco-efficint-biowaste-valorisation-syste"
+}
