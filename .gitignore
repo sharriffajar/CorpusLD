@@ -74,3 +74,7 @@ benchmark_corpus/*.pdf
 corpusld_engine/
 engine_private/
 private/
+
+# Local Draft Manuscripts & Research Papers
+paper/
+manuscript/
