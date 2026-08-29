@@ -11,13 +11,14 @@ from pydantic import BaseModel
 from services.state import (
     WORKSPACE_FILES,
     EXTRACTED_CHUNKS,
-    JSON_LD_STORE,
     IS_INDEXED,
     _WORKSPACE_LOCK,
     STORAGE,
     get_embedder,
     get_qdrant,
     sanitize_error_message,
+    get_persisted_document,
+    save_persisted_document,
 )
 from services.parser import parse_document
 from json_ld_extractor import (
@@ -83,7 +84,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     base_url=req.base_url
                 )
                 
-                existing_record = JSON_LD_STORE.get(file_name)
+                existing_record = get_persisted_document(file_name)
                 if existing_record:
                     final_res = merge_and_enrich_json_ld(existing_record, res)
                     sync_logger("🔄 [Database Optimization] Menggabungkan field & struktur baru dengan data terverifikasi sebelumnya secara non-destruktif.")
@@ -91,8 +92,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     final_res = res
                 
                 async with _WORKSPACE_LOCK:
-                    JSON_LD_STORE[file_name] = final_res
-                    STORAGE.save_extracted_document(file_name, final_res)
+                    save_persisted_document(file_name, final_res)
                 await log_queue.put({"type": "complete", "result": final_res})
             except Exception as e:
                 clean_err = sanitize_error_message(str(e))
@@ -109,7 +109,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     break
             await task
         except (asyncio.CancelledError, GeneratorExit):
-            # Client disconnect / abort -> hentikan pipeline ekstraksi di background
+            # Client disconnect / abort -> terminate background task
             task.cancel()
             try:
                 await task
@@ -122,8 +122,8 @@ async def extract_jsonld_stream(req: ExtractRequest):
 
 @router.get("/api/jsonld/{file_name}")
 async def get_extracted_jsonld(file_name: str):
-    if file_name in JSON_LD_STORE:
-        stored = JSON_LD_STORE[file_name]
+    stored = get_persisted_document(file_name)
+    if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
         validation = validate_json_ld_rich_results(data)
         return {
@@ -131,4 +131,4 @@ async def get_extracted_jsonld(file_name: str):
             "data": stored,
             "validation": validation
         }
-    raise HTTPException(status_code=404, detail="JSON-LD belum diekstrak untuk file ini.")
+    raise HTTPException(status_code=404, detail="JSON-LD metadata has not been extracted for this file yet.")

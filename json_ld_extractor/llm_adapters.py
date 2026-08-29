@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Adapter inference multi-provider (Ollama/Gemini/Groq/OpenAI/DeepSeek) dengan validasi output dan dukungan async."""
+"""Multi-provider LLM inference adapters (Ollama, Gemini, Groq, OpenAI, DeepSeek, Custom) with async support and SSRF protection."""
 
 import html
 import ipaddress
@@ -21,7 +21,7 @@ except ImportError:
 
 
 class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Handler keamanan untuk mematikan automatic redirect pada koneksi urllib."""
+    """Security handler to disable automatic HTTP redirects on urllib connections."""
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         raise urllib.error.HTTPError(req.full_url, code, f"HTTP redirect to {newurl} disallowed for security", headers, fp)
 
@@ -30,9 +30,9 @@ _NO_REDIRECT_OPENER = urllib.request.build_opener(NoRedirectHandler)
 
 def _is_ip_strictly_safe(ip_obj: Union[ipaddress.IPv4Address, ipaddress.IPv6Address]) -> bool:
     """
-    Validasi ketat alamat IP:
-    - Harus global dan bukan private/loopback/link-local/reserved/multicast.
-    - Blokir CGNAT (100.64.0.0/10), unspecified (0.0.0.0/::), dan Cloud Metadata (169.254.169.254).
+    Strict IP address validation:
+    - Must be globally routable and not private/loopback/link-local/reserved/multicast.
+    - Blocks CGNAT (100.64.0.0/10), unspecified (0.0.0.0/::), and Cloud Metadata (169.254.169.254).
     """
     if ip_obj.is_unspecified or ip_obj.is_loopback or ip_obj.is_private or ip_obj.is_link_local or ip_obj.is_reserved or ip_obj.is_multicast:
         return False
@@ -45,10 +45,10 @@ def _is_ip_strictly_safe(ip_obj: Union[ipaddress.IPv4Address, ipaddress.IPv6Addr
 
 def is_safe_custom_endpoint(endpoint_url: str) -> bool:
     """
-    Validasi keamanan SSRF untuk parameter custom base_url:
-    - Hanya memperbolehkan scheme http/https.
-    - Memblokir Cloud Metadata IP (169.254.169.254), private IP blocks, CGNAT (100.64.0.0/10), dan 0.0.0.0.
-    - Memverifikasi seluruh IP hasil resolusi DNS.
+    SSRF security validation for custom base_url endpoints:
+    - Allows only http/https schemes.
+    - Blocks Cloud Metadata IP (169.254.169.254), private IP blocks, CGNAT (100.64.0.0/10), and loopback.
+    - Verifies all IP addresses resulting from DNS resolution.
     """
     if not endpoint_url or not isinstance(endpoint_url, str):
         return False

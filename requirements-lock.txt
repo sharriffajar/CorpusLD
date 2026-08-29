@@ -1,0 +1,27 @@
+# Production lockfile for CorpusLD Studio (v3.0)
+annotated-types==0.8.0
+anyio==4.14.2
+certifi==2026.7.22
+click==8.4.2
+colorama==0.4.6
+fastapi==0.141.1
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.18
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pydantic==2.13.5
+pydantic_core==2.46.5
+Pygments==2.20.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+python-multipart==0.0.32
+pypdf==5.3.0
+qdrant-client==1.13.2
+sentence-transformers==3.4.1
+starlette==1.6.0
+typing_extensions==4.16.0
+uvicorn==0.34.0

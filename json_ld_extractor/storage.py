@@ -12,8 +12,13 @@ from typing import List, Dict, Any, Optional
 DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "corpusld_store.db")
 
 
+import logging
+
+logger = logging.getLogger("corpusld.storage")
+
+
 class CorpusStorage:
-    """Storage manager berbasis SQLite lokal untuk workspace files, chunks, dan hasil ekstraksi."""
+    """SQLite persistent storage manager for workspace files, extracted chunks, and knowledge graph outputs."""
 
     CURRENT_SCHEMA_VERSION = 2
 
@@ -22,12 +27,14 @@ class CorpusStorage:
         self._initialized = False
 
     def _ensure_init(self):
+        """Ensure database schema is initialized and migrated to the latest version."""
         if not self._initialized:
             try:
                 self._init_db()
                 self._initialized = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error("Failed to initialize SQLite persistent database at '%s': %s", self.db_path, e, exc_info=True)
+                raise RuntimeError(f"Database initialization failed: {e}") from e
 
     def _get_connection(self) -> sqlite3.Connection:
         db_dir = os.path.dirname(os.path.abspath(self.db_path))

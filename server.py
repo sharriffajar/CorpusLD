@@ -95,6 +95,8 @@ async def lifespan(app: FastAPI):
     yield
 
 
+from config import Config
+
 # ---------------------------------------------------------
 # FASTAPI APPLICATION & MIDDLEWARE SETUP
 # ---------------------------------------------------------
@@ -105,10 +107,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+is_wildcard_cors = "*" in Config.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=Config.CORS_ORIGINS,
+    allow_credentials=not is_wildcard_cors,
     allow_methods=["*"],
     allow_headers=["*"],
 )

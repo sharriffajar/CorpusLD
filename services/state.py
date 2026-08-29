@@ -21,7 +21,7 @@ except ImportError:
     QdrantClient = None
 
 
-# Persistent Storage (SQLite)
+# Persistent Storage (SQLite as Single Authoritative Source of Truth)
 STORAGE = CorpusStorage()
 
 # Directory Setup
@@ -31,7 +31,7 @@ FRONTEND_DIR = os.path.join(PROJ_ROOT, "frontend")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(FRONTEND_DIR, exist_ok=True)
 
-# In-Memory Shared State
+# In-Memory Cache (Synced directly with SQLite Single Source of Truth)
 WORKSPACE_FILES: Dict[str, str] = {}  # {clean_name: file_path}
 EXTRACTED_CHUNKS: List[Dict[str, Any]] = []
 JSON_LD_STORE: Dict[str, Any] = {}
@@ -39,10 +39,33 @@ IS_INDEXED: bool = False
 _WORKSPACE_LOCK = asyncio.Lock()
 
 
+def get_persisted_workspace_files() -> Dict[str, str]:
+    """Retrieve all workspace files from authoritative SQLite storage and sync cache."""
+    files = STORAGE.get_all_files()
+    WORKSPACE_FILES.clear()
+    WORKSPACE_FILES.update(files)
+    return WORKSPACE_FILES
+
+
+def get_persisted_document(file_name: str) -> Optional[Dict[str, Any]]:
+    """Retrieve extracted document from SQLite storage, with memory cache fallback."""
+    doc = STORAGE.get_extracted_document(file_name)
+    if doc:
+        JSON_LD_STORE[file_name] = doc
+        return doc
+    return JSON_LD_STORE.get(file_name)
+
+
+def save_persisted_document(file_name: str, doc_data: Dict[str, Any]):
+    """Save extracted document to authoritative SQLite storage and sync cache."""
+    JSON_LD_STORE[file_name] = doc_data
+    STORAGE.save_extracted_document(file_name, doc_data)
+
+
 def make_safe_attachment_header(file_name: str, ext: str) -> str:
     """
-    Sanitasi nama file dan pembuatan header Content-Disposition sesuai RFC 5987 / RFC 6266
-    untuk mencegah celah HTTP Header Injection / CRLF splitting.
+    Sanitize file name and create Content-Disposition header conforming to RFC 5987 / RFC 6266
+    to prevent HTTP Header Injection / CRLF splitting.
     """
     clean_base = re.sub(r'[^a-zA-Z0-9_.-]', '_', os.path.basename(file_name or "document")).strip('._') or "document"
     safe_filename = f"{clean_base}_{ext}"
@@ -52,8 +75,8 @@ def make_safe_attachment_header(file_name: str, ext: str) -> str:
 
 def sanitize_error_message(err_msg: Any) -> str:
     """
-    Sensor kredensial sensitif (API Key, Bearer Token) dan path internal server
-    dari pesan error dan log streaming SSE.
+    Mask sensitive credentials (API keys, bearer tokens) and internal server file paths
+    from error responses and SSE stream logs.
     """
     if not err_msg:
         return ""
