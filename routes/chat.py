@@ -11,8 +11,8 @@ from pydantic import BaseModel
 
 from config import Config
 from services.state import (
-    EXTRACTED_CHUNKS,
-    IS_INDEXED,
+    is_knowledge_base_indexed,
+    get_extracted_chunks,
     get_embedder,
     get_qdrant,
 )
@@ -45,7 +45,9 @@ class ChatRequest(BaseModel):
 
 @router.post("/api/chat")
 async def chat_rag(req: ChatRequest):
-    if not IS_INDEXED or not EXTRACTED_CHUNKS:
+    if not req.query or not req.query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+    if not is_knowledge_base_indexed() or not get_extracted_chunks():
         raise HTTPException(status_code=400, detail="Knowledge base belum di-sync. Unggah PDF & klik Sync terlebih dahulu.")
     if req.base_url and not is_safe_custom_endpoint(req.base_url):
         raise HTTPException(status_code=400, detail="Disallowed or unsafe custom base_url parameter.")

@@ -3,7 +3,11 @@
 
 from fastapi import APIRouter
 from config import Config
-from services.state import WORKSPACE_FILES, EXTRACTED_CHUNKS, IS_INDEXED
+from services.state import (
+    WORKSPACE_FILES,
+    is_knowledge_base_indexed,
+    get_extracted_chunks,
+)
 
 try:
     import ollama
@@ -23,13 +27,14 @@ async def get_system_status():
         except Exception:
             pass
     
+    chunks = get_extracted_chunks()
     return {
         "status": "operational",
         "app_name": "CorpusLD Studio",
         "version": "3.0.0",
-        "is_indexed": IS_INDEXED,
+        "is_indexed": is_knowledge_base_indexed(),
         "total_documents": len(WORKSPACE_FILES),
-        "total_chunks": len(EXTRACTED_CHUNKS),
+        "total_chunks": len(chunks),
         "embedding_model": Config.EMBEDDING_MODEL_NAME,
         "default_slm": Config.OLLAMA_MODEL_NAME,
         "available_local_models": local_models

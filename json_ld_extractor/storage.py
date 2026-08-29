@@ -172,6 +172,13 @@ class CorpusStorage:
                 })
             return chunks
 
+    def has_chunks(self) -> bool:
+        """Cek apakah storage memuat setidaknya satu chunk teks yang tersimpan."""
+        with self.connection_scope() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM extracted_chunks LIMIT 1")
+            return cur.fetchone() is not None
+
     def save_extracted_document(self, file_name: str, extraction_result: Dict[str, Any]):
         schema_json = json.dumps(extraction_result.get("schema_json_ld", {}), ensure_ascii=False)
         val_json = json.dumps(extraction_result.get("validation", {}), ensure_ascii=False)

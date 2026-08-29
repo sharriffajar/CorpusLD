@@ -33,14 +33,17 @@ from services.state import (
     UPLOAD_DIR,
     FRONTEND_DIR,
     WORKSPACE_FILES,
-    EXTRACTED_CHUNKS,
     JSON_LD_STORE,
-    IS_INDEXED,
     _WORKSPACE_LOCK,
     make_safe_attachment_header,
     sanitize_error_message,
     get_embedder,
     get_qdrant,
+    is_knowledge_base_indexed,
+    set_knowledge_base_indexed,
+    get_extracted_chunks,
+    set_extracted_chunks,
+    clear_workspace_state,
 )
 from services.parser import (
     stateful_table_stitcher,
@@ -59,11 +62,10 @@ from routes import api_router
 # ---------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global WORKSPACE_FILES, JSON_LD_STORE, EXTRACTED_CHUNKS
     is_fresh = any(arg.lower() in ("fresh", "--fresh", "-f") for arg in sys.argv)
     if is_fresh:
         print("[Startup] Flag 'fresh' terdeteksi: Mensucikan database Qdrant, SQLite storage & folder uploads...")
-        STORAGE.clear_all()
+        clear_workspace_state()
         if os.path.exists(UPLOAD_DIR):
             for f in os.listdir(UPLOAD_DIR):
                 if f.endswith(".pdf"):
@@ -82,13 +84,18 @@ async def lifespan(app: FastAPI):
     else:
         try:
             saved_files = STORAGE.get_all_files()
+            WORKSPACE_FILES.clear()
             WORKSPACE_FILES.update(saved_files)
             saved_docs = STORAGE.get_all_extracted_documents()
+            JSON_LD_STORE.clear()
             JSON_LD_STORE.update(saved_docs)
             saved_chunks = STORAGE.get_chunks()
             if saved_chunks:
-                EXTRACTED_CHUNKS.extend(saved_chunks)
-            print(f"💾 [Startup] Persistent Storage loaded: {len(WORKSPACE_FILES)} files, {len(JSON_LD_STORE)} extracted documents.")
+                set_extracted_chunks(saved_chunks)
+            if is_knowledge_base_indexed():
+                print(f"💾 [Startup] Persistent Storage loaded: {len(WORKSPACE_FILES)} files, {len(JSON_LD_STORE)} extracted documents. Knowledge Base Vector Index is READY.")
+            else:
+                print(f"💾 [Startup] Persistent Storage loaded: {len(WORKSPACE_FILES)} files, {len(JSON_LD_STORE)} extracted documents.")
         except Exception as e:
             print(f"⚠️ [Startup Warning] Gagal memuat persistent storage: {e}")
 

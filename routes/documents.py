@@ -11,14 +11,17 @@ from pydantic import BaseModel
 from config import Config
 from services.state import (
     WORKSPACE_FILES,
-    EXTRACTED_CHUNKS,
     JSON_LD_STORE,
-    IS_INDEXED,
     _WORKSPACE_LOCK,
     UPLOAD_DIR,
     STORAGE,
     get_embedder,
     get_qdrant,
+    is_knowledge_base_indexed,
+    set_knowledge_base_indexed,
+    get_extracted_chunks,
+    set_extracted_chunks,
+    clear_workspace_state,
 )
 from services.parser import parse_document
 
@@ -107,13 +110,8 @@ async def delete_document(file_name: str):
 
 @router.post("/api/documents/clear")
 async def clear_all_documents():
-    global WORKSPACE_FILES, EXTRACTED_CHUNKS, JSON_LD_STORE, IS_INDEXED
     async with _WORKSPACE_LOCK:
-        WORKSPACE_FILES.clear()
-        EXTRACTED_CHUNKS.clear()
-        JSON_LD_STORE.clear()
-        STORAGE.clear_all()
-        IS_INDEXED = False
+        clear_workspace_state()
         
         # Hapus semua file PDF yang terunggah di folder uploads
         if os.path.exists(UPLOAD_DIR):
@@ -143,7 +141,6 @@ class SyncRequest(BaseModel):
 
 @router.post("/api/sync")
 async def sync_knowledge_base(req: SyncRequest):
-    global EXTRACTED_CHUNKS, IS_INDEXED
     async with _WORKSPACE_LOCK:
         if not WORKSPACE_FILES:
             raise HTTPException(status_code=400, detail="Tidak ada dokumen dalam workspace untuk di-index.")
@@ -201,12 +198,12 @@ async def sync_knowledge_base(req: SyncRequest):
         if not result_chunks:
             raise HTTPException(status_code=400, detail="Parsing selesai namun tidak ada konten yang bisa diekstrak dari dokumen.")
 
-        EXTRACTED_CHUNKS = result_chunks
-        IS_INDEXED = True
+        set_extracted_chunks(result_chunks)
+        set_knowledge_base_indexed(True)
         
         return {
             "success": True,
             "total_documents": len(WORKSPACE_FILES),
-            "total_chunks": len(EXTRACTED_CHUNKS),
+            "total_chunks": len(result_chunks),
             "collection": Config.QDRANT_COLLECTION_NAME
         }

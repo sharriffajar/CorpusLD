@@ -47,6 +47,56 @@ def get_persisted_workspace_files() -> Dict[str, str]:
     return WORKSPACE_FILES
 
 
+def is_knowledge_base_indexed() -> bool:
+    """Check whether knowledge base is synced, with persistent storage auto-restoration."""
+    global IS_INDEXED
+    if IS_INDEXED:
+        return True
+    if STORAGE.has_chunks():
+        try:
+            q = get_qdrant()
+            if q.collection_exists(Config.QDRANT_COLLECTION_NAME):
+                count_info = q.count(collection_name=Config.QDRANT_COLLECTION_NAME)
+                if count_info.count > 0:
+                    IS_INDEXED = True
+                    return True
+        except Exception:
+            pass
+    return False
+
+
+def set_knowledge_base_indexed(val: bool):
+    """Update global indexing status."""
+    global IS_INDEXED
+    IS_INDEXED = bool(val)
+
+
+def get_extracted_chunks() -> List[Dict[str, Any]]:
+    """Retrieve extracted text and table chunks, restoring from persistent storage if memory cache is cold."""
+    global EXTRACTED_CHUNKS
+    if not EXTRACTED_CHUNKS:
+        saved = STORAGE.get_chunks()
+        if saved:
+            EXTRACTED_CHUNKS = saved
+    return EXTRACTED_CHUNKS
+
+
+def set_extracted_chunks(chunks: List[Dict[str, Any]]):
+    """Update extracted chunks in memory cache."""
+    global EXTRACTED_CHUNKS
+    EXTRACTED_CHUNKS = chunks or []
+
+
+def clear_workspace_state():
+    """Reset workspace in-memory state and clear storage."""
+    global WORKSPACE_FILES, EXTRACTED_CHUNKS, JSON_LD_STORE, IS_INDEXED
+    WORKSPACE_FILES.clear()
+    EXTRACTED_CHUNKS.clear()
+    JSON_LD_STORE.clear()
+    IS_INDEXED = False
+    STORAGE.clear_all()
+
+
 def get_persisted_document(file_name: str) -> Optional[Dict[str, Any]]:
     """Retrieve extracted document from SQLite storage, with memory cache fallback."""
     doc = STORAGE.get_extracted_document(file_name)
