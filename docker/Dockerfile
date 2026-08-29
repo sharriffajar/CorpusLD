@@ -34,6 +34,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Copy application source code
 COPY config.py server.py cli.py ./
 COPY json_ld_extractor/ ./json_ld_extractor/
+COPY corpusld_engine/ ./corpusld_engine/
 COPY services/ ./services/
 COPY routes/ ./routes/
 COPY frontend/ ./frontend/

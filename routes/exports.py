@@ -138,6 +138,7 @@ async def get_document_terms(file_name: str):
 
 @router.get("/api/documents/{file_name}/formulas")
 async def get_document_formulas(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored

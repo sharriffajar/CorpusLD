@@ -62,7 +62,7 @@ async def chat_rag(req: ChatRequest):
             ]
         )
     
-    query_vector = embedder.encode(req.query).tolist()
+    query_vector = (await asyncio.to_thread(embedder.encode, req.query)).tolist()
     search_results = qdrant.query_points(
         collection_name=Config.QDRANT_COLLECTION_NAME,
         query=query_vector,

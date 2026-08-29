@@ -117,6 +117,8 @@ app.add_middleware(
 )
 
 
+import secrets
+
 # ---------------------------------------------------------
 # OPTIONAL API KEY AUTHENTICATION MIDDLEWARE
 # ---------------------------------------------------------
@@ -130,7 +132,7 @@ async def api_key_auth_middleware(request: Request, call_next):
             if auth_header.startswith("Bearer "):
                 client_key = auth_header[7:].strip()
 
-            if not client_key or client_key != Config.API_KEY:
+            if not client_key or not secrets.compare_digest(client_key, Config.API_KEY):
                 return JSONResponse(
                     status_code=401,
                     content={"success": False, "error": True, "message": "Unauthorized: Invalid or missing X-API-Key header.", "status_code": 401}

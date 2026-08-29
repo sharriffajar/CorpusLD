@@ -45,6 +45,12 @@ class Config:
     LLAMAPARSE_API_KEY: str = os.getenv("LLAMAPARSE_API_KEY", "").strip()
     UNSTRUCTURED_API_KEY: str = os.getenv("UNSTRUCTURED_API_KEY", "").strip()
     UNSTRUCTURED_SERVER_URL: str = os.getenv("UNSTRUCTURED_SERVER_URL", "https://api.unstructured.io/general/v0/general").strip()
+
+    # Cloud LLM API Keys
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip()
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "").strip()
+
     # Security & API Auth
     API_KEY: str = os.getenv("API_KEY", "").strip()
 
@@ -69,5 +75,7 @@ class Config:
             "LlamaParse": "READY" if cls.LLAMAPARSE_API_KEY else "NOT SET",
             "Unstructured": "READY" if cls.UNSTRUCTURED_API_KEY else "NOT SET",
             "Gemini": "READY" if cls.GEMINI_API_KEY else "NOT SET",
+            "OpenAI": "READY" if cls.OPENAI_API_KEY else "NOT SET",
+            "Groq": "READY" if cls.GROQ_API_KEY else "NOT SET",
             "Local Fallback": "pypdf (Always Available)"
         }
