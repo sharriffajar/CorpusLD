@@ -193,3 +193,22 @@ class TestValidation(unittest.TestCase):
         self.assertIn("MERGE (n_c_ssm:Concept {id: 'c_ssm', name: 'State Space Model'})", cql)
         self.assertIn("MATCH (s {id: 'm_mamba'}), (t {id: 'c_ssm'}) MERGE (s)-[:INSTANCE_OF]->(t);", cql)
 
+        # Pipeline schema with label, @id, and type
+        doc_pipeline = {
+            "@id": "doc_pipeline",
+            "name": "Pipeline Paper",
+            "knowledge_graph": {
+                "nodes": [
+                    {"id": "kg:qwen", "label": "Qwen 2.5", "type": "kg:Software"},
+                    {"id": "kg:latency", "label": "Latency", "type": "kg:Metric"}
+                ],
+                "edges": [
+                    {"source": "kg:qwen", "target": "kg:latency", "type": "influences"}
+                ]
+            }
+        }
+        cql_pipe = export_to_cypher(doc_pipeline)
+        self.assertIn("MERGE (n_kg_qwen:Software {id: 'kg_qwen', name: 'Qwen 2.5'})", cql_pipe)
+        self.assertIn("MERGE (n_kg_latency:Metric {id: 'kg_latency', name: 'Latency'})", cql_pipe)
+        self.assertIn("MATCH (s {id: 'kg_qwen'}), (t {id: 'kg_latency'}) MERGE (s)-[:INFLUENCES]->(t);", cql_pipe)
+

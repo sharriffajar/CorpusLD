@@ -25,6 +25,7 @@ class EducationalOrganization(BaseModel):
     type: str = Field(default="EducationalOrganization", alias="@type")
     name: str = Field(default="", description="Nama institusi / universitas / organisasi afiliasi")
     address: Optional[str] = Field(None, description="Alamat, kota, atau lokasi institusi")
+    same_as: Optional[Union[str, List[str]]] = Field(None, alias="sameAs", description="URI otoritas resmi (misal ROR ID: https://ror.org/...)")
 
 
 class Author(BaseModel):
@@ -105,9 +106,23 @@ class KGNode(BaseModel):
     id: str = Field(default="", alias="@id", description="Identifikator unik snake_case, misal 'kg:esp32_s3' atau 'kg:fcr_ratio'")
     type: str = Field(default="kg:Concept", alias="@type", description="Tipe node: kg:Concept, kg:Hardware, kg:Software, kg:Method, kg:Metric, kg:Organization, kg:Person")
     label: str = Field(default="", alias="kg:label", description="Nama label terbaca manusia")
+    description: Optional[str] = Field(None, description="Deskripsi atau definisi entitas")
     properties: Dict[str, Any] = Field(default_factory=dict, alias="kg:properties", description="Atribut key-value entitas")
     confidence: float = Field(default=1.0, alias="kg:confidence", description="Tingkat keyakinan ekstraksi (0.0 - 1.0)")
     source_page: Optional[int] = Field(None, alias="kg:source_page", description="Halaman dokumen asal fakta/entitas")
+    same_as: Optional[Union[str, List[str]]] = Field(None, alias="sameAs", description="Tautan authority Schema.org sameAs (Wikidata, MeSH, ROR)")
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_kg_node(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "name" in data and not data.get("label") and not data.get("kg:label"):
+                data["label"] = data["name"]
+            if "node_type" in data and not data.get("type") and not data.get("@type"):
+                data["type"] = data["node_type"]
+            if "same_as" in data and not data.get("sameAs"):
+                data["sameAs"] = data["same_as"]
+        return data
 
 
 class KGEdge(BaseModel):

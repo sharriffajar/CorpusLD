@@ -8,7 +8,12 @@ serta meng-update dan memperkaya struktur/field secara optimal.
 import re
 import copy
 from typing import Dict, Any, List, Optional
-from .validation import generate_google_scholar_meta_tags, generate_html_head_package, get_clean_schema_org_jsonld
+from .validation import (
+    generate_google_scholar_meta_tags,
+    generate_html_head_package,
+    get_clean_schema_org_jsonld,
+    validate_json_ld_rich_results
+)
 
 
 def _is_valid_scalar(val: Any) -> bool:
@@ -227,10 +232,133 @@ def merge_citations(existing_cits: List[str], new_cits: List[str]) -> List[str]:
     return res
 
 
+def merge_knowledge_graphs(ex_kg: Any, new_kg: Any) -> Optional[Dict[str, Any]]:
+    """Penggabungan graf relasional Deep Knowledge Graph non-destruktif."""
+    if not ex_kg and not new_kg:
+        return None
+    if not ex_kg:
+        return copy.deepcopy(new_kg) if isinstance(new_kg, dict) else (new_kg.model_dump(by_alias=True) if hasattr(new_kg, 'model_dump') else {})
+    if not new_kg:
+        return copy.deepcopy(ex_kg) if isinstance(ex_kg, dict) else (ex_kg.model_dump(by_alias=True) if hasattr(ex_kg, 'model_dump') else {})
+
+    ex_dict = ex_kg if isinstance(ex_kg, dict) else (ex_kg.model_dump(by_alias=True) if hasattr(ex_kg, 'model_dump') else {})
+    new_dict = new_kg if isinstance(new_kg, dict) else (new_kg.model_dump(by_alias=True) if hasattr(new_kg, 'model_dump') else {})
+
+    merged_kg = copy.deepcopy(ex_dict)
+    
+    # Merge nodes
+    node_map = {}
+    for n in (ex_dict.get("nodes", []) or ex_dict.get("kg:nodes", [])):
+        nid = n.get("id") or n.get("@id")
+        if nid:
+            node_map[nid] = copy.deepcopy(n)
+    for n in (new_dict.get("nodes", []) or new_dict.get("kg:nodes", [])):
+        nid = n.get("id") or n.get("@id")
+        if nid:
+            if nid in node_map:
+                curr = node_map[nid]
+                if n.get("sameAs") and not curr.get("sameAs"):
+                    curr["sameAs"] = n["sameAs"]
+                if n.get("description") and not curr.get("description"):
+                    curr["description"] = n["description"]
+                if n.get("label") and not curr.get("label"):
+                    curr["label"] = n["label"]
+            else:
+                node_map[nid] = copy.deepcopy(n)
+
+    # Merge edges
+    edge_map = {}
+    for e in (ex_dict.get("edges", []) or ex_dict.get("kg:edges", [])):
+        src = e.get("source") or e.get("kg:source")
+        tgt = e.get("target") or e.get("kg:target")
+        etype = e.get("type") or e.get("relation") or e.get("kg:type", "causes")
+        if src and tgt:
+            edge_map[f"{src}::{etype}::{tgt}"] = copy.deepcopy(e)
+    for e in (new_dict.get("edges", []) or new_dict.get("kg:edges", [])):
+        src = e.get("source") or e.get("kg:source")
+        tgt = e.get("target") or e.get("kg:target")
+        etype = e.get("type") or e.get("relation") or e.get("kg:type", "causes")
+        if src and tgt:
+            edge_map[f"{src}::{etype}::{tgt}"] = copy.deepcopy(e)
+
+    merged_nodes = list(node_map.values())
+    merged_edges = list(edge_map.values())
+
+    merged_kg["nodes"] = merged_nodes
+    merged_kg["edges"] = merged_edges
+    merged_kg["node_count"] = len(merged_nodes)
+    merged_kg["edge_count"] = len(merged_edges)
+    merged_kg["kg:nodes"] = merged_nodes
+    merged_kg["kg:edges"] = merged_edges
+    merged_kg["kg:node_count"] = len(merged_nodes)
+    merged_kg["kg:edge_count"] = len(merged_edges)
+
+    return merged_kg
+
+
+def merge_procedures(ex_procs: List[Dict[str, Any]], new_procs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Penggabungan langkah metodologi & prosedur HowToStep non-destruktif."""
+    if not ex_procs:
+        return new_procs or []
+    if not new_procs:
+        return ex_procs or []
+    proc_map = {}
+    for p in ex_procs:
+        key = str(p.get("step_number") or p.get("name") or "")
+        if key:
+            proc_map[key] = copy.deepcopy(p)
+    for p in new_procs:
+        key = str(p.get("step_number") or p.get("name") or "")
+        if key:
+            proc_map[key] = copy.deepcopy(p)
+    return list(proc_map.values())
+
+
+def merge_defined_terms(ex_terms: List[Dict[str, Any]], new_terms: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Penggabungan DefinedTerm (istilah teknis & glosarium)."""
+    if not ex_terms:
+        return new_terms or []
+    if not new_terms:
+        return ex_terms or []
+    term_map = {}
+    for t in ex_terms:
+        key = str(t.get("name") or "").strip().lower()
+        if key:
+            term_map[key] = copy.deepcopy(t)
+    for t in new_terms:
+        key = str(t.get("name") or "").strip().lower()
+        if key:
+            if key in term_map:
+                curr = term_map[key]
+                if t.get("description") and len(t["description"]) > len(curr.get("description", "")):
+                    curr["description"] = t["description"]
+            else:
+                term_map[key] = copy.deepcopy(t)
+    return list(term_map.values())
+
+
+def merge_math_formulas(ex_forms: List[Dict[str, Any]], new_forms: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Penggabungan MathFormula (persamaan matematis LaTeX)."""
+    if not ex_forms:
+        return new_forms or []
+    if not new_forms:
+        return ex_forms or []
+    form_map = {}
+    for f in ex_forms:
+        key = str(f.get("expression") or f.get("name") or "").strip().lower()
+        if key:
+            form_map[key] = copy.deepcopy(f)
+    for f in new_forms:
+        key = str(f.get("expression") or f.get("name") or "").strip().lower()
+        if key:
+            form_map[key] = copy.deepcopy(f)
+    return list(form_map.values())
+
+
 def merge_and_enrich_json_ld(existing_ld: Dict[str, Any], new_ld: Dict[str, Any]) -> Dict[str, Any]:
     """
     Menggabungkan hasil ekstraksi baru dengan struktur data yang sudah ada secara cerdas (non-destructive delta upsert).
-    Menjamin tidak ada data berharga yang hilang saat re-ekstraksi.
+    Menjamin tidak ada data berharga (Layer 1 Schema.org maupun Layer 2 Deep KG) yang hilang saat re-ekstraksi.
     """
     if not existing_ld:
         return new_ld or {}
@@ -252,7 +380,6 @@ def merge_and_enrich_json_ld(existing_ld: Dict[str, Any], new_ld: Dict[str, Any]
         new_val = new_pure.get(field)
         ex_val = merged.get(field)
         if _is_valid_scalar(new_val):
-            # Jika existing belum ada, atau new_val lebih panjang/lengkap
             if not _is_valid_scalar(ex_val) or (isinstance(new_val, str) and isinstance(ex_val, str) and len(new_val) > len(ex_val) and "undated" not in new_val):
                 merged[field] = new_val
         elif not _is_valid_scalar(ex_val) and new_val:
@@ -291,6 +418,8 @@ def merge_and_enrich_json_ld(existing_ld: Dict[str, Any], new_ld: Dict[str, Any]
 
     # 7. Additional Properties / Quantitative Metrics
     merged["additionalProperty"] = merge_metrics(merged.get("additionalProperty", []), new_pure.get("additionalProperty", []))
+    if "properties_and_metrics" in new_pure or "properties_and_metrics" in merged:
+        merged["properties_and_metrics"] = merge_metrics(merged.get("properties_and_metrics", []), new_pure.get("properties_and_metrics", []))
 
     # 8. Tables / Data Catalog
     if "hasPart" in new_pure or "hasPart" in merged:
@@ -298,18 +427,42 @@ def merge_and_enrich_json_ld(existing_ld: Dict[str, Any], new_ld: Dict[str, Any]
     if "tables" in new_pure or "tables" in merged:
         merged["tables"] = merge_tables(merged.get("tables", []), new_pure.get("tables", []))
 
-    # 9. Citations
+    # 9. Citations & References
     merged["citation"] = merge_citations(merged.get("citation", []), new_pure.get("citation", []))
+    if "references_or_sources" in new_pure or "references_or_sources" in merged:
+        merged["references_or_sources"] = merge_citations(merged.get("references_or_sources", []), new_pure.get("references_or_sources", []))
 
-    # 10. Regenerate Google Scholar Meta Tags & HTML Head Package from enriched data
+    # 10. Layer 2 Deep Knowledge Graph & Components Merging
+    if "knowledge_graph" in new_pure or "knowledge_graph" in merged:
+        merged["knowledge_graph"] = merge_knowledge_graphs(merged.get("knowledge_graph"), new_pure.get("knowledge_graph"))
+    if "procedures" in new_pure or "procedures" in merged:
+        merged["procedures"] = merge_procedures(merged.get("procedures", []), new_pure.get("procedures", []))
+    if "defined_terms" in new_pure or "defined_terms" in merged:
+        merged["defined_terms"] = merge_defined_terms(merged.get("defined_terms", []), new_pure.get("defined_terms", []))
+    if "math_formulas" in new_pure or "math_formulas" in merged:
+        merged["math_formulas"] = merge_math_formulas(merged.get("math_formulas", []), new_pure.get("math_formulas", []))
+
+    # 11. Regenerate Google Scholar Meta Tags & HTML Head Package from enriched data
     merged_clean = get_clean_schema_org_jsonld(merged)
     scholar_tags = generate_google_scholar_meta_tags(merged_clean)
     html_package = generate_html_head_package(merged_clean)
+    validation_report = validate_json_ld_rich_results(merged)
+
+    # 12. Consolidate Telemetry
+    new_tel = new_ld.get("telemetry") or {}
+    ex_tel = existing_ld.get("telemetry") or {}
+    merged_telemetry = {
+        "duration_seconds": new_tel.get("duration_seconds") or ex_tel.get("duration_seconds") or 0.0,
+        "logs": new_tel.get("logs") or new_ld.get("logs") or ex_tel.get("logs") or []
+    }
 
     return {
         "success": True,
         "schema_json_ld": merged,
         "google_scholar_meta_tags": scholar_tags,
         "html_head_package": html_package,
-        "logs": new_ld.get("logs", existing_ld.get("logs", []))
+        "telemetry": merged_telemetry,
+        "validation": validation_report,
+        "logs": merged_telemetry["logs"]
     }
+

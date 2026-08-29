@@ -112,6 +112,40 @@ class TestSchemaDeltaMerging(unittest.TestCase):
         # 6. Citations combined ([1], [2], [3])
         self.assertEqual(len(merged["citation"]), 3)
 
+    def test_knowledge_graph_and_layer2_merging(self):
+        old_ld = {
+            "name": "IoT Paper",
+            "knowledge_graph": {
+                "nodes": [{"id": "kg:esp32", "type": "kg:Hardware", "label": "ESP32", "sameAs": "https://www.wikidata.org/wiki/Q28127397"}],
+                "edges": [{"source": "kg:esp32", "target": "kg:mqtt", "type": "uses", "weight": 0.9}]
+            },
+            "procedures": [{"step_number": 1, "name": "Firmware Flash", "text": "Flash ESP-IDF"}],
+            "math_formulas": [{"name": "SNR Formula", "expression": "SNR = 10 \\log_{10}(P_s / P_n)"}],
+            "defined_terms": [{"name": "MQTT", "description": "Lightweight publish-subscribe network protocol"}]
+        }
+        new_ld = {
+            "name": "IoT Paper",
+            "knowledge_graph": {
+                "nodes": [{"id": "kg:mqtt", "type": "kg:Software", "label": "MQTT Protocol"}],
+                "edges": [{"source": "kg:mqtt", "target": "kg:broker", "type": "connects_to", "weight": 0.95}]
+            },
+            "procedures": [{"step_number": 2, "name": "Broker Connect", "text": "Connect to EMQX"}],
+            "math_formulas": [{"name": "BER Formula", "expression": "BER = \\frac{E_b}{N_0}"}],
+            "defined_terms": [{"name": "QoS", "description": "Quality of Service level"}]
+        }
+
+        merged_res = merge_and_enrich_json_ld(old_ld, new_ld)
+        merged = merged_res["schema_json_ld"]
+
+        self.assertIn("knowledge_graph", merged)
+        self.assertEqual(len(merged["knowledge_graph"]["nodes"]), 2)
+        self.assertEqual(len(merged["knowledge_graph"]["edges"]), 2)
+        self.assertEqual(len(merged["procedures"]), 2)
+        self.assertEqual(len(merged["math_formulas"]), 2)
+        self.assertEqual(len(merged["defined_terms"]), 2)
+        self.assertIn("telemetry", merged_res)
+        self.assertIn("validation", merged_res)
+
 
 if __name__ == "__main__":
     unittest.main()

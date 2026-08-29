@@ -1127,17 +1127,22 @@ def export_to_cypher(data: Dict[str, Any]) -> str:
     edges = kg.get("edges", [])
 
     for n in nodes:
-        nid = re.sub(r'[^a-zA-Z0-9_]', '_', str(n.get("id", "")))
-        nname = str(n.get("name", "")).replace("'", "\\'")
-        ntype = re.sub(r'[^a-zA-Z0-9]', '', str(n.get("node_type", "Concept"))) or "Concept"
-        if nid and nname:
+        nid_raw = str(n.get("id") or n.get("@id") or "")
+        nid = re.sub(r'[^a-zA-Z0-9_]', '_', nid_raw)
+        nname = str(n.get("name") or n.get("label") or n.get("kg:label") or nid_raw).replace("'", "\\'")
+        raw_type = str(n.get("node_type") or n.get("type") or n.get("@type") or "Concept").replace("kg:", "")
+        ntype = re.sub(r'[^a-zA-Z0-9]', '', raw_type) or "Concept"
+        if nid:
             lines.append(f"MERGE (n_{nid}:{ntype} {{id: '{nid}', name: '{nname}'}})")
             lines.append(f"MERGE (doc)-[:MENTIONS]->(n_{nid})")
 
     for e in edges:
-        src = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("source", "")))
-        tgt = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("target", "")))
-        rel = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("relation", "RELATED_TO"))).upper()
+        src_raw = str(e.get("source") or e.get("kg:source") or "")
+        tgt_raw = str(e.get("target") or e.get("kg:target") or "")
+        src = re.sub(r'[^a-zA-Z0-9_]', '_', src_raw)
+        tgt = re.sub(r'[^a-zA-Z0-9_]', '_', tgt_raw)
+        raw_rel = str(e.get("relation") or e.get("type") or e.get("kg:type") or "RELATED_TO")
+        rel = re.sub(r'[^a-zA-Z0-9_]', '_', raw_rel).upper()
         if src and tgt:
             lines.append(f"MATCH (s {{id: '{src}'}}), (t {{id: '{tgt}'}}) MERGE (s)-[:{rel}]->(t);")
 
