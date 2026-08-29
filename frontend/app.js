@@ -918,7 +918,11 @@ document.addEventListener('DOMContentLoaded', () => {
     allChecks.forEach(c => {
       const item = document.createElement('div');
       item.className = 'check-item';
-      item.innerHTML = `<span class="check-icon">${c.icon}</span> <div class="check-body"><span class="check-cat">[${c.category.toUpperCase()}]</span> <strong class="check-title">${c.title}</strong>: <span class="check-desc">${c.desc}</span></div>`;
+      const catEsc = escapeHtml(c.category ? c.category.toUpperCase() : '');
+      const titleEsc = escapeHtml(c.title || '');
+      const descEsc = escapeHtml(c.desc || '');
+      const iconEsc = escapeHtml(c.icon || '📌');
+      item.innerHTML = `<span class="check-icon">${iconEsc}</span> <div class="check-body"><span class="check-cat">[${catEsc}]</span> <strong class="check-title">${titleEsc}</strong>: <span class="check-desc">${descEsc}</span></div>`;
       checksGrid.appendChild(item);
     });
 

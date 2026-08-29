@@ -118,6 +118,27 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------
+# OPTIONAL API KEY AUTHENTICATION MIDDLEWARE
+# ---------------------------------------------------------
+@app.middleware("http")
+async def api_key_auth_middleware(request: Request, call_next):
+    # Enforce API key authentication for /api/* if API_KEY is configured in .env
+    if Config.API_KEY and request.url.path.startswith("/api/"):
+        if request.url.path not in ("/api/health", "/api/status"):
+            client_key = request.headers.get("X-API-Key") or request.headers.get("x-api-key")
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                client_key = auth_header[7:].strip()
+
+            if not client_key or client_key != Config.API_KEY:
+                return JSONResponse(
+                    status_code=401,
+                    content={"success": False, "error": True, "message": "Unauthorized: Invalid or missing X-API-Key header.", "status_code": 401}
+                )
+    return await call_next(request)
+
+
+# ---------------------------------------------------------
 # CENTRALIZED EXCEPTION HANDLERS
 # ---------------------------------------------------------
 @app.exception_handler(HTTPException)

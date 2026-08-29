@@ -89,3 +89,27 @@ def test_sanitize_error_message():
     assert "[REDACTED_KEY]" in cleaned
     assert "C:\\Users" not in cleaned
     assert "[SERVER_PATH]" in cleaned
+
+
+def test_safe_filename_validation():
+    from routes.documents import validate_safe_filename
+    from fastapi import HTTPException
+
+    # Valid filenames
+    assert validate_safe_filename("paper_2026.pdf") == "paper_2026.pdf"
+    assert validate_safe_filename("20.+Al-Amin++M+(200-211).pdf") == "20.+Al-Amin++M+(200-211).pdf"
+    assert validate_safe_filename("document-final v1.2.pdf") == "document-final v1.2.pdf"
+
+    # Traversal attempts must raise 400
+    with pytest.raises(HTTPException) as exc1:
+        validate_safe_filename("../../etc/passwd")
+    assert exc1.value.status_code == 400
+
+    with pytest.raises(HTTPException) as exc2:
+        validate_safe_filename("uploads/nested/file.pdf")
+    assert exc2.value.status_code == 400
+
+    with pytest.raises(HTTPException) as exc3:
+        validate_safe_filename("doc;rm -rf /")
+    assert exc3.value.status_code == 400
+

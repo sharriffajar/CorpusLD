@@ -74,9 +74,20 @@ async def upload_documents(files: List[UploadFile] = File(...)):
         return {"uploaded": uploaded, "rejected": rejected, "total": len(WORKSPACE_FILES)}
 
 
+import re
+
+SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.\s\+\(\)]+$")
+
+def validate_safe_filename(file_name: str) -> str:
+    if not file_name or not SAFE_FILENAME_RE.match(file_name) or ".." in file_name or "/" in file_name or "\\" in file_name:
+        raise HTTPException(status_code=400, detail="Invalid filename format or path traversal attempt detected.")
+    return file_name
+
+
 @router.delete("/api/documents/{file_name}")
 async def delete_document(file_name: str):
     global IS_INDEXED
+    validate_safe_filename(file_name)
     async with _WORKSPACE_LOCK:
         if file_name in WORKSPACE_FILES:
             path = WORKSPACE_FILES[file_name]

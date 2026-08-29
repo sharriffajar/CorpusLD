@@ -29,7 +29,16 @@ from json_ld_extractor import (
     is_safe_custom_endpoint,
 )
 
+import re
+
 router = APIRouter(tags=["Extraction"])
+
+SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.\s\+\(\)]+$")
+
+def validate_safe_filename(file_name: str) -> str:
+    if not file_name or not SAFE_FILENAME_RE.match(file_name) or ".." in file_name or "/" in file_name or "\\" in file_name:
+        raise HTTPException(status_code=400, detail="Invalid filename format or path traversal attempt detected.")
+    return file_name
 
 
 class ExtractRequest(BaseModel):
@@ -42,7 +51,7 @@ class ExtractRequest(BaseModel):
 
 @router.post("/api/extract-jsonld-stream")
 async def extract_jsonld_stream(req: ExtractRequest):
-    file_name = req.file_name
+    file_name = validate_safe_filename(req.file_name)
     workspace_files = get_persisted_workspace_files()
     if file_name not in workspace_files:
         raise HTTPException(status_code=404, detail="File belum diunggah ke workspace.")
@@ -131,6 +140,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
 
 @router.get("/api/jsonld/{file_name}")
 async def get_extracted_jsonld(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored

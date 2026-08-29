@@ -174,6 +174,8 @@ def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) ->
     noise_patterns = [
         r'^arxiv\b', r'^doi\b', r'^https?://', r'^\d+$', 
         r'^(?:v\s*ol\.?|volume|volumen|vol\b|issue|no\b|n[ºo\.]|nº)\b',
+        r'^[A-Za-z\s\.\-]+\s*et\s+al\.?\s*[:\-–—]',
+        r'^(?:ieee\s+transactions|acm\s+transactions|proceedings\s+of|journal\s+of)\b',
         r'^(?:accepted|received|published|available\s+online)\b', 
         r'^(?:all rights reserved|copyright|issn|isbn|e-issn|p-issn)\b',
         r'^(?:january|february|march|april|may|june|july|august|september|october|november|december|marzo|enero|febrero|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+\d{4}\b',
@@ -311,7 +313,7 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
         if re.match(r'^(?:#+\s*)?(?:abstract|abstrak|keywords?|kata\s+kunci|1[\.\:\s]|i[\.\:\s]|introduction|pendahuluan)\b', l, re.IGNORECASE):
             break
             
-        if '@' in l or re.match(r'^(?:arxiv|doi|https?://|of\b|for\b|in\b|on\b|to\b|with\b|towards\b|pada\b|untuk\b|dalam\b|volume|vol\b)', l, re.I):
+        if '@' in l or re.match(r'^(?:arxiv|doi|https?://|of\b|for\b|in\b|on\b|to\b|with\b|towards\b|pada\b|untuk\b|dalam\b|volume|vol\b)', l, re.I) or re.search(r'\bet\s+al\.?\s*[:\-–—]', l, re.I):
             continue
             
         if any(w in l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', 'lab', 'school', 'academy', 'center', 'centre', 'college', 'agroparistech', 'sayfood']):
@@ -322,8 +324,6 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
         # Saring baris yang merupakan kalimat deskriptif/prosa (mengandung kata-kata umum)
         words_in_line = [w.strip('.,;:-()[]').lower() for w in l.split() if w.strip()]
         if any(w in prose_noise for w in words_in_line):
-            if len(words_in_line) >= 4:
-                break
             continue
             
         # Pola baris nama penulis jamak (dengan koma atau 'and')
@@ -339,14 +339,21 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
             auth_lines.append(clean_single)
 
     seen_author_names = set()
+    membership_noise_re = re.compile(r'\b(?:Student\s+)?(?:Senior\s+)?(?:Member|Fellow|Graduate\s+Student\s+Member)(?:,\s*IEEE|\s+IEEE)?\b', re.IGNORECASE)
     for al in auth_lines:
         clean_l = re.sub(r'[\*\d†‡§]', '', al)
         parts = [p.strip() for p in re.split(r',\s*|\s+and\s+|\s+dan\s+|\s*&\s*', clean_l) if p.strip()]
-        for p in parts:
-            p_words = [pw.strip('.,;:-()[]').lower() for pw in p.split()]
+        for raw_p in parts:
+            p = membership_noise_re.sub('', raw_p).strip().rstrip(',').strip()
+            p = re.sub(r'^(?:and|dan|&\s*)\s+', '', p, flags=re.IGNORECASE).strip()
+            if not p:
+                continue
+            p_words = [pw.strip('.,;:-()[]').lower() for pw in p.split() if pw.strip('.,;:-()[]')]
             if any(pw in prose_noise for pw in p_words):
                 continue
-            if len(p.split()) >= 2 and len(p) <= 40 and p.lower() not in seen_author_names:
+            # Accept full names (e.g. 'Albert Gu') or initial + surname (e.g. 'S. Kortmann')
+            has_valid_surname = any(len(pw) >= 2 and pw.isalpha() for pw in p_words)
+            if len(p_words) >= 2 and has_valid_surname and len(p) <= 45 and p.lower() not in seen_author_names:
                 seen_author_names.add(p.lower())
                 auth_obj = {"@type": "Person", "name": p}
                 if affil_line:

@@ -1,0 +1,134 @@
+{
+  "@context": "https://schema.org",
+  "@type": [
+    "Article",
+    "ScholarlyArticle"
+  ],
+  "headline": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
+  "name": "Data-Driven Sequential Market Optimization for Front-of-the-Meter Battery Energy Storage Systems",
+  "description": "The growing integration of Battery Energy Stor-\nage Systems (BESSs) into electricity markets has highlighted\nthe importance of coordinated participation across energy and\nbalancing services to fully exploit their operational flexibility.\nHowever, existing revenue-stacking models often simplify market\nsequences and neglect the impact of rolling forecasts, leading to\nunrealistic scheduling and overestimated revenues.\nThis paper addresses this gap by introducing a sequen-\ntial, data-driven optimization framework for Front-of-the-Meter\n(FTM) BESSs that mirrors actual market operations. The frame-\nwork explicitly models market mechanisms and its respective\nGate Closure Time (GCT) across Frequency Containment Re-\nserve (FCR), automatic Frequency Restoration Reserve (aFRR),\nDay Ahead Auction (DAA), and Intraday Auction (IDA) markets.\nEach market stage optimizes expected revenue over all remaining\nmarkets using updated price forecasts while maintaining feasi-\nbility within both technical and regulatory limits.\nA key contribution is the opportunity-cost-based bidding\nstrategy, which endogenously derives market-consistent bid prices\nand quantities from residual capacity optimization.\nValidation for a representative operating day demonstrates\nthat the framework yields consistent and feasible schedules,\neffectively adapts to updated forecasts, and minimizes deviations\nbetween planned and realized dispatch, thereby enhancing the\nrealism and profitability of BESS operation.",
+  "inLanguage": "en",
+  "keywords": [
+    "Battery Energy Storage Systems",
+    "Sequential Op- timization",
+    "Multi-Market Coordination",
+    "Opportunity-Cost Bid- ding",
+    "Data-Driven Forecasting"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Steffen Kortmann"
+    },
+    {
+      "@type": "Person",
+      "name": "Hannah Sanders"
+    },
+    {
+      "@type": "Person",
+      "name": "Andreas Ulbig"
+    }
+  ],
+  "hasPart": [
+    {
+      "@type": "CreativeWork",
+      "name": "I. INTRODUCTION",
+      "description": "Detailed analysis, methodology, and findings presented under section 'I. INTRODUCTION'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "II. METHODOLOGY",
+      "description": "Detailed analysis, methodology, and findings presented under section 'II. METHODOLOGY'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "III. MODELING",
+      "description": "Detailed analysis, methodology, and findings presented under section 'III. MODELING'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "IV. VALIDATION OF SEQUENTIAL OPTIMIZATION OFBESS",
+      "description": "Detailed analysis, methodology, and findings presented under section 'IV. VALIDATION OF SEQUENTIAL OPTIMIZATION OFBESS'."
+    },
+    {
+      "@type": "CreativeWork",
+      "name": "V. CONCLUSION",
+      "description": "Detailed analysis, methodology, and findings presented under section 'V. CONCLUSION'."
+    },
+    {
+      "@type": "Table",
+      "name": "Table (Page 5)",
+      "description": "Structured quantitative data table (114 rows)",
+      "additionalType": "quantitative"
+    }
+  ],
+  "additionalProperty": [
+    {
+      "@type": "PropertyValue",
+      "name": "Fcr",
+      "value": 0.91,
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Frr",
+      "value": 1.0,
+      "unitText": "MW",
+      "description": "Page 3"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Maximized While The Other",
+      "value": 0.0,
+      "unitText": "Lb",
+      "description": "Page 5"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Optimal Dis- Tribution",
+      "value": 1.0,
+      "unitText": "MW",
+      "description": "Page 6"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Q Daa",
+      "value": 0.1,
+      "unitText": "MW",
+      "description": "Page 7"
+    }
+  ],
+  "citation": [
+    "[1] European Commission, Directorate-General for Climate Action, “2050 long-term strategy: Striving to become the world’s first climate- neutral continent by 2050,” https://climate.ec.europa.eu/eu-action/ climate-strategies-targets/2050-long-term-strategy_en, 2020, accessed on August 12, 2025.",
+    "[2] DNV, “The need for flexibility in the german power grid and the contribution of large-scale battery storage systems,” https://www. dnv.com/article/the-need-for-flexibility-in-the-german-power-grid/, Jul.",
+    "[3] Reuters, “German power grid battery capacity up nearly a third in 2024, data shows,” https://www.reuters.com/business/energy/german-power- grid-battery-capacity-up-nearly-third-2024-data-shows-2024-09-19/, sep 2024, accessed on August 12, 2025.",
+    "[4] S. P. Englberger, “Optimized energy management for battery energy storage via multi-use and multi-storage operation,” Ph.D. dissertation, TU München, München, Nov. 2021.",
+    "[5] A. Mohamed, R. Rigo-Mariani, V . Debusschere, and L. Pin, “Stacked revenues for energy storage participating in energy and reserve markets with an optimal frequency regulation modeling,”Applied Energy, vol. 350, p. 121721, Nov. 2023. [Online]. Available: https://linkinghub.elsevier.com/retrieve/pii/S0306261923010851.",
+    "[6] M. C. Cortés, N. Nsir, L. Koltermann, S. Zurmühlen, J. Van Ouwerkerk, and D. Uwe Sauer, “M5Use: An Optimization Framework for the Multi- Use Operation Scheduling of Large-Scale Battery Storage Systems,” in2024 IEEE PES Innovative Smart Grid Technologies Europe (ISGT EUROPE). Dubrovnik, Croatia: IEEE, Oct. 2024, pp. 1–5.",
+    "[7] K. Baltputnis, Z. Broka, G. Cingels, A. S ¯ılis, and G. Jungh ¯ans, “Robust market-based battery energy storage management strategy for operation in European balancing markets,”Journal of Energy Storage, vol. 102, p. 114082, Nov. 2024.",
+    "[8] D. Cremoncini, G. F. Frate, A. Bischi, T. T. Pedersen, G. B. Andresen, A. Bentien, and L. Ferrari, “Optimal participation of a wind and hybrid battery storage system in the day-ahead and automatic frequency restoration reserve markets,”Journal of Energy Storage, vol. 94, p. 112309, Jul. 2024.",
+    "[9] J. Martinez-Rico, I. R. De Argandona, E. Zulueta, U. Fernandez-Gamiz, and M. Armendia, “Energy Storage Sizing Based on Automatic Fre- quency Restoration Reserve Market Participation of Hybrid Renewable Power Plants,” in2021 International Conference on Smart Energy Systems and Technologies (SEST). Vaasa, Finland: IEEE, Sep. 2021, pp. 1–6.",
+    "[10] Á. Paredes, J. A. Aguado, and P. Rodríguez, “Virtual Energy Storage Stacking in Day-Ahead and mFRR markets - A Spanish Case Study,” in2024 IEEE 15th International Symposium on Power Electronics for Distributed Generation Systems (PEDG). Luxembourg, Luxembourg: IEEE, Jun. 2024, pp. 1–6.",
+    "[11] Á. Paredes and J. A. Aguado, “Revenue stacking of BESSs in wholesale and aFRR markets with delivery guarantees,”Electric Power Systems Research, vol. 234, p. 110633, Sep. 2024.",
+    "[12] L. Tadayon and G. Frey, “Multi-Level Simulation Framework for Degradation-Aware Operation of a Large-Scale Battery Energy Storage Systems,”Energies, vol. 18, no. 11, p. 2708, May 2025.",
+    "[13] S. Kortmann, C. Starkulla, and A. Ulbig, “Using Deep-Learning based Probabilistic Forecasting for Multi-Use Operation of Battery Energy Storage Systems,” in2025 IEEE Kiel PowerTech. Kiel, //ieeexplore.ieee.org/document/11180348/.",
+    "[14] M. Merten, “Participation of battery storage systems in the automatic frequency restoration reserve market based on machine learning,” Ph.D. dissertation, RWTH Aachen University, Aachen, Jul. 2020.",
+    "[15] F. Biggins, S. Homan, J. Ejeh, and S. Brown, “To trade or not to trade: Simultaneously optimising battery storage for arbitrage and ancillary services,”Journal of Energy Storage, vol. 50, p. 104234, Jun. 2022. [Online]. Available: https://linkinghub.elsevier.com/retrieve/ pii/S2352152X22002638.",
+    "[16] Y . Dong, Z. Dong, T. Zhao, and Z. Ding, “A Strategic Day-ahead bidding strategy and operation for battery energy storage system by reinforcement learning,”Electric Power Systems Research, vol. 196, p. 107229, Jul. 2021. [Online]. Available: https://linkinghub.elsevier.com/ retrieve/pii/S0378779621002108.",
+    "[17] G. He, Q. Chen, C. Kang, P. Pinson, and Q. Xia, “Optimal Bidding Strategy of Battery Storage in Power Markets Considering Performance- Based Regulation and Battery Cycle Life,”IEEE Transactions on Smart Grid, vol. 7, no. 5, pp. 2359–2367, Sep. 2016. [Online]. Available.",
+    "[18] M. Spiller, G. Rancilio, F. Bovera, and M. Merlo, “Stochastic vs Monte Carlo-Based Bidding Strategy for Sequential Electricity Markets,” in (EEM). Istanbul, Turkiye: IEEE, Jun. 2024, pp. 1–6.",
+    "[19] G. Rancilio, F. Bovera, M. Spiller, M. Merlo, and M. Delfanti, “BESS and the ancillary services markets: A symbiosis yet? Impact of market design on performance,”Applied Energy, vol. 375, p. 124153, Dec. 2024."
+  ],
+  "sdPublisher": {
+    "@type": "SoftwareApplication",
+    "name": "CorpusLD",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Desktop",
+    "description": "Your Academic Knowledge Partner & Lossless JSON-LD Semantic Extractor",
+    "url": "https://github.com/sharriffajar/CorpusLD",
+    "softwareVersion": "3.0"
+  },
+  "datePublished": "2026-07-27",
+  "dateModified": "2026-07-27",
+  "@id": "corpusld:2026-07-27/data-driven-sequential-market-optimization-for-fro"
+}

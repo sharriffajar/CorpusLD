@@ -45,7 +45,8 @@ class Config:
     LLAMAPARSE_API_KEY: str = os.getenv("LLAMAPARSE_API_KEY", "").strip()
     UNSTRUCTURED_API_KEY: str = os.getenv("UNSTRUCTURED_API_KEY", "").strip()
     UNSTRUCTURED_SERVER_URL: str = os.getenv("UNSTRUCTURED_SERVER_URL", "https://api.unstructured.io/general/v0/general").strip()
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
+    # Security & API Auth
+    API_KEY: str = os.getenv("API_KEY", "").strip()
 
     # Vector DB & LLM Config
     QDRANT_URL: str = os.getenv("QDRANT_URL", "./qdrant_db").strip()

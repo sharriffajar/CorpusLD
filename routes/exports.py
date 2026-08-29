@@ -16,11 +16,21 @@ from json_ld_extractor import (
     calculate_graph_health_metrics,
 )
 
+import re
+
 router = APIRouter(tags=["Exports"])
+
+SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.\s\+\(\)]+$")
+
+def validate_safe_filename(file_name: str) -> str:
+    if not file_name or not SAFE_FILENAME_RE.match(file_name) or ".." in file_name or "/" in file_name or "\\" in file_name:
+        raise HTTPException(status_code=400, detail="Invalid filename format or path traversal attempt detected.")
+    return file_name
 
 
 @router.get("/api/export/{file_name}")
 async def export_jsonld_file(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -36,6 +46,7 @@ async def export_jsonld_file(file_name: str):
 
 @router.get("/api/export/ttl/{file_name}")
 async def export_turtle_file(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -52,6 +63,7 @@ async def export_turtle_file(file_name: str):
 
 @router.get("/api/export/jsonld-graph/{file_name}")
 async def export_jsonld_graph_file(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -67,6 +79,7 @@ async def export_jsonld_graph_file(file_name: str):
 
 @router.get("/api/export/scholar-meta/{file_name}")
 async def export_scholar_meta_file(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -83,6 +96,7 @@ async def export_scholar_meta_file(file_name: str):
 
 @router.get("/api/documents/{file_name}/knowledge-graph")
 async def get_document_knowledge_graph(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -98,6 +112,7 @@ async def get_document_knowledge_graph(file_name: str):
 
 @router.get("/api/documents/{file_name}/procedures")
 async def get_document_procedures(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
@@ -110,6 +125,7 @@ async def get_document_procedures(file_name: str):
 
 @router.get("/api/documents/{file_name}/terms")
 async def get_document_terms(file_name: str):
+    validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)
     if stored:
         data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
