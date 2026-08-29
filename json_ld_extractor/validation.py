@@ -17,6 +17,11 @@ def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
     Menghasilkan JSON-LD murni 100% kepatuhan standar Schema.org (tanpa field ad-hoc, pagination, atau mentions)
     yang dijamin lolos validator.schema.org dan Google Rich Results Test.
     """
+    if not isinstance(data, dict):
+        return {"@context": "https://schema.org"}
+    if "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        data = data["schema_json_ld"]
+
     allowed_keys = {
         "@context", "@type", "@id", "name", "headline", "alternateName",
         "description", "inLanguage", "datePublished", "dateModified",
@@ -509,6 +514,12 @@ def validate_json_ld_rich_results(data: Dict[str, Any]) -> Dict[str, Any]:
     Validator Schema.org & Google Rich Results + Adversarial Knowledge Graph Reasoning Engine.
     Menganalisis kesiapan Rich Snippets serta integritas adversarial graf secara deterministik.
     """
+    if isinstance(data, dict) and "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        raw_wrapper = data
+        data = data["schema_json_ld"]
+    else:
+        raw_wrapper = None
+
     score = 0
     checks = []
 

@@ -41,7 +41,8 @@ def cmd_extract(args):
     print(f"[+] Extracted {len(chunks)} text/table chunks in {time.time() - t_start:.2f}s")
 
     def cli_logger(msg: str):
-        print(f"  {msg}")
+        safe_msg = msg.encode(sys.stdout.encoding or 'ascii', errors='replace').decode(sys.stdout.encoding or 'ascii')
+        print(f"  {safe_msg}")
 
     print(f"[*] Running Dual-Layer Extraction (Provider: {args.provider}, Model: {args.model or 'default'})...")
     t_ext = time.time()

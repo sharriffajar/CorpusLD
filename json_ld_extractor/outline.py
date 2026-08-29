@@ -55,6 +55,11 @@ def filter_sections_negative_constraints(sections: List[Dict[str, Any]]) -> List
             if summary:
                 orphan_summaries.append(summary)
             continue
+
+        # Tolak baris tanpa kata alfabet substantif (misal '16. 371.5 9.81')
+        alpha_words = [w for w in re.findall(r'[a-zA-Z]+', name) if len(w) >= 2]
+        if not alpha_words:
+            continue
             
         # Tolak poin daftar kontribusi/klausa kalimat
         if re.search(r'\(\s*§\s*\d+\s*\)|\b(?:whose|which\s+is|we\s+present|we\s+introduce|we\s+show|demonstrates?|instantiation)\b', name, re.I):

@@ -205,6 +205,12 @@ def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) ->
         elif len(title_lines) < 2 and not any(w in curr_l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', '@']) and curr_l.count(',') == 0:
             is_continuation = True
             
+        is_author_line = bool(re.search(r'[∗\*\†\‡@]|(?:\b(?:and|by|et\s+al)\b)', curr_l, re.I)) or (
+            len(re.findall(r'\b[A-Z][a-z]+\b', curr_l)) >= 2 and not any(w in curr_l.lower() for w in ['using', 'with', 'based', 'towards', 'learning', 'system', 'model', 'analysis', 'approach', 'study', 'for', 'in', 'on', 'of', 'and'])
+        )
+        if is_author_line and len(title_lines[0].split()) >= 4:
+            break
+
         if is_continuation:
             title_lines.append(curr_l)
             idx += 1
