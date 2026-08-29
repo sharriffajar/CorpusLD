@@ -693,18 +693,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop();
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop(); // keep last incomplete line in buffer
 
-        for (const block of lines) {
-          if (block.startsWith('data: ')) {
-            const jsonStr = block.replace('data: ', '').trim();
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const jsonStr = trimmed.replace(/^data:\s*/, '').trim();
             if (jsonStr) {
-              const event = JSON.parse(jsonStr);
-              handleExtractionEvent(event);
+              try {
+                const event = JSON.parse(jsonStr);
+                handleExtractionEvent(event);
+              } catch (err) {
+                console.warn('Failed to parse SSE JSON:', jsonStr, err);
+              }
             }
           }
         }
+      }
+
+      // Flush any remaining buffer on stream close
+      if (buffer && buffer.trim().startsWith('data:')) {
+        try {
+          const event = JSON.parse(buffer.trim().replace(/^data:\s*/, ''));
+          handleExtractionEvent(event);
+        } catch (e) {}
       }
     } catch (e) {
       if (e.name === 'AbortError') {

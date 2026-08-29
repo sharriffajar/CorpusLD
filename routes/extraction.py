@@ -17,6 +17,7 @@ from services.state import (
     get_embedder,
     get_qdrant,
     sanitize_error_message,
+    get_persisted_workspace_files,
     get_persisted_document,
     save_persisted_document,
 )
@@ -42,24 +43,26 @@ class ExtractRequest(BaseModel):
 @router.post("/api/extract-jsonld-stream")
 async def extract_jsonld_stream(req: ExtractRequest):
     file_name = req.file_name
-    if file_name not in WORKSPACE_FILES:
+    workspace_files = get_persisted_workspace_files()
+    if file_name not in workspace_files:
         raise HTTPException(status_code=404, detail="File belum diunggah ke workspace.")
     if req.base_url and not is_safe_custom_endpoint(req.base_url):
         raise HTTPException(status_code=400, detail="Disallowed or unsafe custom base_url parameter.")
     
+    loop = asyncio.get_running_loop()
+    log_queue = asyncio.Queue()
+
     # SSE Generator for real-time extraction logs
     async def event_generator():
-        log_queue = asyncio.Queue()
-        
-        def sync_logger(msg: str):
+        def thread_safe_logger(msg: str):
             clean_msg = sanitize_error_message(msg)
-            log_queue.put_nowait({"type": "log", "message": clean_msg})
+            loop.call_soon_threadsafe(log_queue.put_nowait, {"type": "log", "message": clean_msg})
             
         async def run_extraction():
             try:
                 # Ensure chunks exist safely with workspace lock
                 async with _WORKSPACE_LOCK:
-                    fpath = WORKSPACE_FILES[file_name]
+                    fpath = workspace_files[file_name]
                     file_chunks = [c for c in EXTRACTED_CHUNKS if c.get("metadata", {}).get("source") == file_name]
                     if not file_chunks:
                         file_chunks = parse_document(fpath, file_name)
@@ -77,7 +80,7 @@ async def extract_jsonld_stream(req: ExtractRequest):
                     chunks=file_chunks,
                     qdrant_client=qdrant if IS_INDEXED else None,
                     embedder=embedder,
-                    progress_callback=sync_logger,
+                    progress_callback=thread_safe_logger,
                     llm_provider=req.llm_provider,
                     llm_model=req.llm_model,
                     api_key=req.api_key,
@@ -87,16 +90,16 @@ async def extract_jsonld_stream(req: ExtractRequest):
                 existing_record = get_persisted_document(file_name)
                 if existing_record:
                     final_res = merge_and_enrich_json_ld(existing_record, res)
-                    sync_logger("🔄 [Database Optimization] Menggabungkan field & struktur baru dengan data terverifikasi sebelumnya secara non-destruktif.")
+                    thread_safe_logger("🔄 [Database Optimization] Menggabungkan field & struktur baru dengan data terverifikasi sebelumnya secara non-destruktif.")
                 else:
                     final_res = res
                 
                 async with _WORKSPACE_LOCK:
                     save_persisted_document(file_name, final_res)
-                await log_queue.put({"type": "complete", "result": final_res})
+                loop.call_soon_threadsafe(log_queue.put_nowait, {"type": "complete", "result": final_res})
             except Exception as e:
                 clean_err = sanitize_error_message(str(e))
-                await log_queue.put({"type": "error", "error": clean_err})
+                loop.call_soon_threadsafe(log_queue.put_nowait, {"type": "error", "error": clean_err})
 
         # Launch extraction task
         task = asyncio.create_task(run_extraction())
@@ -117,7 +120,13 @@ async def extract_jsonld_stream(req: ExtractRequest):
                 pass
             raise
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    headers = {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+        "Content-Type": "text/event-stream; charset=utf-8",
+    }
+    return StreamingResponse(event_generator(), media_type="text/event-stream", headers=headers)
 
 
 @router.get("/api/jsonld/{file_name}")
