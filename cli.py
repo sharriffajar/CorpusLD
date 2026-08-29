@@ -16,6 +16,10 @@ from json_ld_extractor import (
     export_to_json_ld_graph,
     generate_html_head_package,
     calculate_graph_health_metrics,
+    export_to_bibtex,
+    export_to_ris,
+    export_to_csl_json,
+    export_to_cypher,
 )
 from services.parser import parse_document
 
@@ -62,10 +66,20 @@ def cmd_extract(args):
     out_path = args.output
     if not out_path:
         base, _ = os.path.splitext(pdf_path)
-        ext_map = {"jsonld": ".jsonld", "turtle": ".ttl", "graph": ".graph.jsonld", "html": ".head.html"}
+        ext_map = {
+            "jsonld": ".jsonld",
+            "turtle": ".ttl",
+            "ttl": ".ttl",
+            "graph": ".graph.jsonld",
+            "html": ".head.html",
+            "bibtex": ".bib",
+            "ris": ".ris",
+            "csl": ".csl.json",
+            "cypher": ".cql",
+        }
         out_path = f"{base}{ext_map.get(out_format, '.jsonld')}"
 
-    if out_format == "turtle" or out_format == "ttl":
+    if out_format in ("turtle", "ttl"):
         content = export_to_turtle_rdf(res)
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
@@ -77,6 +91,22 @@ def cmd_extract(args):
         graph_data = export_to_json_ld_graph(res)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(graph_data, f, indent=2, ensure_ascii=False)
+    elif out_format == "bibtex":
+        content = export_to_bibtex(res)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    elif out_format == "ris":
+        content = export_to_ris(res)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    elif out_format == "csl":
+        csl_data = export_to_csl_json(res)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(csl_data, f, indent=2, ensure_ascii=False)
+    elif out_format == "cypher":
+        content = export_to_cypher(res)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(content)
     else:
         clean_json = get_clean_schema_org_jsonld(res)
         with open(out_path, "w", encoding="utf-8") as f:
@@ -183,7 +213,7 @@ def main():
     extract_p = subparsers.add_parser("extract", help="Extract single PDF document")
     extract_p.add_argument("input", help="Path to input PDF file")
     extract_p.add_argument("-o", "--output", help="Output file destination path")
-    extract_p.add_argument("-f", "--format", choices=["jsonld", "turtle", "graph", "html"], default="jsonld", help="Output format")
+    extract_p.add_argument("-f", "--format", choices=["jsonld", "turtle", "ttl", "graph", "html", "bibtex", "ris", "csl", "cypher"], default="jsonld", help="Output format (jsonld, turtle, graph, html, bibtex, ris, csl, cypher)")
     extract_p.add_argument("-p", "--provider", default="ollama", choices=["ollama", "gemini", "groq", "openai", "deepseek", "custom"], help="LLM inference provider")
     extract_p.add_argument("-m", "--model", help="Specific LLM model name")
     extract_p.add_argument("-k", "--api-key", help="Provider API key")

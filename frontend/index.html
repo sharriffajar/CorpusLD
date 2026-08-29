@@ -206,10 +206,21 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                   <span>Cancel</span>
                 </button>
-                <button id="btn-download-jsonld" class="btn btn-secondary" disabled>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  <span>Download .jsonld</span>
-                </button>
+                <div class="export-dropdown-wrapper">
+                  <select id="select-export-format" class="select-dropdown export-select" disabled title="Select export serialization format">
+                    <option value="jsonld">📥 Universal JSON-LD (.jsonld)</option>
+                    <option value="ttl">🐢 W3C Turtle RDF (.ttl)</option>
+                    <option value="bibtex">📚 BibTeX Citation (.bib)</option>
+                    <option value="ris">📑 RIS Reference (.ris)</option>
+                    <option value="csl">🧩 CSL-JSON (.csl.json)</option>
+                    <option value="cypher">🕸️ Neo4j Cypher Script (.cql)</option>
+                    <option value="graph">🧠 Deep KG Graph (.graph.jsonld)</option>
+                  </select>
+                  <button id="btn-download-export" class="btn btn-secondary" disabled title="Download formatted export file">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Download</span>
+                  </button>
+                </div>
                 <button id="btn-copy-scholar-tags" class="btn btn-secondary" disabled title="Copy Google Scholar & Highwire Press HTML Meta Tags">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                   <span>Copy Scholar Tags</span>
@@ -313,13 +324,17 @@
                 <div class="validator-checks-grid" id="validator-checks"></div>
               </div>
 
-              <!-- 9 SUB-TABS NAVIGATION -->
+              <!-- 13 SUB-TABS NAVIGATION -->
               <div class="subtabs-nav" role="tablist">
                 <button class="subtab-btn active" data-subtab="sub-author">Author &amp; Metadata</button>
+                <button class="subtab-btn" data-subtab="sub-kg">🧠 Knowledge Graph</button>
                 <button class="subtab-btn" data-subtab="sub-entities">Entities</button>
                 <button class="subtab-btn" data-subtab="sub-metrics">Quantitative Metrics</button>
                 <button class="subtab-btn" data-subtab="sub-sections">Sections</button>
                 <button class="subtab-btn" data-subtab="sub-tables">Tables</button>
+                <button class="subtab-btn" data-subtab="sub-procedures">⚙️ Procedures</button>
+                <button class="subtab-btn" data-subtab="sub-formulas">📐 Math Formulas</button>
+                <button class="subtab-btn" data-subtab="sub-terms">🏷️ Terms &amp; Codes</button>
                 <button class="subtab-btn" data-subtab="sub-refs">References</button>
                 <button class="subtab-btn" data-subtab="sub-scholar">Scholar Meta Tags</button>
                 <button class="subtab-btn" data-subtab="sub-htmlhead">HTML Head Bundle</button>
@@ -332,6 +347,9 @@
                 <div id="sub-author" class="subtab-panel active">
                   <div id="author-content"></div>
                 </div>
+                <div id="sub-kg" class="subtab-panel">
+                  <div id="kg-content"></div>
+                </div>
                 <div id="sub-entities" class="subtab-panel">
                   <div id="entities-content"></div>
                 </div>
@@ -343,6 +361,15 @@
                 </div>
                 <div id="sub-tables" class="subtab-panel">
                   <div id="tables-content"></div>
+                </div>
+                <div id="sub-procedures" class="subtab-panel">
+                  <div id="procedures-content"></div>
+                </div>
+                <div id="sub-formulas" class="subtab-panel">
+                  <div id="formulas-content"></div>
+                </div>
+                <div id="sub-terms" class="subtab-panel">
+                  <div id="terms-content"></div>
                 </div>
                 <div id="sub-refs" class="subtab-panel">
                   <div id="refs-content"></div>
@@ -369,6 +396,7 @@
                   </div>
                 </div>
               </div>
+
 
             </div>
 

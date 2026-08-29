@@ -63,7 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectJsonldDoc = document.getElementById('select-jsonld-doc');
   const btnRunExtraction = document.getElementById('btn-run-extraction');
   const btnCancelExtraction = document.getElementById('btn-cancel-extraction');
-  const btnDownloadJsonld = document.getElementById('btn-download-jsonld');
+  const selectExportFormat = document.getElementById('select-export-format');
+  const btnDownloadExport = document.getElementById('btn-download-export');
+  const btnDownloadJsonld = document.getElementById('btn-download-jsonld'); // backward compatibility
   const btnCopyScholarTags = document.getElementById('btn-copy-scholar-tags');
   const btnCopyScholar = document.getElementById('btn-copy-scholar');
   const agentStepper = document.getElementById('agent-stepper');
@@ -824,7 +826,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderJsonLdData(data.data);
       } else {
         jsonldResultsContainer.classList.add('hidden');
-        btnDownloadJsonld.disabled = true;
+        if (btnDownloadJsonld) btnDownloadJsonld.disabled = true;
+        if (selectExportFormat) selectExportFormat.disabled = true;
+        if (btnDownloadExport) btnDownloadExport.disabled = true;
       }
     } catch (e) {}
   }
@@ -834,7 +838,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------
   function renderJsonLdData(rawPayload) {
     jsonldResultsContainer.classList.remove('hidden');
-    btnDownloadJsonld.disabled = false;
+    if (btnDownloadJsonld) btnDownloadJsonld.disabled = false;
+    if (selectExportFormat) selectExportFormat.disabled = false;
+    if (btnDownloadExport) btnDownloadExport.disabled = false;
 
     const data = rawPayload.schema_json_ld || rawPayload;
     const telemetry = rawPayload.telemetry || {};
@@ -928,10 +934,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Populate Subtabs
     renderAuthorTab(data);
+    renderKgTab(data);
     renderEntitiesTab(data);
     renderMetricsTab(data);
     renderSectionsTab(data);
     renderTablesTab(data);
+    renderProceduresTab(data);
+    renderFormulasTab(data);
+    renderTermsTab(data);
     renderRefsTab(data);
     renderScholarTab(data);
     renderLogsTab(telemetry);
@@ -961,6 +971,72 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       html += '<p style="color: var(--text-muted);">No author information detected.</p>';
     }
+    el.innerHTML = html;
+  }
+
+  function renderKgTab(data) {
+    const el = document.getElementById('kg-content');
+    if (!el) return;
+    const kg = data.knowledge_graph || {};
+    const nodes = kg.nodes || kg['kg:nodes'] || [];
+    const edges = kg.edges || kg['kg:edges'] || [];
+
+    if (!nodes.length && !edges.length) {
+      el.innerHTML = '<p style="color: var(--text-muted);">No Knowledge Graph nodes or triples extracted for this document yet.</p>';
+      return;
+    }
+
+    let html = `
+      <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+        <div style="background: var(--bg-surface-elevated); padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--text-accent);">Nodes Count:</strong> <span>${nodes.length}</span>
+        </div>
+        <div style="background: var(--bg-surface-elevated); padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <strong style="color: var(--text-accent);">Triples / Edges:</strong> <span>${edges.length}</span>
+        </div>
+      </div>
+    `;
+
+    // 1. Triples Table
+    if (edges.length) {
+      html += '<h4 style="margin-bottom: 8px;">Semantic Triples (Subject &rarr; Predicate &rarr; Object)</h4>';
+      html += '<table class="data-table"><thead><tr><th>Subject (Source)</th><th>Predicate (Relation)</th><th>Object (Target)</th><th>Evidence / Source</th></tr></thead><tbody>';
+      edges.forEach(e => {
+        const src = escapeHtml(e.source || e['kg:source'] || '-');
+        const rel = escapeHtml(e.type || e.relation || e['kg:type'] || 'relates_to');
+        const tgt = escapeHtml(e.target || e['kg:target'] || '-');
+        const ev = escapeHtml(e.evidence || e['kg:evidence'] || '-');
+        const pg = e.source_page || e['kg:source_page'];
+        const pageLabel = pg ? ` <span style="font-size: 10px; color: var(--text-muted);">(p. ${pg})</span>` : '';
+        html += `<tr><td><code>${src}</code></td><td><span class="badge-tag badge-ready" style="font-size: 11px; padding: 2px 8px;">${rel}</span></td><td><code>${tgt}</code></td><td style="font-size: 11px;">${ev}${pageLabel}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+
+    // 2. Nodes Table
+    if (nodes.length) {
+      html += '<h4 style="margin-top: 20px; margin-bottom: 8px;">Extracted Knowledge Graph Entities & Authorities</h4>';
+      html += '<table class="data-table"><thead><tr><th>Node ID</th><th>Type</th><th>Label</th><th>Authority (sameAs)</th><th>Description</th></tr></thead><tbody>';
+      nodes.forEach(n => {
+        const nid = escapeHtml(n.id || n['@id'] || '-');
+        const ntype = escapeHtml(n.type || n['@type'] || 'kg:Concept');
+        const nlabel = escapeHtml(n.label || n['kg:label'] || n.name || '-');
+        const sameAs = n.sameAs || n.same_as || '';
+        let authHtml = '<span style="color: var(--text-muted);">-</span>';
+        if (sameAs) {
+          const sameAsList = Array.isArray(sameAs) ? sameAs : [sameAs];
+          authHtml = sameAsList.map(url => {
+            const safeUrl = escapeHtml(url);
+            const label = safeUrl.includes('wikidata') ? '🌐 Wikidata' : (safeUrl.includes('ror.org') ? '🏛️ ROR' : (safeUrl.includes('mesh') ? '🧬 MeSH' : '🔗 Authority'));
+            return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; margin-right: 6px;">${label}</a>`;
+          }).join(' ');
+        }
+        const desc = escapeHtml(n.description || '-');
+        html += `<tr><td><code>${nid}</code></td><td><span class="hero-meta-pill" style="font-size: 10px; padding: 2px 6px;">${ntype}</span></td><td><strong>${nlabel}</strong></td><td>${authHtml}</td><td style="font-size: 11px;">${desc}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+
     el.innerHTML = html;
   }
 
@@ -1070,6 +1146,86 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     });
     html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderProceduresTab(data) {
+    const el = document.getElementById('procedures-content');
+    if (!el) return;
+    const procs = data.procedures || [];
+    if (!procs.length) {
+      el.innerHTML = '<p style="color: var(--text-muted);">No structured procedures or methodology steps extracted.</p>';
+      return;
+    }
+    let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    procs.forEach((p, idx) => {
+      const stepNum = p.step_number || (idx + 1);
+      const name = escapeHtml(p.name || `Step ${stepNum}`);
+      const text = escapeHtml(p.text || p.description || '-');
+      const tools = p.tools_or_equipment || [];
+      const toolStr = tools.length ? `<div style="margin-top: 6px; font-size: 11px; color: var(--text-accent);"><strong>Tools / Hardware:</strong> ${escapeHtml(tools.join(', '))}</div>` : '';
+      html += `
+        <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <h4 style="font-family: var(--font-brand); color: #ffffff;">⚙️ Step ${stepNum}: ${name}</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); margin: 6px 0;">${text}</p>
+          ${toolStr}
+        </div>
+      `;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderFormulasTab(data) {
+    const el = document.getElementById('formulas-content');
+    if (!el) return;
+    const formulas = data.math_formulas || [];
+    if (!formulas.length) {
+      el.innerHTML = '<p style="color: var(--text-muted);">No mathematical formulas detected in this document.</p>';
+      return;
+    }
+    let html = '<div style="display: flex; flex-direction: column; gap: 14px;">';
+    formulas.forEach((f, idx) => {
+      const fName = escapeHtml(f.name || `Equation ${idx + 1}`);
+      const expr = escapeHtml(f.expression || '-');
+      const pg = f.source_page ? ` <span style="font-size: 11px; color: var(--text-muted);">(Page ${f.source_page})</span>` : '';
+      const vars = f.variable_definitions || {};
+      let varsHtml = '';
+      if (Object.keys(vars).length > 0) {
+        varsHtml = '<div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary);"><strong>Variables:</strong><ul style="margin: 4px 0 0 16px;">';
+        for (const [k, v] of Object.entries(vars)) {
+          varsHtml += `<li><code>${escapeHtml(k)}</code>: ${escapeHtml(v)}</li>`;
+        }
+        varsHtml += '</ul></div>';
+      }
+      html += `
+        <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">📐 ${fName}${pg}</h4>
+          <pre style="background: #000000; padding: 10px 14px; border-radius: var(--radius-sm); color: #a7f3d0; font-family: var(--font-mono); font-size: 13px; overflow-x: auto;"><code>${expr}</code></pre>
+          ${varsHtml}
+        </div>
+      `;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  function renderTermsTab(data) {
+    const el = document.getElementById('terms-content');
+    if (!el) return;
+    const terms = data.defined_terms || [];
+    if (!terms.length) {
+      el.innerHTML = '<p style="color: var(--text-muted);">No technical defined terms or domain abbreviations detected.</p>';
+      return;
+    }
+    let html = '<table class="data-table"><thead><tr><th>Term / Code</th><th>Definition / Expansion</th><th>Category</th></tr></thead><tbody>';
+    terms.forEach(t => {
+      const tName = escapeHtml(t.name || '-');
+      const tDesc = escapeHtml(t.description || '-');
+      const tCat = escapeHtml(t.term_code || t.inDefinedTermSet || 'DefinedTerm');
+      html += `<tr><td><strong>${tName}</strong></td><td>${tDesc}</td><td><code>${tCat}</code></td></tr>`;
+    });
+    html += '</tbody></table>';
     el.innerHTML = html;
   }
 
@@ -1301,11 +1457,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function triggerDocumentExport() {
+    if (!appState.selectedDoc) return;
+    const format = selectExportFormat ? selectExportFormat.value : 'jsonld';
+    let exportUrl = `/api/export/${encodeURIComponent(appState.selectedDoc)}`;
+    if (format === 'ttl') exportUrl = `/api/export/ttl/${encodeURIComponent(appState.selectedDoc)}`;
+    else if (format === 'bibtex') exportUrl = `/api/export/bibtex/${encodeURIComponent(appState.selectedDoc)}`;
+    else if (format === 'ris') exportUrl = `/api/export/ris/${encodeURIComponent(appState.selectedDoc)}`;
+    else if (format === 'csl') exportUrl = `/api/export/csl/${encodeURIComponent(appState.selectedDoc)}`;
+    else if (format === 'cypher') exportUrl = `/api/export/cypher/${encodeURIComponent(appState.selectedDoc)}`;
+    else if (format === 'graph') exportUrl = `/api/export/graph/${encodeURIComponent(appState.selectedDoc)}`;
+    window.open(exportUrl, '_blank');
+  }
+
+  if (btnDownloadExport) {
+    btnDownloadExport.addEventListener('click', triggerDocumentExport);
+  }
   if (btnDownloadJsonld) {
-    btnDownloadJsonld.addEventListener('click', () => {
-      if (!appState.selectedDoc) return;
-      window.open(`/api/export/${encodeURIComponent(appState.selectedDoc)}`, '_blank');
-    });
+    btnDownloadJsonld.addEventListener('click', triggerDocumentExport);
   }
 
   // ---------------------------------------------------------

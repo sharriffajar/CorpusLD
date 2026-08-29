@@ -1099,6 +1099,19 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.export-dropdown-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.export-select {
+  max-width: 220px;
+  font-size: 12px;
+  height: 38px;
 }
 
 /* Stepper */
