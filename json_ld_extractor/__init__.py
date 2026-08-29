@@ -101,6 +101,10 @@ from .validation import (
     export_to_turtle_rdf,
     export_to_json_ld_graph,
     calculate_graph_health_metrics,
+    export_to_bibtex,
+    export_to_ris,
+    export_to_csl_json,
+    export_to_cypher,
 )
 from .merging import (
     merge_and_enrich_json_ld,
@@ -158,7 +162,8 @@ __all__ = [
     'repair_malformed_json', 'is_safe_custom_endpoint', 'resolve_and_pin_safe_endpoint', 'ANTONYM_PAIRS_BILINGUAL',
     'NEGATION_PATTERNS_BILINGUAL', 'validate_knowledge_graph_adversarial', 'validate_json_ld_rich_results', 'get_clean_schema_org_jsonld',
     'generate_google_scholar_meta_tags', 'generate_html_head_package', 'export_to_turtle_rdf', 'export_to_json_ld_graph',
-    'calculate_graph_health_metrics', 'merge_and_enrich_json_ld', 'merge_authors',
+    'calculate_graph_health_metrics', 'export_to_bibtex', 'export_to_ris', 'export_to_csl_json', 'export_to_cypher',
+    'merge_and_enrich_json_ld', 'merge_authors',
     'merge_sections', 'merge_metrics', 'merge_tables', 'merge_citations',
     'extract_json_ld_agentic_rag', 'extract_json_ld_from_chunks',
     'extract_latex_formulas_deterministic', 'extract_technical_terms_deterministic',

@@ -113,3 +113,15 @@ def test_safe_filename_validation():
         validate_safe_filename("doc;rm -rf /")
     assert exc3.value.status_code == 400
 
+
+def test_exports_safe_filename_validation():
+    from routes.exports import validate_safe_filename
+    from fastapi import HTTPException
+
+    assert validate_safe_filename("paper_2026.pdf") == "paper_2026.pdf"
+
+    with pytest.raises(HTTPException) as exc:
+        validate_safe_filename("../secret.jsonld")
+    assert exc.value.status_code == 400
+
+

@@ -922,3 +922,223 @@ def calculate_graph_health_metrics(kg_data: Dict[str, Any]) -> Dict[str, Any]:
         "orphan_nodes_count": orphans,
         "graph_health_score": health_score
     }
+
+
+def export_to_bibtex(data: Dict[str, Any]) -> str:
+    """
+    Generates deterministic BibTeX (@article) citation record
+    compatible with Overleaf, LaTeX, Zotero, and Mendeley.
+    """
+    if not isinstance(data, dict):
+        return ""
+    if "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        data = data["schema_json_ld"]
+
+    title = data.get("name") or data.get("headline") or "Untitled Document"
+    
+    authors_list = []
+    for a in data.get("author", []):
+        if isinstance(a, dict) and a.get("name"):
+            authors_list.append(a["name"])
+        elif isinstance(a, str):
+            authors_list.append(a)
+    authors_str = " and ".join(authors_list) if authors_list else "Unknown Author"
+
+    first_author_surname = "author"
+    if authors_list:
+        parts = authors_list[0].split()
+        first_author_surname = parts[-1].lower() if parts else "author"
+    first_author_surname = re.sub(r'[^a-zA-Z0-9]', '', first_author_surname) or "author"
+
+    date_pub = str(data.get("datePublished") or "")
+    year_match = re.search(r'\b(19\d\d|20\d\d)\b', date_pub)
+    year = year_match.group(1) if year_match else "2026"
+
+    title_words = re.findall(r'[a-zA-Z0-9]+', title.lower())
+    title_key = title_words[0] if title_words else "paper"
+    cite_key = f"{first_author_surname}{year}{title_key}"
+
+    publisher = data.get("publisher", {})
+    journal = ""
+    if isinstance(publisher, dict):
+        journal = publisher.get("name", "")
+    elif isinstance(publisher, str):
+        journal = publisher
+
+    doi = data.get("identifier") or ""
+    abstract = data.get("description") or ""
+
+    lines = [f"@article{{{cite_key},"]
+    lines.append(f"  title = {{{{{title}}}}},")
+    lines.append(f"  author = {{{authors_str}}},")
+    lines.append(f"  year = {{{year}}},")
+    if journal:
+        lines.append(f"  journal = {{{journal}}},")
+    if doi:
+        clean_doi = str(doi).replace("https://doi.org/", "")
+        lines.append(f"  doi = {{{clean_doi}}},")
+    if abstract:
+        escaped_abs = abstract.replace("\n", " ").strip()
+        lines.append(f"  abstract = {{{escaped_abs}}},")
+    keywords = data.get("keywords", [])
+    if keywords and isinstance(keywords, list):
+        kw_str = ", ".join([str(k) for k in keywords])
+        lines.append(f"  keywords = {{{kw_str}}},")
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def export_to_ris(data: Dict[str, Any]) -> str:
+    """
+    Generates standard Research Information Systems (RIS) format
+    for direct import into reference managers (Zotero, Mendeley, EndNote).
+    """
+    if not isinstance(data, dict):
+        return ""
+    if "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        data = data["schema_json_ld"]
+
+    lines = ["TY  - JOUR"]
+    
+    title = data.get("name") or data.get("headline") or ""
+    if title:
+        lines.append(f"TI  - {title}")
+
+    for a in data.get("author", []):
+        name = ""
+        if isinstance(a, dict):
+            name = a.get("name", "")
+        elif isinstance(a, str):
+            name = a
+        if name:
+            lines.append(f"AU  - {name}")
+
+    date_pub = str(data.get("datePublished") or "")
+    year_match = re.search(r'\b(19\d\d|20\d\d)\b', date_pub)
+    if year_match:
+        lines.append(f"PY  - {year_match.group(1)}")
+    elif date_pub:
+        lines.append(f"DA  - {date_pub}")
+
+    publisher = data.get("publisher", {})
+    if isinstance(publisher, dict) and publisher.get("name"):
+        lines.append(f"JO  - {publisher['name']}")
+    elif isinstance(publisher, str) and publisher:
+        lines.append(f"JO  - {publisher}")
+
+    doi = data.get("identifier") or ""
+    if doi:
+        clean_doi = str(doi).replace("https://doi.org/", "")
+        lines.append(f"DO  - {clean_doi}")
+
+    abstract = data.get("description") or ""
+    if abstract:
+        lines.append(f"AB  - {abstract.replace(chr(10), ' ').strip()}")
+
+    keywords = data.get("keywords", [])
+    if isinstance(keywords, list):
+        for kw in keywords:
+            if kw:
+                lines.append(f"KW  - {str(kw)}")
+
+    lines.append("ER  - \n")
+    return "\n".join(lines)
+
+
+def export_to_csl_json(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generates Citation Style Language (CSL-JSON) object conforming to official CSL schema.
+    """
+    if not isinstance(data, dict):
+        return {}
+    if "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        data = data["schema_json_ld"]
+
+    title = data.get("name") or data.get("headline") or ""
+    csl_authors = []
+    for a in data.get("author", []):
+        if isinstance(a, dict) and a.get("name"):
+            name = a["name"]
+            parts = name.split()
+            if len(parts) > 1:
+                csl_authors.append({"family": parts[-1], "given": " ".join(parts[:-1])})
+            else:
+                csl_authors.append({"literal": name})
+        elif isinstance(a, str):
+            parts = a.split()
+            if len(parts) > 1:
+                csl_authors.append({"family": parts[-1], "given": " ".join(parts[:-1])})
+            else:
+                csl_authors.append({"literal": a})
+
+    date_pub = str(data.get("datePublished") or "")
+    year_match = re.search(r'\b(19\d\d|20\d\d)\b', date_pub)
+    issued = {}
+    if year_match:
+        issued = {"date-parts": [[int(year_match.group(1))]]}
+
+    publisher = data.get("publisher", {})
+    container = publisher.get("name", "") if isinstance(publisher, dict) else str(publisher)
+
+    doi = data.get("identifier") or ""
+    clean_doi = str(doi).replace("https://doi.org/", "") if doi else ""
+
+    return {
+        "type": "article-journal",
+        "title": title,
+        "author": csl_authors,
+        "issued": issued,
+        "container-title": container,
+        "DOI": clean_doi,
+        "abstract": data.get("description", ""),
+        "keyword": ", ".join([str(k) for k in data.get("keywords", [])]) if isinstance(data.get("keywords"), list) else ""
+    }
+
+
+def export_to_cypher(data: Dict[str, Any]) -> str:
+    """
+    Generates Neo4j Cypher statements to import CorpusLD Knowledge Graph triples
+    and document nodes into Neo4j graph databases or LangChain/LlamaIndex property graphs.
+    """
+    if not isinstance(data, dict):
+        return ""
+    if "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        data = data["schema_json_ld"]
+
+    doc_id = re.sub(r'[^a-zA-Z0-9_]', '_', str(data.get("@id", "doc_1")))
+    doc_title = str(data.get("name", "")).replace("'", "\\'")
+    doc_doi = str(data.get("identifier", "")).replace("'", "\\'")
+
+    lines = [
+        "// --- CorpusLD Knowledge Graph Cypher Script ---",
+        f"MERGE (doc:Document {{id: '{doc_id}'}})",
+        f"SET doc.title = '{doc_title}', doc.doi = '{doc_doi}'"
+    ]
+
+    for auth in data.get("author", []):
+        if isinstance(auth, dict) and auth.get("name"):
+            auth_name = str(auth["name"]).replace("'", "\\'")
+            auth_id = re.sub(r'[^a-zA-Z0-9_]', '_', auth_name.lower())
+            lines.append(f"MERGE (a:Person {{id: '{auth_id}', name: '{auth_name}'}})")
+            lines.append(f"MERGE (a)-[:AUTHORED]->(doc)")
+
+    kg = data.get("knowledge_graph", {}) or {}
+    nodes = kg.get("nodes", [])
+    edges = kg.get("edges", [])
+
+    for n in nodes:
+        nid = re.sub(r'[^a-zA-Z0-9_]', '_', str(n.get("id", "")))
+        nname = str(n.get("name", "")).replace("'", "\\'")
+        ntype = re.sub(r'[^a-zA-Z0-9]', '', str(n.get("node_type", "Concept"))) or "Concept"
+        if nid and nname:
+            lines.append(f"MERGE (n_{nid}:{ntype} {{id: '{nid}', name: '{nname}'}})")
+            lines.append(f"MERGE (doc)-[:MENTIONS]->(n_{nid})")
+
+    for e in edges:
+        src = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("source", "")))
+        tgt = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("target", "")))
+        rel = re.sub(r'[^a-zA-Z0-9_]', '_', str(e.get("relation", "RELATED_TO"))).upper()
+        if src and tgt:
+            lines.append(f"MATCH (s {{id: '{src}'}}), (t {{id: '{tgt}'}}) MERGE (s)-[:{rel}]->(t);")
+
+    return "\n".join(lines)

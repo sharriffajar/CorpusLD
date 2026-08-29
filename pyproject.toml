@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "corpusld"
+version = "3.0.0"
+description = "Dual-Layer Academic Linked Data Extraction Engine & Deep Knowledge Graph Studio"
+readme = "README.md"
+authors = [
+    { name = "Sharrif Faqih Fajarudin", email = "sharrifff880@gmail.com" }
+]
+license = { text = "Apache-2.0" }
+keywords = [
+    "linked-data",
+    "schema-org",
+    "json-ld",
+    "knowledge-graph",
+    "rdf-turtle",
+    "academic-publishing",
+    "rag",
+    "fastapi",
+    "scholarly-metadata"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Text Processing :: Markup"
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
+    "pydantic>=2.6.0",
+    "pypdf>=4.0.0",
+    "python-dotenv>=1.0.0",
+    "qdrant-client>=1.8.0",
+    "sentence-transformers>=2.5.0",
+    "httpx>=0.27.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "anyio>=4.0.0"
+]
+enterprise = [
+    "llama-parse>=0.4.0",
+    "unstructured>=0.12.0"
+]
+
+[project.scripts]
+corpusld = "cli:main"
+
+[project.urls]
+Homepage = "https://sharriffajar.pages.dev"
+Repository = "https://github.com/sharriffajar/CorpusLD"
+Issues = "https://github.com/sharriffajar/CorpusLD/issues"
+Documentation = "https://github.com/sharriffajar/CorpusLD#readme"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["json_ld_extractor*", "corpusld_engine*", "routes*", "services*"]

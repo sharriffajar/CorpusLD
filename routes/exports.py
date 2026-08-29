@@ -14,6 +14,10 @@ from json_ld_extractor import (
     export_to_json_ld_graph,
     generate_html_head_package,
     calculate_graph_health_metrics,
+    export_to_bibtex,
+    export_to_ris,
+    export_to_csl_json,
+    export_to_cypher,
 )
 
 import re
@@ -92,6 +96,73 @@ async def export_scholar_meta_file(file_name: str):
             }
         )
     raise HTTPException(status_code=404, detail="Metadata not available for this document.")
+
+
+@router.get("/api/export/bibtex/{file_name}")
+async def export_bibtex_file(file_name: str):
+    validate_safe_filename(file_name)
+    stored = get_persisted_document(file_name)
+    if stored:
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        bib_content = export_to_bibtex(data)
+        return Response(
+            content=bib_content,
+            media_type="application/x-bibtex; charset=utf-8",
+            headers={
+                "Content-Disposition": make_safe_attachment_header(file_name, "citation.bib")
+            }
+        )
+    raise HTTPException(status_code=404, detail="Metadata not available for this document.")
+
+
+@router.get("/api/export/ris/{file_name}")
+async def export_ris_file(file_name: str):
+    validate_safe_filename(file_name)
+    stored = get_persisted_document(file_name)
+    if stored:
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        ris_content = export_to_ris(data)
+        return Response(
+            content=ris_content,
+            media_type="application/x-research-info-systems; charset=utf-8",
+            headers={
+                "Content-Disposition": make_safe_attachment_header(file_name, "citation.ris")
+            }
+        )
+    raise HTTPException(status_code=404, detail="Metadata not available for this document.")
+
+
+@router.get("/api/export/csl/{file_name}")
+async def export_csl_file(file_name: str):
+    validate_safe_filename(file_name)
+    stored = get_persisted_document(file_name)
+    if stored:
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        csl_data = export_to_csl_json(data)
+        return JSONResponse(
+            content=csl_data,
+            headers={
+                "Content-Disposition": make_safe_attachment_header(file_name, "csl.json")
+            }
+        )
+    raise HTTPException(status_code=404, detail="Metadata not available for this document.")
+
+
+@router.get("/api/export/cypher/{file_name}")
+async def export_cypher_file(file_name: str):
+    validate_safe_filename(file_name)
+    stored = get_persisted_document(file_name)
+    if stored:
+        data = stored["schema_json_ld"] if "schema_json_ld" in stored else stored
+        cypher_content = export_to_cypher(data)
+        return Response(
+            content=cypher_content,
+            media_type="text/plain; charset=utf-8",
+            headers={
+                "Content-Disposition": make_safe_attachment_header(file_name, "graph.cql")
+            }
+        )
+    raise HTTPException(status_code=404, detail="Knowledge graph data not extracted for this document.")
 
 
 @router.get("/api/documents/{file_name}/knowledge-graph")

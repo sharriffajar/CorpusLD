@@ -113,3 +113,83 @@ class TestValidation(unittest.TestCase):
         self.assertIn('<title>Testing Head Bundle</title>', html_head)
         self.assertIn('<meta name="citation_title"', html_head)
         self.assertIn('<script type="application/ld+json">', html_head)
+
+    def test_export_to_bibtex(self):
+        from json_ld_extractor import export_to_bibtex
+        doc = {
+            "name": "State Space Models for Deep Learning",
+            "author": [{"name": "Albert Gu"}, {"name": "Tri Dao"}],
+            "datePublished": "2024-05-10",
+            "identifier": "https://doi.org/10.1234/ssm.2024",
+            "publisher": {"name": "arXiv Preprint"},
+            "description": "Linear time sequence modeling architecture.",
+            "keywords": ["State Space", "Deep Learning"]
+        }
+        bib = export_to_bibtex(doc)
+        self.assertTrue(bib.startswith("@article{gu2024state,"))
+        self.assertIn("title = {{State Space Models for Deep Learning}}", bib)
+        self.assertIn("author = {Albert Gu and Tri Dao}", bib)
+        self.assertIn("year = {2024}", bib)
+        self.assertIn("doi = {10.1234/ssm.2024}", bib)
+        self.assertIn("journal = {arXiv Preprint}", bib)
+
+    def test_export_to_ris(self):
+        from json_ld_extractor import export_to_ris
+        doc = {
+            "name": "State Space Models for Deep Learning",
+            "author": [{"name": "Albert Gu"}, {"name": "Tri Dao"}],
+            "datePublished": "2024-05-10",
+            "identifier": "https://doi.org/10.1234/ssm.2024",
+            "publisher": {"name": "arXiv"},
+            "description": "An abstract text.",
+            "keywords": ["AI", "Mamba"]
+        }
+        ris = export_to_ris(doc)
+        self.assertIn("TY  - JOUR", ris)
+        self.assertIn("TI  - State Space Models for Deep Learning", ris)
+        self.assertIn("AU  - Albert Gu", ris)
+        self.assertIn("AU  - Tri Dao", ris)
+        self.assertIn("PY  - 2024", ris)
+        self.assertIn("DO  - 10.1234/ssm.2024", ris)
+        self.assertIn("KW  - AI", ris)
+        self.assertIn("ER  -", ris)
+
+    def test_export_to_csl_json(self):
+        from json_ld_extractor import export_to_csl_json
+        doc = {
+            "name": "State Space Models",
+            "author": [{"name": "Albert Gu"}],
+            "datePublished": "2024",
+            "identifier": "10.1234/ssm"
+        }
+        csl = export_to_csl_json(doc)
+        self.assertEqual(csl["type"], "article-journal")
+        self.assertEqual(csl["title"], "State Space Models")
+        self.assertEqual(csl["author"][0]["family"], "Gu")
+        self.assertEqual(csl["author"][0]["given"], "Albert")
+        self.assertEqual(csl["issued"]["date-parts"], [[2024]])
+        self.assertEqual(csl["DOI"], "10.1234/ssm")
+
+    def test_export_to_cypher(self):
+        from json_ld_extractor import export_to_cypher
+        doc = {
+            "@id": "doc_mamba",
+            "name": "Mamba Paper",
+            "identifier": "10.1234/mamba",
+            "author": [{"name": "Albert Gu"}],
+            "knowledge_graph": {
+                "nodes": [
+                    {"id": "c_ssm", "name": "State Space Model", "node_type": "Concept"},
+                    {"id": "m_mamba", "name": "Mamba", "node_type": "Architecture"}
+                ],
+                "edges": [
+                    {"source": "m_mamba", "target": "c_ssm", "relation": "instance_of"}
+                ]
+            }
+        }
+        cql = export_to_cypher(doc)
+        self.assertIn("MERGE (doc:Document {id: 'doc_mamba'})", cql)
+        self.assertIn("MERGE (a:Person {id: 'albert_gu', name: 'Albert Gu'})", cql)
+        self.assertIn("MERGE (n_c_ssm:Concept {id: 'c_ssm', name: 'State Space Model'})", cql)
+        self.assertIn("MATCH (s {id: 'm_mamba'}), (t {id: 'c_ssm'}) MERGE (s)-[:INSTANCE_OF]->(t);", cql)
+

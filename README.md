@@ -8,7 +8,8 @@
 [![Schema.org](https://img.shields.io/badge/Schema.org-100%25%20Compliant-success.svg?style=flat-square&logo=w3c)](https://schema.org/)
 [![W3C RDF](https://img.shields.io/badge/W3C%20RDF-Turtle%20.ttl-blue.svg?style=flat-square&logo=w3c)](https://www.w3.org/TR/turtle/)
 [![Google Rich Results](https://img.shields.io/badge/Google%20Rich%20Results-Ready-orange.svg?style=flat-square&logo=google)](https://search.google.com/test/rich-results)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-104%20Passed-success.svg?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-109%20Passed-success.svg?style=flat-square)](tests/)
+[![PyPI](https://img.shields.io/badge/PyPI-v3.0.0-blue.svg?style=flat-square&logo=pypi)](pyproject.toml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat-square)](LICENSE)
 
 ---
@@ -20,7 +21,7 @@
 git clone https://github.com/sharriffajar/CorpusLD.git
 cd CorpusLD
 
-# 2. Install dependencies
+# 2. Install dependencies (or install as package: pip install -e .)
 pip install -r requirements.txt
 
 # 3. Launch Web Dashboard or CLI
@@ -36,7 +37,7 @@ python cli.py extract "sample.pdf" --output "result.jsonld"     # Headless CLI
 | :--- | :--- |
 | **Academic Publishers & Journals (OJS)** | **Automated Discoverability**: Converts article archives into Google Scholar meta tags and Schema.org ScholarlyArticle JSON-LD for higher citation impact. |
 | **BioPharma, Energy & Deep-Tech R&D** | **Structured Knowledge Lakes**: Turns thousands of technical PDFs and patents into queryable Knowledge Graph triples with ROR, MeSH, and Wikidata authority URIs. |
-| **Enterprise AI & RAG Platforms** | **Zero Truncation Loss**: Ingests multi-page tables, equations, and parameters without standard chunking fragmentation. |
+| **Enterprise AI & GraphRAG Platforms** | **Graph & Property Exports**: Export directly to Neo4j Cypher (`.cql`), BibTeX (`.bib`), RIS, CSL-JSON, W3C Turtle (`.ttl`), and Schema.org JSON-LD without loss. |
 
 ---
 
@@ -49,7 +50,7 @@ CorpusLD follows an **Open-Core** architecture. The community edition provides a
 | **4-Tier Document Parsers** *(PyPDF, LlamaParse, Unstructured, Hybrid)* | ✅ Included | ✅ Included |
 | **5-Agent Map-Reduce Pipeline** *(Full section & table extraction)* | ✅ Included | ✅ Included |
 | **Universal Unit Ontology** *(SI, Biomedical, Energy, Compound units)* | ✅ Included | ✅ Included |
-| **Multi-Format Semantic Export** *(JSON-LD, RDF Turtle, `@graph`, Scholar)* | ✅ Included | ✅ Included |
+| **Multi-Format Semantic Export** *(JSON-LD, RDF Turtle, BibTeX, RIS, CSL, Cypher)* | ✅ Included | ✅ Included |
 | **Adversarial KG Validation & Google Rich Results Guarantee** | ✅ Included | ✅ Included |
 | **Live DOI Reconciliation** *(Crossref & OpenAlex REST API)* | — | 🌟 **Included** |
 | **Domain Authority Linker** *(Live ROR v2, Wikidata QID & MeSH URIs)* | — | 🌟 **Included** |

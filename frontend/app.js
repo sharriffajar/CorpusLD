@@ -1301,10 +1301,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  btnDownloadJsonld.addEventListener('click', () => {
-    if (!appState.selectedDoc) return;
-    window.open(`/api/export/${encodeURIComponent(appState.selectedDoc)}`, '_blank');
-  });
+  if (btnDownloadJsonld) {
+    btnDownloadJsonld.addEventListener('click', () => {
+      if (!appState.selectedDoc) return;
+      window.open(`/api/export/${encodeURIComponent(appState.selectedDoc)}`, '_blank');
+    });
+  }
 
   // ---------------------------------------------------------
   // 7. NEURAL RAG CHAT LOGIC
