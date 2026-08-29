@@ -2,14 +2,20 @@
 """Unit tests for Enterprise Resolvers: Paper Lookup and Domain Entity Resolvers."""
 
 import unittest
-from corpusld_engine.resolvers.entity_resolver import (
-    resolve_academic_institution,
-    resolve_scientific_concept_authority,
-    enrich_knowledge_graph_with_authorities,
-)
-from corpusld_engine.resolvers.paper_lookup import _compute_string_similarity
+
+try:
+    from corpusld_engine.resolvers.entity_resolver import (
+        resolve_academic_institution,
+        resolve_scientific_concept_authority,
+        enrich_knowledge_graph_with_authorities,
+    )
+    from corpusld_engine.resolvers.paper_lookup import _compute_string_similarity
+    HAS_ENTERPRISE_ENGINE = True
+except ImportError:
+    HAS_ENTERPRISE_ENGINE = False
 
 
+@unittest.skipUnless(HAS_ENTERPRISE_ENGINE, "Enterprise engine module (corpusld_engine) not present.")
 class TestEnterpriseResolvers(unittest.TestCase):
     def test_institution_ror_resolution(self):
         """Test resolving academic affiliations to canonical ROR IDs."""
