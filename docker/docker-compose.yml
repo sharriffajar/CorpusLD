@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  corpusld:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: corpusld_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION_NAME=corpusld_workspace
+      - OLLAMA_MODEL_NAME=qwen2.5:3b
+      - GEMINI_MODEL_NAME=gemini-2.5-flash-lite
+      - EMBEDDING_MODEL_NAME=ibm-granite/granite-embedding-107m-multilingual
+      - CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+    volumes:
+      - corpusld_data:/app/uploads
+      - corpusld_db:/app/corpusld_store.db
+    depends_on:
+      - qdrant
+    networks:
+      - corpusld_net
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.2
+    container_name: corpusld_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - corpusld_net
+
+  # Optional local Ollama inference service (uncomment for full offline on-prem deployment)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: corpusld_ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_models:/root/.ollama
+  #   networks:
+  #     - corpusld_net
+
+volumes:
+  corpusld_data:
+  corpusld_db:
+  qdrant_data:
+  # ollama_models:
+
+networks:
+  corpusld_net:
+    driver: bridge

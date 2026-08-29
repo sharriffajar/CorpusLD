@@ -1,0 +1,32 @@
+# Git & CI/CD
+.git
+.github
+.gitignore
+
+# Python Bytecode & Cache
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+.cache
+
+# Environment & Local Secrets
+.env
+.env.local
+*.log
+
+# Local Persistent Databases & Artifacts
+corpusld_store.db
+corpusld_store.db-wal
+corpusld_store.db-shm
+qdrant_db/
+uploads/
+benchmark_results/
+benchmark_corpus/
+.tmp.*
+.tools/
+
+# Virtual Environments
+venv/
+.venv/
+env/
