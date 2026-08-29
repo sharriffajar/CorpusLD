@@ -99,5 +99,5 @@ python tests/eval_benchmark.py
 ## 📄 License & Maintainer
 
 * **Open-Source Core**: Distributed under the [Apache License, Version 2.0](LICENSE).
-* **Enterprise Edition & Commercial Inquiries**: Developed by **[Sharrif Fajar](https://sharriffajar.pages.dev)**. For enterprise deployment, custom ontology mapping, or dedicated integrations, connect via portfolio at **[sharriffajar.pages.dev](https://sharriffajar.pages.dev)** or open an issue on [GitHub](https://github.com/sharriffajar/CorpusLD).
+* **Enterprise Edition & Commercial Inquiries**: Developed by **[Sharrif Faqih Fajarudin](https://sharriffajar.pages.dev)** ([Portfolio](https://sharriffajar.pages.dev) • [LinkedIn](https://www.linkedin.com/in/sharriffajar) • [Email](mailto:sharrifff880@gmail.com)). For enterprise deployment, custom ontology mapping, or dedicated SLA integrations, reach out via email or open an issue on [GitHub](https://github.com/sharriffajar/CorpusLD).
 
