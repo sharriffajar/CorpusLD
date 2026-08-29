@@ -207,5 +207,33 @@ python benchmark_runner.py --delay 2.0
 
 ---
 
+## 🗺️ Product Roadmap
+
+CorpusLD follows a modular **Dual-Track & Open-Core** development strategy to serve both on-premises institutional publishers and independent academic researchers.
+
+### 📅 Phase 1: Core Foundation & Open-Core Split (Completed ✅)
+- [x] **Open-Core Engine Separation**: Public open-source repository (`CorpusLD`) with standalone community starter engine (`pipeline_basic.py`) alongside private enterprise multi-agent engine (`corpusld-engine`).
+- [x] **Dual-Layer Linked Data Architecture**: Schema.org JSON-LD (Macro) + Deep Knowledge Graph Triples (Micro) with 10 standard semantic relations.
+- [x] **Scientific Unit Ontology**: Universal resolver for SI, biomedicine, energy, physics, and financial units with superscript citation de-aliasing.
+- [x] **Adversarial Validation & Rich Results Engine**: Formal validation against Schema.org whitelist with 100% benchmark compliance.
+- [x] **CLI Automation Tool (`cli.py`)**: Headless command-line interface for batch PDF processing and CI/CD pipelines.
+- [x] **Production Containerization**: Multi-stage Dockerfile and Docker Compose orchestration with Qdrant vector database.
+
+### 📅 Phase 2: Multi-User Architecture & Cloud Enablement (In Progress ⏳)
+- [ ] **Multi-User Authentication**: Integration of secure OAuth authentication (Google OAuth / API Keys).
+- [ ] **Per-User Data Isolation**: Workspace multi-tenancy ensuring strict data isolation per registered account.
+- [ ] **Tiered Quota Management**: Flexible tier management (Community Free Tier vs Unlimited Pro Tier).
+- [ ] **Asynchronous Job Queue**: Background processing queue for high-concurrency batch uploads and asynchronous document processing.
+- [ ] **Automated Data Retention & Lifecycle Management**: Automated cleanup schedules for temporary workspaces.
+
+### 📅 Phase 3: Enterprise Integration & Advanced Formats (Planned 🚀)
+- [ ] **Institutional Journal System Plugins**: Direct integration plugins for Open Journal Systems (OJS) and academic indexing workflows.
+- [ ] **Crossref XML & JATS XML Exporter**: Full bidirectional conversion between Schema.org Linked Data, Crossref XML, and JATS format.
+- [ ] **High-Availability Enterprise Database Adapters**: Native PostgreSQL + pgvector and distributed triple-store integrations.
+- [ ] **Enterprise SLA & Observability**: Real-time telemetry monitoring (Prometheus & Grafana metrics) and high-throughput batch extraction APIs.
+
+---
+
 ## 📄 License
 Distributed under the Apache License, Version 2.0. See `LICENSE` for details.
+
