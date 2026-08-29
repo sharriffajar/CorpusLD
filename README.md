@@ -17,13 +17,13 @@
 [![Schema.org](https://img.shields.io/badge/Schema.org-100%25%20Compliant-success.svg?style=flat-square&logo=w3c)](https://schema.org/)
 [![W3C RDF](https://img.shields.io/badge/W3C%20RDF-Turtle%20.ttl-blue.svg?style=flat-square&logo=w3c)](https://www.w3.org/TR/turtle/)
 [![Google Rich Results](https://img.shields.io/badge/Google%20Rich%20Results-Ready-orange.svg?style=flat-square&logo=google)](https://search.google.com/test/rich-results)
-[![Benchmark](https://img.shields.io/badge/Benchmark%20Quality-100%25%20(7%2F7%20Passed)-brightgreen.svg?style=flat-square)](benchmark_results/dashboard.html)
-[![Tests](https://img.shields.io/badge/Unit%20Tests-89%20Passed-success.svg?style=flat-square)](tests/)
+[![Benchmark](https://img.shields.io/badge/Benchmark%20Corpus-8%20Papers%20Evaluated-brightgreen.svg?style=flat-square)](benchmark_results/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-104%20Passed-success.svg?style=flat-square)](tests/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=flat-square)](LICENSE)
 
 > **"Don't just extract knowledge. Partner with it."**
 
-**CorpusLD** (Corpus + Linked Data) is your dedicated **Academic Knowledge Partner** designed for **Multi-Agent Semantic Ingestion**, **Dual-Layer Linked Data (Schema.org JSON-LD + Deep Knowledge Graph Triples)**, **W3C RDF Turtle Serializer**, **Adversarial Knowledge Graph Reasoning**, and **Grounded Neural Vector RAG Search**. It transforms complex, unstructured PDF documents (scientific papers, technical reports, academic publications, regulatory briefs) into rich, verifiable linked data graphs that achieve 100% compliance on [validator.schema.org](https://validator.schema.org) and pass the [Google Rich Results Test](https://search.google.com/test/rich-results).
+**CorpusLD** (Corpus + Linked Data) is your dedicated **Academic Knowledge Partner** designed for **Multi-Agent Semantic Ingestion**, **Dual-Layer Linked Data (Schema.org JSON-LD + Deep Knowledge Graph Triples)**, **W3C RDF Turtle Serializer**, **Adversarial Knowledge Graph Reasoning**, and **Grounded Neural Vector RAG Search**. It transforms complex, unstructured PDF documents (scientific papers, technical reports, academic publications, regulatory briefs) into rich, verifiable linked data graphs that achieve 100% standard compliance on [validator.schema.org](https://validator.schema.org) and pass the [Google Rich Results Test](https://search.google.com/test/rich-results).
 
 ---
 
@@ -86,31 +86,28 @@
 ### 8. 🔒 Security Hardening & Enterprise Reliability
 - **DOM-based XSS Defense**: Universal HTML escaping across the interactive web dashboard and metadata viewers, coupled with a strict Content Security Policy (CSP).
 - **SSRF Protection**: Rigorous parameter validation against loopback, private subnets, and cloud metadata services (`169.254.169.254`).
-- **Header-Based Auth**: Secure API key transport via `x-goog-api-key` HTTP headers instead of vulnerable URL query parameters.
+- **Header-Based Auth**: Secure API key transport via `X-API-Key` or `Authorization: Bearer` HTTP headers instead of vulnerable URL query parameters.
+- **Path Traversal Protection**: Strict filename regex filtering on all document, extraction, and export API routes.
 - **Non-Blocking Async Execution**: CPU-bound embedding and document ingestion run inside `asyncio.to_thread` pools without starving server heartbeat and streaming events.
 
 ---
 
-## 📊 Benchmark & Quality Verification
+## 📊 Ground-Truth Extraction Yield & Inventory
 
-CorpusLD includes a comprehensive Multi-Style Document Benchmark Suite evaluating 8 invariant quality dimensions across diverse scientific disciplines:
+CorpusLD transparently reports the exact, verifiable yield of structured items extracted from each document across diverse scientific disciplines:
 
-```text
-================================================================================
-📈 BENCHMARK SUMMARY REPORT (CorpusLD v3.0)
-================================================================================
-Document                                      | Score   | Duration | Status
---------------------------------------------------------------------------------
-20.+Al-Amin++M+(200-211).pdf                  | 100.0%  | 18.61s   | 🌟 PASSED
-2406.00442v1.pdf                              | 100.0%  | 80.72s   | 🌟 PASSED
-2607.08550v1.pdf                              | 100.0%  | 35.57s   | 🌟 PASSED
-2607.22092v1.pdf                              | 100.0%  | 14.23s   | 🌟 PASSED
-2607.24075v1.pdf                              | 100.0%  | 17.46s   | 🌟 PASSED
-2608.19908v1.pdf                              | 100.0%  | 37.80s   | 🌟 PASSED
-ijsdp_21.03_03.pdf                            | 100.0%  | 34.41s   | 🌟 PASSED
-================================================================================
-```
-👉 Open the interactive visual dashboard at: [`benchmark_results/dashboard.html`](benchmark_results/dashboard.html)
+| Evaluated Document | Authors | Sections | Tables | Citations | Calibrated Metrics |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **`20.+Al-Amin++M+(200-211).pdf`** *(Indonesian SINTA Journal)* | **6** authors | **4** sections | **1** table | **6** citations | **8** parameters |
+| **`2312.00752_mamba.pdf`** *(arXiv: Mamba State Spaces)* | **2** authors | **34** sections | **7** tables | **116** citations | **13** parameters |
+| **`2406.00442v1.pdf`** *(E-Methanol & Hydrogen Production)* | **6** authors | **18** sections | **5** tables | **19** citations | **31** parameters |
+| **`2607.08550v1.pdf`** *(ESBMC-Arduino Formal Verification)* | **4** authors | **37** sections | **9** tables | **4** citations | **3** parameters |
+| **`2607.22092v1.pdf`** *(Eco-Efficient Biowaste Valorisation)* | **4** authors | **10** sections | **2** tables | **15** citations | **10** parameters |
+| **`2607.24075v1.pdf`** *(IEEE Market Optimization for BESS)* | **3** authors | **5** sections | **1** table | **19** citations | **5** parameters |
+| **`2608.19908v1.pdf`** *(Layered Simplex Architecture)* | **3** authors | **16** sections | **8** tables | **20** citations | **19** parameters |
+| **`ijsdp_21.03_03.pdf`** *(Tropical Peatland Demarcation)* | **8** authors | **28** sections | **3** tables | **38** citations | **42** parameters |
+
+👉 Run the automated batch inventory verification anytime with: `python tests/eval_benchmark.py`
 
 ---
 
