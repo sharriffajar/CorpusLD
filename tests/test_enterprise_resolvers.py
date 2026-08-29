@@ -61,6 +61,19 @@ class TestEnterpriseResolvers(unittest.TestCase):
         dl_node = next(n for n in enriched if n["id"] == "kg:deep_learn")
         self.assertIn("https://www.wikidata.org/wiki/Q197536", dl_node["sameAs"])
 
+    def test_enrich_knowledge_graph_preserves_string_same_as(self):
+        """Test that single string sameAs or same_as are preserved and not dropped."""
+        nodes = [
+            {"id": "kg:custom_node", "type": "kg:Concept", "name": "Custom Alg", "sameAs": "https://example.org/custom_id"},
+            {"id": "kg:snake_node", "type": "kg:Concept", "name": "Snake Alg", "same_as": "https://example.org/snake_id"}
+        ]
+        enriched = enrich_knowledge_graph_with_authorities(nodes)
+        self.assertEqual(len(enriched), 2)
+        n1 = next(n for n in enriched if n["id"] == "kg:custom_node")
+        self.assertIn("https://example.org/custom_id", n1["sameAs"])
+        n2 = next(n for n in enriched if n["id"] == "kg:snake_node")
+        self.assertIn("https://example.org/snake_id", n2["sameAs"])
+
     def test_string_similarity(self):
         """Test token Jaccard similarity helper."""
         s1 = "Condition and Position Estimation Using Spatial Ultrasound"
