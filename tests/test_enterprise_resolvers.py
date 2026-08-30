@@ -32,6 +32,16 @@ class TestEnterpriseResolvers(unittest.TestCase):
         self.assertIsNotNone(mit)
         self.assertEqual(mit["ror"], "https://ror.org/0547t3q72")
 
+        untan = resolve_academic_institution("Jurusan Informatika, Universitas Tanjungpura")
+        self.assertIsNotNone(untan)
+        self.assertEqual(untan["name"], "Universitas Tanjungpura")
+        self.assertEqual(untan["ror"], "https://ror.org/03f0b2f63")
+
+        cornell = resolve_academic_institution("Department of Computer Science, Cornell University")
+        self.assertIsNotNone(cornell)
+        self.assertEqual(cornell["name"], "Cornell University")
+        self.assertEqual(cornell["ror"], "https://ror.org/05bnh6r03")
+
     def test_scientific_concept_authority_resolution(self):
         """Test resolving scientific concepts to MeSH and Wikidata URIs."""
         cnn = resolve_scientific_concept_authority("Convolutional Neural Network")
@@ -43,6 +53,14 @@ class TestEnterpriseResolvers(unittest.TestCase):
         self.assertIsNotNone(dm)
         self.assertEqual(dm["domain"], "Medicine")
         self.assertIn("meshb.nlm.nih.gov", dm["mesh"])
+
+        bess = resolve_scientific_concept_authority("Battery Energy Storage System")
+        self.assertIsNotNone(bess)
+        self.assertEqual(bess["domain"], "Energy Engineering")
+
+        peatland = resolve_scientific_concept_authority("Tropical Peatland Hydrology")
+        self.assertIsNotNone(peatland)
+        self.assertEqual(peatland["domain"], "Earth Science")
 
     def test_enrich_knowledge_graph_with_authorities(self):
         """Test enriching KG nodes with sameAs links."""

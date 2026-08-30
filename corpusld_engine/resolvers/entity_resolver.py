@@ -50,6 +50,34 @@ INSTITUTION_ROR_MAP = {
     "usu": {"name": "Universitas Sumatera Utara", "ror": "https://ror.org/03947b198", "id": "03947b198", "country": "ID"},
     "universitas tanjungpura": {"name": "Universitas Tanjungpura", "ror": "https://ror.org/03f0b2f63", "id": "03f0b2f63", "country": "ID"},
     "untan": {"name": "Universitas Tanjungpura", "ror": "https://ror.org/03f0b2f63", "id": "03f0b2f63", "country": "ID"},
+    "universitas andalas": {"name": "Universitas Andalas", "ror": "https://ror.org/03x3t5924", "id": "03x3t5924", "country": "ID"},
+    "unand": {"name": "Universitas Andalas", "ror": "https://ror.org/03x3t5924", "id": "03x3t5924", "country": "ID"},
+    "universitas syiah kuala": {"name": "Universitas Syiah Kuala", "ror": "https://ror.org/0286t4f65", "id": "0286t4f65", "country": "ID"},
+    "usk": {"name": "Universitas Syiah Kuala", "ror": "https://ror.org/0286t4f65", "id": "0286t4f65", "country": "ID"},
+    "unsyiah": {"name": "Universitas Syiah Kuala", "ror": "https://ror.org/0286t4f65", "id": "0286t4f65", "country": "ID"},
+    "universitas udayana": {"name": "Universitas Udayana", "ror": "https://ror.org/0014x2067", "id": "0014x2067", "country": "ID"},
+    "unud": {"name": "Universitas Udayana", "ror": "https://ror.org/0014x2067", "id": "0014x2067", "country": "ID"},
+    "universitas jember": {"name": "Universitas Jember", "ror": "https://ror.org/00z2b8v12", "id": "00z2b8v12", "country": "ID"},
+    "unej": {"name": "Universitas Jember", "ror": "https://ror.org/00z2b8v12", "id": "00z2b8v12", "country": "ID"},
+    "universitas lampung": {"name": "Universitas Lampung", "ror": "https://ror.org/03c399r89", "id": "03c399r89", "country": "ID"},
+    "unila": {"name": "Universitas Lampung", "ror": "https://ror.org/03c399r89", "id": "03c399r89", "country": "ID"},
+    "universitas sriwijaya": {"name": "Universitas Sriwijaya", "ror": "https://ror.org/044v2r952", "id": "044v2r952", "country": "ID"},
+    "unsri": {"name": "Universitas Sriwijaya", "ror": "https://ror.org/044v2r952", "id": "044v2r952", "country": "ID"},
+    "universitas riau": {"name": "Universitas Riau", "ror": "https://ror.org/05c8q3411", "id": "05c8q3411", "country": "ID"},
+    "unri": {"name": "Universitas Riau", "ror": "https://ror.org/05c8q3411", "id": "05c8q3411", "country": "ID"},
+    "universitas mulawarman": {"name": "Universitas Mulawarman", "ror": "https://ror.org/04k25z018", "id": "04k25z018", "country": "ID"},
+    "unmul": {"name": "Universitas Mulawarman", "ror": "https://ror.org/04k25z018", "id": "04k25z018", "country": "ID"},
+    "universitas lambung mangkurat": {"name": "Universitas Lambung Mangkurat", "ror": "https://ror.org/0296g5720", "id": "0296g5720", "country": "ID"},
+    "ulm": {"name": "Universitas Lambung Mangkurat", "ror": "https://ror.org/0296g5720", "id": "0296g5720", "country": "ID"},
+    "universitas sam ratulangi": {"name": "Universitas Sam Ratulangi", "ror": "https://ror.org/013sfx274", "id": "013sfx274", "country": "ID"},
+    "unsrat": {"name": "Universitas Sam Ratulangi", "ror": "https://ror.org/013sfx274", "id": "013sfx274", "country": "ID"},
+    "universitas negeri yogyakarta": {"name": "Universitas Negeri Yogyakarta", "ror": "https://ror.org/03sp19r91", "id": "03sp19r91", "country": "ID"},
+    "uny": {"name": "Universitas Negeri Yogyakarta", "ror": "https://ror.org/03sp19r91", "id": "03sp19r91", "country": "ID"},
+    "universitas pendidikan indonesia": {"name": "Universitas Pendidikan Indonesia", "ror": "https://ror.org/02v6h0v47", "id": "02v6h0v47", "country": "ID"},
+    "upi": {"name": "Universitas Pendidikan Indonesia", "ror": "https://ror.org/02v6h0v47", "id": "02v6h0v47", "country": "ID"},
+    "telkom university": {"name": "Telkom University", "ror": "https://ror.org/03v330230", "id": "03v330230", "country": "ID"},
+    "binus university": {"name": "Bina Nusantara University", "ror": "https://ror.org/02m0t9685", "id": "02m0t9685", "country": "ID"},
+    "binus": {"name": "Bina Nusantara University", "ror": "https://ror.org/02m0t9685", "id": "02m0t9685", "country": "ID"},
     "badan riset dan inovasi nasional": {"name": "Badan Riset dan Inovasi Nasional", "ror": "https://ror.org/054hwh503", "id": "054hwh503", "country": "ID"},
     "brin": {"name": "Badan Riset dan Inovasi Nasional", "ror": "https://ror.org/054hwh503", "id": "054hwh503", "country": "ID"},
 
@@ -63,6 +91,7 @@ INSTITUTION_ROR_MAP = {
     "princeton university": {"name": "Princeton University", "ror": "https://ror.org/00hx57361", "id": "00hx57361", "country": "US"},
     "university of california, berkeley": {"name": "University of California, Berkeley", "ror": "https://ror.org/01an7q238", "id": "01an7q238", "country": "US"},
     "uc berkeley": {"name": "University of California, Berkeley", "ror": "https://ror.org/01an7q238", "id": "01an7q238", "country": "US"},
+    "cornell university": {"name": "Cornell University", "ror": "https://ror.org/05bnh6r03", "id": "05bnh6r03", "country": "US"},
     "university of oxford": {"name": "University of Oxford", "ror": "https://ror.org/052gg0110", "id": "052gg0110", "country": "GB"},
     "oxford university": {"name": "University of Oxford", "ror": "https://ror.org/052gg0110", "id": "052gg0110", "country": "GB"},
     "university of cambridge": {"name": "University of Cambridge", "ror": "https://ror.org/013meh722", "id": "013meh722", "country": "GB"},
@@ -83,11 +112,23 @@ INSTITUTION_ROR_MAP = {
     "acm": {"name": "Association for Computing Machinery", "ror": "https://ror.org/02d2k5257", "id": "02d2k5257", "country": "US"},
     "wiley": {"name": "Wiley", "ror": "https://ror.org/01t87vg90", "id": "01t87vg90", "country": "US"},
     "nature publishing group": {"name": "Nature Portfolio", "ror": "https://ror.org/02b55f691", "id": "02b55f691", "country": "GB"},
+    "w3c": {"name": "World Wide Web Consortium", "ror": "https://ror.org/02b55f691", "id": "02b55f691", "country": "US"},
+    "crossref": {"name": "Crossref", "ror": "https://ror.org/02t43z281", "id": "02t43z281", "country": "US"},
+    "orcid": {"name": "ORCID", "ror": "https://ror.org/047f03g78", "id": "047f03g78", "country": "US"},
 }
 
 # Authority Knowledge Concepts Map (Wikidata / MeSH / ACM)
 SCIENTIFIC_CONCEPT_AUTHORITY_MAP = {
-    # Machine Learning & AI
+    # Machine Learning, Semantic Web & AI
+    "knowledge graph": {"wikidata": "https://www.wikidata.org/wiki/Q33002955", "domain": "Computer Science"},
+    "linked data": {"wikidata": "https://www.wikidata.org/wiki/Q515701", "domain": "Computer Science"},
+    "semantic web": {"wikidata": "https://www.wikidata.org/wiki/Q54837", "domain": "Computer Science"},
+    "schema.org": {"wikidata": "https://www.wikidata.org/wiki/Q3475355", "domain": "Computer Science"},
+    "retrieval-augmented generation": {"wikidata": "https://www.wikidata.org/wiki/Q123565622", "domain": "Computer Science"},
+    "rag": {"wikidata": "https://www.wikidata.org/wiki/Q123565622", "domain": "Computer Science"},
+    "ontology": {"wikidata": "https://www.wikidata.org/wiki/Q324254", "domain": "Computer Science"},
+    "json-ld": {"wikidata": "https://www.wikidata.org/wiki/Q6109033", "domain": "Computer Science"},
+    "rdf": {"wikidata": "https://www.wikidata.org/wiki/Q54872", "domain": "Computer Science"},
     "machine learning": {"wikidata": "https://www.wikidata.org/wiki/Q2539", "domain": "Computer Science"},
     "deep learning": {"wikidata": "https://www.wikidata.org/wiki/Q197536", "domain": "Computer Science"},
     "neural network": {"wikidata": "https://www.wikidata.org/wiki/Q192776", "domain": "Computer Science"},
@@ -95,6 +136,7 @@ SCIENTIFIC_CONCEPT_AUTHORITY_MAP = {
     "cnn": {"wikidata": "https://www.wikidata.org/wiki/Q13129841", "domain": "Computer Science"},
     "transformer": {"wikidata": "https://www.wikidata.org/wiki/Q85810444", "domain": "Computer Science"},
     "state space model": {"wikidata": "https://www.wikidata.org/wiki/Q108251548", "domain": "Computer Science"},
+    "mamba": {"wikidata": "https://www.wikidata.org/wiki/Q108251548", "domain": "Computer Science"},
     "reinforcement learning": {"wikidata": "https://www.wikidata.org/wiki/Q830687", "domain": "Computer Science"},
     "support vector machine": {"wikidata": "https://www.wikidata.org/wiki/Q328709", "domain": "Computer Science"},
     "svm": {"wikidata": "https://www.wikidata.org/wiki/Q328709", "domain": "Computer Science"},
@@ -105,6 +147,19 @@ SCIENTIFIC_CONCEPT_AUTHORITY_MAP = {
     "graph neural network": {"wikidata": "https://www.wikidata.org/wiki/Q97358752", "domain": "Computer Science"},
     "natural language processing": {"wikidata": "https://www.wikidata.org/wiki/Q30642", "domain": "Computer Science"},
     "nlp": {"wikidata": "https://www.wikidata.org/wiki/Q30642", "domain": "Computer Science"},
+    "vector database": {"wikidata": "https://www.wikidata.org/wiki/Q117749453", "domain": "Computer Science"},
+    "qdrant": {"wikidata": "https://www.wikidata.org/wiki/Q117749453", "domain": "Computer Science"},
+
+    # Formal Verification & Systems
+    "formal verification": {"wikidata": "https://www.wikidata.org/wiki/Q782977", "domain": "Computer Science"},
+    "model checking": {"wikidata": "https://www.wikidata.org/wiki/Q1142517", "domain": "Computer Science"},
+    "smt solver": {"wikidata": "https://www.wikidata.org/wiki/Q7394627", "domain": "Computer Science"},
+    "bounded model checking": {"wikidata": "https://www.wikidata.org/wiki/Q4949980", "domain": "Computer Science"},
+    "esbmc": {"wikidata": "https://www.wikidata.org/wiki/Q782977", "domain": "Computer Science"},
+    "microcontroller": {"wikidata": "https://www.wikidata.org/wiki/Q165668", "domain": "Electrical Engineering"},
+    "arduino": {"wikidata": "https://www.wikidata.org/wiki/Q175925", "domain": "Electrical Engineering"},
+    "esp32": {"wikidata": "https://www.wikidata.org/wiki/Q27044455", "domain": "Electrical Engineering"},
+    "lorawan": {"wikidata": "https://www.wikidata.org/wiki/Q25052959", "domain": "Telecommunications"},
 
     # Biomedical & Health Sciences
     "diabetes mellitus": {"mesh": "https://meshb.nlm.nih.gov/record/ui?ui=D003920", "wikidata": "https://www.wikidata.org/wiki/Q12206", "domain": "Medicine"},
@@ -115,7 +170,7 @@ SCIENTIFIC_CONCEPT_AUTHORITY_MAP = {
     "crispr": {"mesh": "https://meshb.nlm.nih.gov/record/ui?ui=D000078385", "wikidata": "https://www.wikidata.org/wiki/Q15086884", "domain": "Genetics"},
     "myocardial infarction": {"mesh": "https://meshb.nlm.nih.gov/record/ui?ui=D009203", "wikidata": "https://www.wikidata.org/wiki/Q12152", "domain": "Cardiology"},
 
-    # Energy, Physics & Environment
+    # Energy, Chemical, Material & Environment
     "battery energy storage system": {"wikidata": "https://www.wikidata.org/wiki/Q810931", "domain": "Energy Engineering"},
     "bess": {"wikidata": "https://www.wikidata.org/wiki/Q810931", "domain": "Energy Engineering"},
     "photovoltaic": {"wikidata": "https://www.wikidata.org/wiki/Q193135", "domain": "Energy"},
@@ -123,6 +178,14 @@ SCIENTIFIC_CONCEPT_AUTHORITY_MAP = {
     "greenhouse gas": {"wikidata": "https://www.wikidata.org/wiki/Q167336", "domain": "Environmental Science"},
     "fuel cell": {"wikidata": "https://www.wikidata.org/wiki/Q180253", "domain": "Energy"},
     "renewable energy": {"wikidata": "https://www.wikidata.org/wiki/Q12705", "domain": "Environmental Science"},
+    "peatland": {"wikidata": "https://www.wikidata.org/wiki/Q1056754", "domain": "Earth Science"},
+    "peat soil": {"wikidata": "https://www.wikidata.org/wiki/Q18481", "domain": "Earth Science"},
+    "e-methanol": {"wikidata": "https://www.wikidata.org/wiki/Q14982", "domain": "Chemical Engineering"},
+    "methanol synthesis": {"wikidata": "https://www.wikidata.org/wiki/Q14982", "domain": "Chemical Engineering"},
+    "carbon capture and storage": {"wikidata": "https://www.wikidata.org/wiki/Q836371", "domain": "Environmental Science"},
+    "pyrolysis": {"wikidata": "https://www.wikidata.org/wiki/Q181938", "domain": "Chemical Engineering"},
+    "electrolysis": {"wikidata": "https://www.wikidata.org/wiki/Q131362", "domain": "Chemistry"},
+    "biomass": {"wikidata": "https://www.wikidata.org/wiki/Q18848", "domain": "Energy"},
 }
 
 USER_AGENT = "CorpusLD/3.0 (Enterprise Academic Entity Authority Linker; mailto:sharrifff880@gmail.com; https://sharriffajar.pages.dev)"
