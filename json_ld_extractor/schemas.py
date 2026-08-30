@@ -85,6 +85,7 @@ class UniversalProperty(BaseModel):
     unit_text: Optional[str] = Field(None, description="Satuan ukuran (misal: %, ms, Watt, IDR, GW, kg, etc.)")
     context_or_condition: Optional[str] = Field(None, description="Kondisi atau konteks berlakunya nilai")
     page_number: Optional[int] = Field(None, description="Nomor halaman ditemukannya metrik (diambil dari tag [Halaman: X])")
+    spatial_bounding_box: Optional[List[float]] = Field(None, description="Koordinat spasial bounding box [x, y, width, height] pada halaman PDF")
 
 
 class UniversalTable(BaseModel):
@@ -94,6 +95,7 @@ class UniversalTable(BaseModel):
     headers: List[str] = Field(default_factory=list, description="Daftar header kolom tabel")
     rows: List[List[str]] = Field(default_factory=list, description="Gabungan seluruh baris data tabel")
     table_type: Optional[str] = Field(default="quantitative", description="'quantitative' untuk data angka atau 'descriptive' untuk matriks/SWOT/kualitatif")
+    spatial_bounding_box: Optional[List[float]] = Field(None, description="Koordinat spasial bounding box [x, y, width, height] pada halaman PDF")
 
 
 # ---------------------------------------------------------
@@ -110,6 +112,7 @@ class KGNode(BaseModel):
     properties: Dict[str, Any] = Field(default_factory=dict, alias="kg:properties", description="Atribut key-value entitas")
     confidence: float = Field(default=1.0, alias="kg:confidence", description="Tingkat keyakinan ekstraksi (0.0 - 1.0)")
     source_page: Optional[int] = Field(None, alias="kg:source_page", description="Halaman dokumen asal fakta/entitas")
+    spatial_bounding_box: Optional[List[float]] = Field(None, alias="kg:spatial_bounding_box", description="Koordinat spasial bounding box [x, y, width, height] pada halaman PDF")
     same_as: Optional[Union[str, List[str]]] = Field(None, alias="sameAs", description="Tautan authority Schema.org sameAs (Wikidata, MeSH, ROR)")
 
     @model_validator(mode="before")

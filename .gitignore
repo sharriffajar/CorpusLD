@@ -72,6 +72,9 @@ benchmark_corpus/*.pdf
 
 # Private Production Engine (Independent Private Repository)
 corpusld_engine/
+!corpusld_engine/__init__.py
+!corpusld_engine/resolvers/
+!corpusld_engine/connectors/
 engine_private/
 private/
 
