@@ -66,6 +66,7 @@ async def export_turtle_file(file_name: str):
 
 
 @router.get("/api/export/jsonld-graph/{file_name}")
+@router.get("/api/export/graph/{file_name}")
 async def export_jsonld_graph_file(file_name: str):
     validate_safe_filename(file_name)
     stored = get_persisted_document(file_name)

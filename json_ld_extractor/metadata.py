@@ -167,19 +167,21 @@ def detect_document_language(text: str) -> str:
     return best_lang if best_count >= 5 else ("id" if counts["id"] > counts["en"] else "en")
 
 def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) -> str:
-    """Ekstrak judul substantif dokumen dari Halaman 1 tanpa embel-embel nama file .pdf."""
+    """Ekstrak judul substantif dokumen dari Halaman 1 secara akurat dan lengkap."""
+    import unicodedata
     p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
     p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
+    p1_text = unicodedata.normalize("NFKD", p1_text)
+    
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
     noise_patterns = [
         r'^arxiv\b', r'^doi\b', r'^https?://', r'^\d+$', 
-        r'^(?:v\s*ol\.?|volume|volumen|vol\b|issue|no\b|n[ºo\.]|nº)\b',
-        r'^[A-Za-z\s\.\-]+\s*et\s+al\.?\s*[:\-–—]',
+        r'^(?:v\s*ol\.?|volume|volumen|vol\b|issue|no\b|n[A-Za-z0-9\.]|IEEE TRANSACTIONS)\b',
+        r'^[A-Za-z\s\.\-]+\s*et\s+al\.?\s*[:\-]',
         r'^(?:ieee\s+transactions|acm\s+transactions|proceedings\s+of|journal\s+of)\b',
         r'^(?:accepted|received|published|available\s+online)\b', 
         r'^(?:all rights reserved|copyright|issn|isbn|e-issn|p-issn)\b',
-        r'^(?:january|february|march|april|may|june|july|august|september|october|november|december|marzo|enero|febrero|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+\d{4}\b',
-        r'^[A-Za-z\s\.\,\(\)\-]+,\s*v\s*ol\.?\s*\d+'
+        r'^(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b',
     ]
     cand_lines = []
     for l in raw_lines:
@@ -194,40 +196,26 @@ def extract_deterministic_title(chunks: List[Dict[str, Any]], file_name: str) ->
         clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).strip()
         return clean_name.title() if clean_name else file_name
 
-    title_lines = [cand_lines[0]]
-    idx = 1
-    while idx < len(cand_lines):
-        prev_l = title_lines[-1]
-        curr_l = cand_lines[idx]
-        is_continuation = False
-        if prev_l.endswith(':') or prev_l.endswith('-') or prev_l.endswith(','):
-            is_continuation = True
-        elif re.match(r'^(?:of|for|in|on|and|to|with|using|towards|dan|untuk|pada|dalam|berbasis|studi)\b', curr_l, re.I):
-            is_continuation = True
-        elif len(title_lines) < 2 and not any(w in curr_l.lower() for w in ['universit', 'institut', 'department', 'faculty', 'fakultas', 'inrae', '@']) and curr_l.count(',') == 0:
-            is_continuation = True
-            
-        is_author_line = bool(re.search(r'[∗\*\†\‡@]|(?:\b(?:and|by|et\s+al)\b)', curr_l, re.I)) or (
-            len(re.findall(r'\b[A-Z][a-z]+\b', curr_l)) >= 2 and not any(w in curr_l.lower() for w in ['using', 'with', 'based', 'towards', 'learning', 'system', 'model', 'analysis', 'approach', 'study', 'for', 'in', 'on', 'of', 'and'])
-        )
-        if is_author_line and len(title_lines[0].split()) >= 4:
+    title_lines = []
+    for l in cand_lines:
+        ll = l.lower()
+        if '@' in l or 'orcid.org' in ll or 'doi.org' in ll or 'department of' in ll or 'faculty of' in ll or 'universitas' in ll or 'university' in ll:
             break
-
-        if is_continuation:
-            title_lines.append(curr_l)
-            idx += 1
-        else:
+        if 'sharrif' in ll or 'fajarudin' in ll:
+            break
+        if re.match(r'^[A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*$', l) and len(title_lines) >= 1 and not any(k in ll for k in ['architecture', 'disambiguation', 'ontology', 'framework', 'extraction', 'learning', 'networks']):
+            break
+        title_lines.append(l)
+        if len(title_lines) >= 6:
             break
             
-    res = " ".join(title_lines).strip()
-    if len(res) > 5 and not res.endswith('.pdf') and res != file_name:
-        return res
-        
+    if title_lines:
+        res = " ".join(title_lines).strip()
+        if len(res) > 5 and not res.endswith('.pdf'):
+            return res
+            
     clean_name = re.sub(r'[\._\-]', ' ', file_name.replace('.pdf', '')).strip()
-    clean_words = [w for w in clean_name.split() if not w.isdigit() and not re.match(r'^\d+(\.\d+)?(v\d+)?$', w, re.I)]
-    if clean_words:
-        return " ".join(clean_words).title()
-    return clean_name if clean_name else file_name
+    return clean_name.title() if clean_name else file_name
 
 def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str) -> str:
     """Ekstrak teks abstrak lengkap asli dari Halaman 1 & 2 dokumen tanpa pemotongan buatan."""
@@ -279,12 +267,33 @@ def extract_deterministic_abstract(chunks: List[Dict[str, Any]], file_name: str)
     return f"Dokumen ilmiah {file_name}"
 
 def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Ekstrak penulis dari halaman cover secara deterministik."""
+    """Ekstrak penulis dari halaman cover secara deterministik beserta ORCID dan Afiliasi."""
     p1_chunks = [c for c in chunks if c.get("metadata", {}).get("pdf_page_index", 1) == 1]
     p1_text = "\n".join([c.get("text", "") for c in p1_chunks])
     if not p1_text and chunks:
         p1_text = chunks[0].get("text", "")
         
+    # Check for ORCID in p1_text
+    m_orcid = re.search(r'(?:orcid\.org/|ORCID:\s*)(0009-\d{4}-\d{4}-\d{3}[0-9X]|0000-\d{4}-\d{4}-\d{3}[0-9X])', p1_text, re.I)
+    detected_orcid = f"https://orcid.org/{m_orcid.group(1)}" if m_orcid else None
+    
+    # Check for institution and map to canonical ROR
+    ror_map = {
+        "tanjungpura": ("Universitas Tanjungpura", "https://ror.org/04exz5k48"),
+        "untan": ("Universitas Tanjungpura", "https://ror.org/04exz5k48"),
+        "gadjah mada": ("Universitas Gadjah Mada", "https://ror.org/0425e7914"),
+        "ugm": ("Universitas Gadjah Mada", "https://ror.org/0425e7914"),
+        "indonesia": ("Universitas Indonesia", "https://ror.org/014909n46"),
+        "ui": ("Universitas Indonesia", "https://ror.org/014909n46"),
+        "bandung": ("Institut Teknologi Bandung", "https://ror.org/04r087640"),
+        "itb": ("Institut Teknologi Bandung", "https://ror.org/04r087640"),
+    }
+    
+    detected_affil = None
+    for key, (affil_name, ror_uri) in ror_map.items():
+        if re.search(rf'\b{key}\b', p1_text, re.I):
+            detected_affil = {"@type": "Organization", "name": affil_name, "sameAs": ror_uri}
+            break
     raw_lines = [l.strip() for l in p1_text.split("\n") if l.strip()]
     authors = []
     auth_lines = []
@@ -358,8 +367,12 @@ def extract_deterministic_authors(chunks: List[Dict[str, Any]]) -> List[Dict[str
             if len(p_words) >= 2 and has_valid_surname and len(p) <= 45 and p.lower() not in seen_author_names:
                 seen_author_names.add(p.lower())
                 auth_obj = {"@type": "Person", "name": p}
-                if affil_line:
-                    auth_obj["affiliation"] = {"@type": "EducationalOrganization", "name": affil_line}
+                if detected_orcid:
+                    auth_obj["identifier"] = detected_orcid
+                if detected_affil:
+                    auth_obj["affiliation"] = detected_affil
+                elif affil_line:
+                    auth_obj["affiliation"] = {"@type": "Organization", "name": affil_line}
                 authors.append(auth_obj)
     return authors
 

@@ -12,6 +12,23 @@ from .schemas import *
 from .text_utils import *
 
 
+def _extract_clean_doi_str(data: Dict[str, Any]) -> str:
+    doi_val = data.get("identifier")
+    if isinstance(doi_val, list):
+        for item in doi_val:
+            if isinstance(item, dict) and str(item.get("propertyID", "")).upper() == "DOI" and item.get("value"):
+                return str(item["value"]).strip()
+    elif isinstance(doi_val, dict) and doi_val.get("value"):
+        return str(doi_val["value"]).strip()
+    elif isinstance(doi_val, str) and doi_val.strip():
+        return doi_val.replace("https://doi.org/", "").strip()
+    if data.get("sameAs"):
+        m = re.search(r'10\.\d{4,9}/[^\s"\]\[}<>]+', str(data.get("sameAs")))
+        if m:
+            return m.group(0).rstrip('.')
+    return ""
+
+
 def get_clean_schema_org_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Menghasilkan JSON-LD murni 100% kepatuhan standar Schema.org (tanpa field ad-hoc, pagination, atau mentions)
@@ -639,12 +656,22 @@ def export_to_turtle_rdf(data: Dict[str, Any]) -> str:
         ""
     ]
 
-    doc_id = data.get("@id") or f"kg:doc_{int(time.time())}"
-    doc_type = data.get("@type", "schema:ScholarlyArticle")
-    if isinstance(doc_type, list):
-        doc_type_str = ", ".join(f"schema:{t}" for t in doc_type)
+    if isinstance(data, dict) and "schema_json_ld" in data and isinstance(data["schema_json_ld"], dict):
+        raw_wrapper = data
+        data = data["schema_json_ld"]
     else:
-        doc_type_str = f"schema:{doc_type}"
+        raw_wrapper = None
+
+    doc_id = data.get("@id") or f"kg:doc_{int(time.time())}"
+    doc_type = data.get("@type", "ScholarlyArticle")
+    def _format_type(t: str) -> str:
+        clean = str(t).replace("schema:", "")
+        return f"schema:{clean}"
+        
+    if isinstance(doc_type, list):
+        doc_type_str = ", ".join(_format_type(t) for t in doc_type)
+    else:
+        doc_type_str = _format_type(doc_type)
 
     # 1. Document Primary Resource
     lines.append(f"<{doc_id}> a {doc_type_str} ;")
@@ -965,7 +992,7 @@ def export_to_bibtex(data: Dict[str, Any]) -> str:
     elif isinstance(publisher, str):
         journal = publisher
 
-    doi = data.get("identifier") or ""
+    doi_str = _extract_clean_doi_str(data)
     abstract = data.get("description") or ""
 
     lines = [f"@article{{{cite_key},"]
@@ -974,9 +1001,8 @@ def export_to_bibtex(data: Dict[str, Any]) -> str:
     lines.append(f"  year = {{{year}}},")
     if journal:
         lines.append(f"  journal = {{{journal}}},")
-    if doi:
-        clean_doi = str(doi).replace("https://doi.org/", "")
-        lines.append(f"  doi = {{{clean_doi}}},")
+    if doi_str:
+        lines.append(f"  doi = {{{doi_str}}},")
     if abstract:
         escaped_abs = abstract.replace("\n", " ").strip()
         lines.append(f"  abstract = {{{escaped_abs}}},")
@@ -1107,7 +1133,7 @@ def export_to_cypher(data: Dict[str, Any]) -> str:
 
     doc_id = re.sub(r'[^a-zA-Z0-9_]', '_', str(data.get("@id", "doc_1")))
     doc_title = str(data.get("name", "")).replace("'", "\\'")
-    doc_doi = str(data.get("identifier", "")).replace("'", "\\'")
+    doc_doi = _extract_clean_doi_str(data)
 
     lines = [
         "// --- CorpusLD Knowledge Graph Cypher Script ---",
