@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
       baseUrl: '',
       parser: 'pypdf',
       llamaparseKey: '',
-      unstructuredKey: ''
+      unstructuredKey: '',
+      graphdbType: 'neo4j',
+      neo4jUri: 'bolt://localhost:7687',
+      neo4jUser: 'neo4j',
+      neo4jPass: '',
+      neo4jDb: 'neo4j',
+      sparqlUrl: 'http://localhost:3030/dataset/update'
     }
   };
 
@@ -66,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectExportFormat = document.getElementById('select-export-format');
   const btnDownloadExport = document.getElementById('btn-download-export');
   const btnDownloadJsonld = document.getElementById('btn-download-jsonld'); // backward compatibility
+  const btnSyncGraphdb = document.getElementById('btn-sync-graphdb');
   const btnCopyScholarTags = document.getElementById('btn-copy-scholar-tags');
   const btnCopyScholar = document.getElementById('btn-copy-scholar');
   const agentStepper = document.getElementById('agent-stepper');
@@ -105,6 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingUnstructuredKey = document.getElementById('setting-unstructured-key');
   const groupUnstructuredKey = document.getElementById('group-unstructured-key');
 
+  // Enterprise GraphDB Settings Elements
+  const settingGraphdbType = document.getElementById('setting-graphdb-type');
+  const groupNeo4jFields = document.getElementById('group-neo4j-fields');
+  const settingNeo4jUri = document.getElementById('setting-neo4j-uri');
+  const settingNeo4jUser = document.getElementById('setting-neo4j-user');
+  const settingNeo4jPass = document.getElementById('setting-neo4j-pass');
+  const settingNeo4jDb = document.getElementById('setting-neo4j-db');
+  const groupSparqlFields = document.getElementById('group-sparql-fields');
+  const settingSparqlUrl = document.getElementById('setting-sparql-url');
+  const btnTestGraphdb = document.getElementById('btn-test-graphdb');
+  const graphdbTestResult = document.getElementById('graphdb-test-result');
+
   // ---------------------------------------------------------
   // 1. INITIALIZATION & STATE RESTORATION
   // ---------------------------------------------------------
@@ -120,22 +139,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedPrefs = localStorage.getItem('corpusld_preferences');
     if (savedPrefs) {
       try {
-        const prefs = jsonParse(savedPrefs);
+        const prefs = JSON.parse(savedPrefs);
         appState.settings.provider = prefs.provider || 'ollama';
         appState.settings.ollamaModel = prefs.ollamaModel || 'qwen2.5:3b';
         appState.settings.cloudModel = prefs.cloudModel || 'gemini-3.5-flash-lite';
         appState.settings.baseUrl = prefs.baseUrl || '';
         appState.settings.parser = prefs.parser || 'pypdf';
+        appState.settings.graphdbType = prefs.graphdbType || 'neo4j';
+        appState.settings.neo4jUri = prefs.neo4jUri || 'bolt://localhost:7687';
+        appState.settings.neo4jUser = prefs.neo4jUser || 'neo4j';
+        appState.settings.neo4jDb = prefs.neo4jDb || 'neo4j';
+        appState.settings.sparqlUrl = prefs.sparqlUrl || 'http://localhost:3030/dataset/update';
       } catch (e) {}
     }
     // 2. Muat kredensial sensitif secara aman dari sessionStorage (memory runtime per-tab)
     const savedSession = sessionStorage.getItem('corpusld_session_keys');
     if (savedSession) {
       try {
-        const keys = jsonParse(savedSession);
+        const keys = JSON.parse(savedSession);
         appState.settings.apiKey = keys.apiKey || '';
         appState.settings.llamaparseKey = keys.llamaparseKey || '';
         appState.settings.unstructuredKey = keys.unstructuredKey || '';
+        appState.settings.neo4jPass = keys.neo4jPass || '';
       } catch (e) {}
     }
     // 3. Bersihkan legacy plaintext keys dari localStorage jika pernah tersimpan
@@ -156,13 +181,25 @@ document.addEventListener('DOMContentLoaded', () => {
     appState.settings.llamaparseKey = settingLlamaparseKey.value.trim();
     appState.settings.unstructuredKey = settingUnstructuredKey.value.trim();
 
+    if (settingGraphdbType) appState.settings.graphdbType = settingGraphdbType.value;
+    if (settingNeo4jUri) appState.settings.neo4jUri = settingNeo4jUri.value.trim();
+    if (settingNeo4jUser) appState.settings.neo4jUser = settingNeo4jUser.value.trim();
+    if (settingNeo4jPass) appState.settings.neo4jPass = settingNeo4jPass.value.trim();
+    if (settingNeo4jDb) appState.settings.neo4jDb = settingNeo4jDb.value.trim();
+    if (settingSparqlUrl) appState.settings.sparqlUrl = settingSparqlUrl.value.trim();
+
     // Preferensi umum disimpan ke localStorage
     const generalPrefs = {
       provider: appState.settings.provider,
       ollamaModel: appState.settings.ollamaModel,
       cloudModel: appState.settings.cloudModel,
       baseUrl: appState.settings.baseUrl,
-      parser: appState.settings.parser
+      parser: appState.settings.parser,
+      graphdbType: appState.settings.graphdbType,
+      neo4jUri: appState.settings.neo4jUri,
+      neo4jUser: appState.settings.neo4jUser,
+      neo4jDb: appState.settings.neo4jDb,
+      sparqlUrl: appState.settings.sparqlUrl
     };
     localStorage.setItem('corpusld_preferences', JSON.stringify(generalPrefs));
 
@@ -170,7 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sensitiveKeys = {
       apiKey: appState.settings.apiKey,
       llamaparseKey: appState.settings.llamaparseKey,
-      unstructuredKey: appState.settings.unstructuredKey
+      unstructuredKey: appState.settings.unstructuredKey,
+      neo4jPass: appState.settings.neo4jPass
     };
     sessionStorage.setItem('corpusld_session_keys', JSON.stringify(sensitiveKeys));
 
@@ -188,6 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
     settingLlamaparseKey.value = appState.settings.llamaparseKey || '';
     settingUnstructuredKey.value = appState.settings.unstructuredKey || '';
 
+    if (settingGraphdbType) settingGraphdbType.value = appState.settings.graphdbType || 'neo4j';
+    if (settingNeo4jUri) settingNeo4jUri.value = appState.settings.neo4jUri || 'bolt://localhost:7687';
+    if (settingNeo4jUser) settingNeo4jUser.value = appState.settings.neo4jUser || 'neo4j';
+    if (settingNeo4jPass) settingNeo4jPass.value = appState.settings.neo4jPass || '';
+    if (settingNeo4jDb) settingNeo4jDb.value = appState.settings.neo4jDb || 'neo4j';
+    if (settingSparqlUrl) settingSparqlUrl.value = appState.settings.sparqlUrl || 'http://localhost:3030/dataset/update';
+
     toggleSettingsVisibility();
   }
 
@@ -203,6 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     groupLlamaparseKey.classList.toggle('hidden', settingParser.value !== 'llamaparse');
     groupUnstructuredKey.classList.toggle('hidden', settingParser.value !== 'unstructured');
+
+    const isSparql = settingGraphdbType && settingGraphdbType.value === 'sparql';
+    if (groupNeo4jFields) groupNeo4jFields.classList.toggle('hidden', isSparql);
+    if (groupSparqlFields) groupSparqlFields.classList.toggle('hidden', !isSparql);
   }
 
   function updatePrivacyIndicator() {
@@ -829,6 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnDownloadJsonld) btnDownloadJsonld.disabled = true;
         if (selectExportFormat) selectExportFormat.disabled = true;
         if (btnDownloadExport) btnDownloadExport.disabled = true;
+        if (btnSyncGraphdb) btnSyncGraphdb.disabled = true;
       }
     } catch (e) {}
   }
@@ -841,6 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDownloadJsonld) btnDownloadJsonld.disabled = false;
     if (selectExportFormat) selectExportFormat.disabled = false;
     if (btnDownloadExport) btnDownloadExport.disabled = false;
+    if (btnSyncGraphdb) btnSyncGraphdb.disabled = false;
 
     const data = rawPayload.schema_json_ld || rawPayload;
     const telemetry = rawPayload.telemetry || {};
@@ -1475,6 +1526,85 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (btnDownloadJsonld) {
     btnDownloadJsonld.addEventListener('click', triggerDocumentExport);
+  }
+
+  if (settingGraphdbType) {
+    settingGraphdbType.addEventListener('change', toggleSettingsVisibility);
+  }
+
+  if (btnTestGraphdb) {
+    btnTestGraphdb.addEventListener('click', async () => {
+      btnTestGraphdb.disabled = true;
+      if (graphdbTestResult) graphdbTestResult.textContent = 'Testing connection... ⏳';
+      try {
+        const res = await fetch('/api/enterprise/graphdb/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target_type: settingGraphdbType ? settingGraphdbType.value : 'neo4j',
+            uri: settingNeo4jUri ? settingNeo4jUri.value.trim() : 'bolt://localhost:7687',
+            user: settingNeo4jUser ? settingNeo4jUser.value.trim() : 'neo4j',
+            password: settingNeo4jPass ? settingNeo4jPass.value.trim() : '',
+            endpoint_url: settingSparqlUrl ? settingSparqlUrl.value.trim() : ''
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (graphdbTestResult) {
+            graphdbTestResult.style.color = '#34d399';
+            graphdbTestResult.textContent = `✅ ${data.message}`;
+          }
+        } else {
+          if (graphdbTestResult) {
+            graphdbTestResult.style.color = '#f87171';
+            graphdbTestResult.textContent = `❌ ${data.message}`;
+          }
+        }
+      } catch (e) {
+        if (graphdbTestResult) {
+          graphdbTestResult.style.color = '#f87171';
+          graphdbTestResult.textContent = `❌ Error: ${e}`;
+        }
+      } finally {
+        btnTestGraphdb.disabled = false;
+      }
+    });
+  }
+
+  if (btnSyncGraphdb) {
+    btnSyncGraphdb.addEventListener('click', async () => {
+      if (!appState.selectedDoc) return;
+      btnSyncGraphdb.disabled = true;
+      const origText = btnSyncGraphdb.innerHTML;
+      btnSyncGraphdb.innerHTML = '<span class="spinner"></span> <span>Syncing...</span>';
+
+      try {
+        const res = await fetch('/api/enterprise/graphdb/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_name: appState.selectedDoc,
+            target_type: appState.settings.graphdbType || 'neo4j',
+            uri: appState.settings.neo4jUri || 'bolt://localhost:7687',
+            user: appState.settings.neo4jUser || 'neo4j',
+            password: appState.settings.neo4jPass || '',
+            database: appState.settings.neo4jDb || 'neo4j',
+            endpoint_url: appState.settings.sparqlUrl || ''
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`🎉 Live Sync Success!\n${data.message}`);
+        } else {
+          alert(`⚠️ Sync Notice:\n${data.message || JSON.stringify(data)}`);
+        }
+      } catch (e) {
+        alert(`❌ Sync failed: ${e}`);
+      } finally {
+        btnSyncGraphdb.disabled = false;
+        btnSyncGraphdb.innerHTML = origText;
+      }
+    });
   }
 
   // ---------------------------------------------------------

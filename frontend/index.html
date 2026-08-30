@@ -221,6 +221,10 @@
                     <span>Download</span>
                   </button>
                 </div>
+                <button id="btn-sync-graphdb" class="btn btn-secondary" disabled title="Stream extracted Knowledge Graph directly into live Neo4j or SPARQL GraphDB">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  <span>Sync to GraphDB</span>
+                </button>
                 <button id="btn-copy-scholar-tags" class="btn btn-secondary" disabled title="Copy Google Scholar & Highwire Press HTML Meta Tags">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                   <span>Copy Scholar Tags</span>
@@ -493,6 +497,50 @@
           <div id="group-unstructured-key" class="form-group hidden">
             <label for="setting-unstructured-key">Unstructured API Key:</label>
             <input type="password" id="setting-unstructured-key" class="form-control" placeholder="API Key...">
+          </div>
+        </div>
+
+        <!-- SECTION 3: ENTERPRISE GRAPHDB & REPOSITORY SYNC -->
+        <div class="settings-section">
+          <h4>Enterprise Graph Database &amp; Repository Sync</h4>
+          
+          <div class="form-group">
+            <label for="setting-graphdb-type">Graph Database Target:</label>
+            <select id="setting-graphdb-type" class="form-control">
+              <option value="neo4j">Neo4j (Bolt Protocol / REST API)</option>
+              <option value="sparql">SPARQL 1.1 Store (Apache Jena / Virtuoso / GraphDB / Neptune)</option>
+            </select>
+          </div>
+
+          <div id="group-neo4j-fields">
+            <div class="form-group">
+              <label for="setting-neo4j-uri">Neo4j Bolt URI:</label>
+              <input type="text" id="setting-neo4j-uri" class="form-control" placeholder="bolt://localhost:7687 or neo4j+s://xxx.databases.neo4j.io">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label for="setting-neo4j-user">Username:</label>
+                <input type="text" id="setting-neo4j-user" class="form-control" placeholder="neo4j">
+              </div>
+              <div class="form-group">
+                <label for="setting-neo4j-pass">Password:</label>
+                <input type="password" id="setting-neo4j-pass" class="form-control" placeholder="password">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="setting-neo4j-db">Database Name:</label>
+              <input type="text" id="setting-neo4j-db" class="form-control" placeholder="neo4j">
+            </div>
+          </div>
+
+          <div id="group-sparql-fields" class="form-group hidden">
+            <label for="setting-sparql-url">SPARQL 1.1 Update Endpoint URL:</label>
+            <input type="text" id="setting-sparql-url" class="form-control" placeholder="http://localhost:3030/dataset/update">
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
+            <button type="button" id="btn-test-graphdb" class="btn btn-secondary btn-compact">Test Connection</button>
+            <span id="graphdb-test-result" style="font-size: 11px; color: var(--text-muted);"></span>
           </div>
         </div>
 
