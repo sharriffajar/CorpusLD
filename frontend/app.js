@@ -246,7 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
     groupApiKey.classList.toggle('hidden', !isCloudLLM);
     if (groupBaseUrl) groupBaseUrl.classList.toggle('hidden', !isCustom);
 
-    groupLlamaparseKey.classList.toggle('hidden', settingParser.value !== 'llamaparse');
+    const needsLlamaKey = settingParser.value === 'llamaparse' || settingParser.value === 'hybrid';
+    groupLlamaparseKey.classList.toggle('hidden', !needsLlamaKey);
     groupUnstructuredKey.classList.toggle('hidden', settingParser.value !== 'unstructured');
 
     const isSparql = settingGraphdbType && settingGraphdbType.value === 'sparql';
@@ -259,6 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isOffline) {
       privacyBadge.className = 'privacy-pill privacy-local';
       privacyBadgeText.textContent = '🔒 100% Local Offline Mode';
+    } else if (appState.settings.parser === 'hybrid') {
+      privacyBadge.className = 'privacy-pill privacy-cloud';
+      privacyBadgeText.textContent = `⚡ Hybrid Mode (${appState.settings.provider.toUpperCase()} + LlamaParse)`;
     } else {
       privacyBadge.className = 'privacy-pill privacy-cloud';
       privacyBadgeText.textContent = `☁️ BYOK Mode (${appState.settings.provider.toUpperCase()})`;
