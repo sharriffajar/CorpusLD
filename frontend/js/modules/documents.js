@@ -14,12 +14,17 @@ export async function fetchDocumentsList() {
     populateJsonldDropdown();
     populateChatScopeDropdown();
 
-    if (appState.documents.length > 0 && !appState.selectedDoc) {
-      selectActiveDocument(appState.documents[0].name);
-    } else if (appState.documents.length === 0) {
+    if (appState.documents.length > 0) {
+      const activeDoc = appState.selectedDoc && appState.documents.some(d => d.name === appState.selectedDoc)
+        ? appState.selectedDoc
+        : appState.documents[0].name;
+      selectActiveDocument(activeDoc);
+    } else {
       appState.selectedDoc = '';
       const heroTitle = document.getElementById('doc-hero-title');
       const jsonldResultsContainer = document.getElementById('jsonld-results-container');
+      const btnRunExtraction = document.getElementById('btn-run-extraction');
+      if (btnRunExtraction) btnRunExtraction.disabled = true;
       if (heroTitle) heroTitle.textContent = 'No document selected';
       if (jsonldResultsContainer) jsonldResultsContainer.classList.add('hidden');
     }
@@ -32,14 +37,20 @@ export function selectActiveDocument(name) {
   appState.selectedDoc = name;
   const selectJsonldDoc = document.getElementById('select-jsonld-doc');
   const selectChatScope = document.getElementById('select-chat-scope');
+  const btnRunExtraction = document.getElementById('btn-run-extraction');
 
   if (selectJsonldDoc) selectJsonldDoc.value = name;
   if (selectChatScope && !selectChatScope.value) {
     selectChatScope.value = name;
   }
+  if (btnRunExtraction) {
+    btnRunExtraction.disabled = !name;
+  }
   updateChatScopeUI();
   renderSourcesList();
-  checkExistingJsonLd(name);
+  if (name) {
+    checkExistingJsonLd(name);
+  }
 }
 
 export function updateChatScopeUI() {
@@ -234,7 +245,7 @@ export function initDocumentsModule() {
 
   if (selectJsonldDoc) {
     selectJsonldDoc.addEventListener('change', (e) => {
-      if (e.target.value) selectActiveDocument(e.target.value);
+      selectActiveDocument(e.target.value);
     });
   }
 
