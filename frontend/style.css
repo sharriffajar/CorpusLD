@@ -150,10 +150,20 @@ html, body {
 }
 
 .brand-mark {
-  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  transition: border-color var(--duration-fast);
+}
+
+.brand-mark:hover {
+  border-color: var(--accent-primary);
 }
 
 .brand-title {
