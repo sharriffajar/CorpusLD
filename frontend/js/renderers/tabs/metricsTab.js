@@ -6,11 +6,11 @@ export function renderMetricsTab(data) {
 
   const rawProps = (data.additionalProperty && data.additionalProperty.length) ? data.additionalProperty : (data.properties_and_metrics || []);
   if (!rawProps.length) {
-    el.innerHTML = '<p style="color: var(--text-muted);">No quantitative metrics detected.</p>';
+    el.innerHTML = '<p style="color: var(--text-muted);">No quantitative metrics detected in this document.</p>';
     return;
   }
 
-  let html = '<table class="data-table"><thead><tr><th>Parameter (PropertyValue)</th><th>Value</th><th>Unit</th><th>Page Reference</th><th>Condition / Context</th></tr></thead><tbody>';
+  let html = '<div class="table-scroll-container"><table class="data-table"><thead><tr><th>Parameter (PropertyValue)</th><th>Value</th><th>Unit</th><th>Page Reference</th><th>Condition / Context</th></tr></thead><tbody>';
   rawProps.forEach(m => {
     const mName = escapeHtml(m.name || '-');
     const mVal = escapeHtml(m.value !== undefined ? m.value : '-');
@@ -19,6 +19,6 @@ export function renderMetricsTab(data) {
     const descText = escapeHtml(m.description || m.condition_or_context || m.context_or_condition || '-');
     html += `<tr><td><strong>${mName}</strong></td><td><code>${mVal}</code></td><td>${uText}</td><td>${refPage}</td><td>${descText}</td></tr>`;
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   el.innerHTML = html;
 }

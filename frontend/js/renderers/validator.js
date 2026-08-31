@@ -1,16 +1,23 @@
 import { escapeHtml } from '../utils/dom.js';
 
+const STATUS_ICONS = {
+  pass: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+  warn: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+  fail: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+  shield: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`
+};
+
 export function renderValidatorReport(data, rawPayload, flags = {}) {
   const { hasDate, hasAuthor, hasDoi } = flags;
 
-  // 1. High-Contrast Mandatory Metadata Completeness Alert Banner
+  // 1. Mandatory Metadata Completeness Alert Banner
   const completenessAlert = document.getElementById('metadata-completeness-alert');
   if (completenessAlert) {
     const missingList = [];
     if (!hasDate) {
       missingList.push({
         name: 'Publication Date (datePublished)',
-        reason: 'Date was not found in document text. Google Scholar & Schema.org require datePublished for citation metrics.'
+        reason: 'Date was not found in document text. Google Scholar and Schema.org require datePublished for citation metrics.'
       });
     }
     if (!hasAuthor) {
@@ -30,7 +37,7 @@ export function renderValidatorReport(data, rawPayload, flags = {}) {
       completenessAlert.className = 'metadata-missing-alert';
       let alertHtml = `
         <div class="alert-header">
-          <span>⚠️</span>
+          ${STATUS_ICONS.warn}
           <strong>Mandatory Academic Metadata Notice</strong>
         </div>
         <div class="alert-body">
@@ -38,7 +45,7 @@ export function renderValidatorReport(data, rawPayload, flags = {}) {
           <div class="missing-tags-wrap">
       `;
       missingList.forEach(item => {
-        alertHtml += `<span class="missing-tag-pill">⚠️ <strong>${escapeHtml(item.name)}</strong>: ${escapeHtml(item.reason)}</span>`;
+        alertHtml += `<span class="missing-tag-pill"><strong>${escapeHtml(item.name)}</strong>: ${escapeHtml(item.reason)}</span>`;
       });
       alertHtml += `
           </div>
@@ -82,13 +89,13 @@ export function renderValidatorReport(data, rawPayload, flags = {}) {
   if (badgeEl) {
     if (combinedScore >= 85 && resolution === 'accepted') {
       badgeEl.className = 'badge-tag badge-ready';
-      badgeEl.textContent = '🌟 GOOGLE RICH RESULT & KG VERIFIED (SOUND)';
+      badgeEl.textContent = 'GOOGLE RICH RESULT & KG VERIFIED (SOUND)';
     } else if (combinedScore >= 60) {
       badgeEl.className = 'badge-tag badge-good';
-      badgeEl.textContent = '🟢 VERIFIED WITH NOTICES';
+      badgeEl.textContent = 'VERIFIED WITH NOTICES';
     } else {
       badgeEl.className = 'badge-tag badge-review';
-      badgeEl.textContent = '⚠️ NEEDS ADVERSARIAL RESOLUTION';
+      badgeEl.textContent = 'NEEDS ADVERSARIAL RESOLUTION';
     }
   }
 
@@ -97,13 +104,13 @@ export function renderValidatorReport(data, rawPayload, flags = {}) {
     checksGrid.innerHTML = '';
     const allChecks = [
       ...schemaChecks.map(c => ({
-        icon: c.status === 'PASS' ? '✅' : (c.status === 'WARN' ? '⚠️' : '❌'),
+        icon: c.status === 'PASS' ? STATUS_ICONS.pass : (c.status === 'WARN' ? STATUS_ICONS.warn : STATUS_ICONS.fail),
         category: 'Schema.org',
         title: c.title,
         desc: c.desc
       })),
       ...kgChecks.map(k => ({
-        icon: k.status === 'PASS' ? '🛡️' : (k.status === 'WARN' ? '⚠️' : '🚨'),
+        icon: k.status === 'PASS' ? STATUS_ICONS.shield : (k.status === 'WARN' ? STATUS_ICONS.warn : STATUS_ICONS.fail),
         category: 'KG Adversarial',
         title: k.title,
         desc: k.details
@@ -116,8 +123,7 @@ export function renderValidatorReport(data, rawPayload, flags = {}) {
       const catEsc = escapeHtml(c.category ? c.category.toUpperCase() : '');
       const titleEsc = escapeHtml(c.title || '');
       const descEsc = escapeHtml(c.desc || '');
-      const iconEsc = escapeHtml(c.icon || '📌');
-      item.innerHTML = `<span class="check-icon">${iconEsc}</span> <div class="check-body"><span class="check-cat">[${catEsc}]</span> <strong class="check-title">${titleEsc}</strong>: <span class="check-desc">${descEsc}</span></div>`;
+      item.innerHTML = `<span class="check-icon">${c.icon}</span> <div class="check-body"><span class="check-cat">[${catEsc}]</span> <strong class="check-title">${titleEsc}</strong>: <span class="check-desc">${descEsc}</span></div>`;
       checksGrid.appendChild(item);
     });
   }

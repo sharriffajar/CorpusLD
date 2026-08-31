@@ -13,17 +13,17 @@ export function renderAuthorTab(data, flags = {}) {
     <div class="metadata-fields-grid">
       <div class="metadata-field-card field-valid">
         <div class="field-label">
-          <span>📄 Document Title (<code>name</code>)</span>
-          <span class="badge-status-valid">✅ Defined</span>
+          <span>Document Title (<code>name</code>)</span>
+          <span class="badge-status-valid">Defined</span>
         </div>
         <div class="field-value"><strong>${escapeHtml(data.name || '-')}</strong></div>
       </div>
 
       <div class="metadata-field-card ${hasDate ? 'field-valid' : 'field-missing'}">
         <div class="field-label">
-          <span>📅 Publication Date (<code>datePublished</code>)</span>
+          <span>Publication Date (<code>datePublished</code>)</span>
           <span class="${hasDate ? 'badge-status-valid' : 'badge-status-missing'}">
-            ${hasDate ? '✅ Verified' : '⚠️ Missing in PDF'}
+            ${hasDate ? 'Verified' : 'Missing in PDF'}
           </span>
         </div>
         <div class="field-value ${hasDate ? '' : 'text-missing'}">
@@ -33,9 +33,9 @@ export function renderAuthorTab(data, flags = {}) {
 
       <div class="metadata-field-card ${hasDoi ? 'field-valid' : 'field-warning'}">
         <div class="field-label">
-          <span>🔗 DOI Identifier (<code>identifier</code>)</span>
+          <span>DOI Identifier (<code>identifier</code>)</span>
           <span class="${hasDoi ? 'badge-status-valid' : 'badge-status-warning'}">
-            ${hasDoi ? '✅ Indexed' : '⚠️ No DOI Found'}
+            ${hasDoi ? 'Indexed' : 'No DOI Found'}
           </span>
         </div>
         <div class="field-value">
@@ -45,8 +45,8 @@ export function renderAuthorTab(data, flags = {}) {
 
       <div class="metadata-field-card field-valid">
         <div class="field-label">
-          <span>🌐 Language &amp; Type</span>
-          <span class="badge-status-valid">✅ ${escapeHtml(data.inLanguage || 'en')}</span>
+          <span>Language &amp; Type</span>
+          <span class="badge-status-valid">${escapeHtml(data.inLanguage || 'en')}</span>
         </div>
         <div class="field-value">
           <code>${escapeHtml(Array.isArray(data['@type']) ? data['@type'].join(', ') : (data['@type'] || 'ScholarlyArticle'))}</code>
@@ -68,7 +68,7 @@ export function renderAuthorTab(data, flags = {}) {
       if (typeof a.affiliation === 'object' && a.affiliation) {
         affName = escapeHtml(a.affiliation.name || '-');
         if (a.affiliation.sameAs) {
-          affRor = ` <a href="${escapeHtml(a.affiliation.sameAs)}" target="_blank" style="color: var(--accent-emerald); font-size: 10px;">[ROR]</a>`;
+          affRor = ` <a href="${escapeHtml(a.affiliation.sameAs)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-emerald); font-size: 10px;">[ROR]</a>`;
         }
       } else if (typeof a.affiliation === 'string') {
         affName = escapeHtml(a.affiliation);
@@ -77,7 +77,7 @@ export function renderAuthorTab(data, flags = {}) {
     });
     html += '</tbody></table>';
   } else {
-    html += '<p style="color: #f87171; font-weight: 600;">⚠️ No author information detected from document cover.</p>';
+    html += '<p style="color: #f87171; font-weight: 600;">No author information detected from document cover.</p>';
   }
 
   el.innerHTML = html;

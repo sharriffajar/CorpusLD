@@ -21,9 +21,9 @@
 
   /* Text Contrast Tokens (WCAG AA 4.5:1 to 14:1 verified against dark base) */
   --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
+  --text-secondary: #e2e8f0;
   --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-dim: #8da2be;
   --text-on-accent: #ffffff;
 
   /* Accent & Intent Palette */
@@ -837,7 +837,11 @@ html, body {
 }
 .select-chat-scope:focus {
   border-color: var(--accent-primary);
-  outline: none;
+}
+.select-chat-scope:focus-visible {
+  border-color: var(--accent-primary);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
 }
 .chat-scope-pill {
   display: inline-flex;
@@ -945,6 +949,67 @@ html, body {
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.45;
+}
+
+/* Chat Starter Prompt Suggestions */
+.chat-starters-wrap {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.chat-starters-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-starters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.prompt-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+  min-height: 44px;
+}
+
+.prompt-chip:hover {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.prompt-chip:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+.prompt-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  flex-shrink: 0;
 }
 
 /* Chat Messages */
@@ -1354,12 +1419,18 @@ html, body {
   color: var(--text-secondary);
   background-color: var(--bg-surface-raised);
   border: 1px solid var(--border-subtle);
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-xs);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   transition: background-color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.hero-meta-pill svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 /* High-Contrast Pill Status Variants */

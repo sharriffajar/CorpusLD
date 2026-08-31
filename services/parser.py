@@ -466,7 +466,7 @@ def _detect_problem_table_pages(chunks: List[Dict[str, Any]]) -> Dict[int, set]:
     return problems
 
 
-LLAMA_TARGET_PAGES_OFFSET = -1
+LLAMA_TARGET_PAGES_OFFSET = 0
 
 
 def parse_hybrid_pypdf_llamaparse(file_path: str, file_name: str, api_key: str) -> List[Dict[str, Any]]:
@@ -501,19 +501,35 @@ def parse_hybrid_pypdf_llamaparse(file_path: str, file_name: str, api_key: str) 
     docs = parser.load_data(file_path)
 
     def doc_table_nums(txt: str) -> set:
-        return set(int(x) for x in re.findall(r'(?:^|\n)\s*(?:#+\s*)?(?:Tabel|Table)\s+(\d+)\s*[\.\:\-\—]', txt or "", re.IGNORECASE))
+        return set(int(x) for x in re.findall(r'(?:^|\n|\b)(?:#+\s*|\*{1,2}\s*)?(?:Tabel|Table)\s+(\d+)(?:\.\d+)?\s*[\.\:\-\—\*\s]', txt or "", re.IGNORECASE))
 
     consumed_pages = set()
     unmatched_docs = 0
-    for d in docs:
+    for idx, d in enumerate(docs):
         txt = (d.text or "").strip()
         if not txt:
             continue
         nums = doc_table_nums(txt)
-        target_pg = next((pg for pg, ks in sorted(problems.items()) if ks & nums), None)
+        # 1. Match by extracted table numbers against detected problem table numbers
+        target_pg = next((pg for pg, ks in sorted(problems.items()) if (ks & nums) and pg not in consumed_pages), None)
+        
+        # 2. Fallback matching if table number regex wasn't found in markdown text
+        if target_pg is None:
+            meta_pg = None
+            if hasattr(d, "metadata") and isinstance(d.metadata, dict):
+                meta_pg = d.metadata.get("page_number") or d.metadata.get("page")
+            if meta_pg and int(meta_pg) in problems and int(meta_pg) not in consumed_pages:
+                target_pg = int(meta_pg)
+            elif idx < len(targets) and targets[idx] not in consumed_pages:
+                # 1:1 positional fallback (LlamaParse returns docs in order of target_pages requested)
+                target_pg = targets[idx]
+            elif len(problems) == 1:
+                target_pg = targets[0]
+
         if target_pg is None:
             unmatched_docs += 1
             continue
+
         meta = {
             "source": file_name,
             "chunk_type": "table",
@@ -525,6 +541,7 @@ def parse_hybrid_pypdf_llamaparse(file_path: str, file_name: str, api_key: str) 
         }
         chunks.append({"text": txt, "metadata": meta})
         consumed_pages.add(target_pg)
+
     if unmatched_docs:
         print(f"🔗 [Hybrid] {unmatched_docs} doc LP dilewati (nomor tabel tidak dikenali di halaman problem mana pun).")
 

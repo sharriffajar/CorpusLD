@@ -168,18 +168,18 @@ export function initSettingsModule() {
         if (data.status === 'ok') {
           if (llmTestResult) {
             llmTestResult.style.color = '#34d399';
-            llmTestResult.textContent = `✅ ${data.message}`;
+            llmTestResult.textContent = data.message;
           }
         } else {
           if (llmTestResult) {
             llmTestResult.style.color = '#f87171';
-            llmTestResult.textContent = `❌ ${data.message || 'Connection failed'}`;
+            llmTestResult.textContent = data.message || 'Connection failed';
           }
         }
       } catch (e) {
         if (llmTestResult) {
           llmTestResult.style.color = '#f87171';
-          llmTestResult.textContent = `❌ Error: ${e}`;
+          llmTestResult.textContent = `Error: ${e}`;
         }
       } finally {
         btnTestLlm.disabled = false;
@@ -195,7 +195,7 @@ export function initSettingsModule() {
       btnTestParser.disabled = true;
       if (parserTestResult) {
         parserTestResult.style.color = 'var(--text-muted)';
-        parserTestResult.textContent = 'Testing parser service... ⏳';
+        parserTestResult.textContent = 'Testing parser service...';
       }
       try {
         const parser = settingParser ? settingParser.value : 'pypdf';
@@ -213,23 +213,23 @@ export function initSettingsModule() {
         if (data.status === 'ok') {
           if (parserTestResult) {
             parserTestResult.style.color = '#34d399';
-            parserTestResult.textContent = `✅ ${data.message}`;
+            parserTestResult.textContent = data.message;
           }
         } else if (data.status === 'warning') {
           if (parserTestResult) {
             parserTestResult.style.color = '#fbbf24';
-            parserTestResult.textContent = `⚠️ ${data.message}`;
+            parserTestResult.textContent = data.message;
           }
         } else {
           if (parserTestResult) {
             parserTestResult.style.color = '#f87171';
-            parserTestResult.textContent = `❌ ${data.message || 'Parser test failed'}`;
+            parserTestResult.textContent = data.message || 'Parser test failed';
           }
         }
       } catch (e) {
         if (parserTestResult) {
           parserTestResult.style.color = '#f87171';
-          parserTestResult.textContent = `❌ Error: ${e}`;
+          parserTestResult.textContent = `Error: ${e}`;
         }
       } finally {
         btnTestParser.disabled = false;
@@ -243,7 +243,10 @@ export function initSettingsModule() {
   if (btnTestGraphdb) {
     btnTestGraphdb.addEventListener('click', async () => {
       btnTestGraphdb.disabled = true;
-      if (graphdbTestResult) graphdbTestResult.textContent = 'Testing connection... ⏳';
+      if (graphdbTestResult) {
+        graphdbTestResult.style.color = 'var(--text-muted)';
+        graphdbTestResult.textContent = 'Testing connection...';
+      }
       try {
         const settingNeo4jUri = document.getElementById('setting-neo4j-uri');
         const settingNeo4jUser = document.getElementById('setting-neo4j-user');
@@ -261,18 +264,18 @@ export function initSettingsModule() {
         if (data.success) {
           if (graphdbTestResult) {
             graphdbTestResult.style.color = '#34d399';
-            graphdbTestResult.textContent = `✅ ${data.message}`;
+            graphdbTestResult.textContent = data.message;
           }
         } else {
           if (graphdbTestResult) {
             graphdbTestResult.style.color = '#f87171';
-            graphdbTestResult.textContent = `❌ ${data.message}`;
+            graphdbTestResult.textContent = data.message;
           }
         }
       } catch (e) {
         if (graphdbTestResult) {
           graphdbTestResult.style.color = '#f87171';
-          graphdbTestResult.textContent = `❌ Error: ${e}`;
+          graphdbTestResult.textContent = `Error: ${e}`;
         }
       } finally {
         btnTestGraphdb.disabled = false;

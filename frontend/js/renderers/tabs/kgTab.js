@@ -26,7 +26,7 @@ export function renderKgTab(data) {
   // 1. Triples Table
   if (edges.length) {
     html += '<h4 style="margin-bottom: 8px;">Semantic Triples (Subject &rarr; Predicate &rarr; Object)</h4>';
-    html += '<table class="data-table"><thead><tr><th>Subject (Source)</th><th>Predicate (Relation)</th><th>Object (Target)</th><th>Evidence / Source</th></tr></thead><tbody>';
+    html += '<div class="table-scroll-container"><table class="data-table"><thead><tr><th>Subject (Source)</th><th>Predicate (Relation)</th><th>Object (Target)</th><th>Evidence / Source</th></tr></thead><tbody>';
     edges.forEach(e => {
       const src = escapeHtml(e.source || e['kg:source'] || '-');
       const rel = escapeHtml(e.type || e.relation || e['kg:type'] || 'relates_to');
@@ -36,13 +36,13 @@ export function renderKgTab(data) {
       const pageLabel = pg ? ` <span style="font-size: 10px; color: var(--text-muted);">(p. ${pg})</span>` : '';
       html += `<tr><td><code>${src}</code></td><td><span class="badge-tag badge-ready" style="font-size: 11px; padding: 2px 8px;">${rel}</span></td><td><code>${tgt}</code></td><td style="font-size: 11px;">${ev}${pageLabel}</td></tr>`;
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
   }
 
   // 2. Nodes Table
   if (nodes.length) {
-    html += '<h4 style="margin-top: 20px; margin-bottom: 8px;">Extracted Knowledge Graph Entities & Authorities</h4>';
-    html += '<table class="data-table"><thead><tr><th>Node ID</th><th>Type</th><th>Label</th><th>Authority (sameAs)</th><th>Description</th></tr></thead><tbody>';
+    html += '<h4 style="margin-top: 20px; margin-bottom: 8px;">Extracted Knowledge Graph Entities &amp; Authorities</h4>';
+    html += '<div class="table-scroll-container"><table class="data-table"><thead><tr><th>Node ID</th><th>Type</th><th>Label</th><th>Authority (sameAs)</th><th>Description</th></tr></thead><tbody>';
     nodes.forEach(n => {
       const nid = escapeHtml(n.id || n['@id'] || '-');
       const ntype = escapeHtml(n.type || n['@type'] || 'kg:Concept');
@@ -53,14 +53,14 @@ export function renderKgTab(data) {
         const sameAsList = Array.isArray(sameAs) ? sameAs : [sameAs];
         authHtml = sameAsList.map(url => {
           const safeUrl = escapeHtml(url);
-          const label = safeUrl.includes('wikidata') ? '🌐 Wikidata' : (safeUrl.includes('ror.org') ? '🏛️ ROR' : (safeUrl.includes('mesh') ? '🧬 MeSH' : '🔗 Authority'));
+          const label = safeUrl.includes('wikidata') ? '[Wikidata]' : (safeUrl.includes('ror.org') ? '[ROR]' : (safeUrl.includes('mesh') ? '[MeSH]' : '[Authority]'));
           return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; margin-right: 6px;">${label}</a>`;
         }).join(' ');
       }
       const desc = escapeHtml(n.description || '-');
       html += `<tr><td><code>${nid}</code></td><td><span class="hero-meta-pill" style="font-size: 10px; padding: 2px 6px;">${ntype}</span></td><td><strong>${nlabel}</strong></td><td>${authHtml}</td><td style="font-size: 11px;">${desc}</td></tr>`;
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
   }
 
   el.innerHTML = html;

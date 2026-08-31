@@ -115,7 +115,7 @@
             <span id="sync-state-badge" class="sync-badge badge-warning">Needs Sync</span>
           </div>
           <button id="btn-sync-kb" class="btn btn-sync btn-sync-needed btn-block" disabled>
-            <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <svg class="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
             <span id="btn-sync-label">Sync Knowledge Base</span>
           </button>
           <div id="sync-spinner" class="sync-status hidden">
@@ -149,10 +149,10 @@
             <!-- CHAT SCOPE SELECTOR BAR -->
             <div class="chat-scope-bar">
               <div class="scope-select-wrap">
-                <span class="scope-icon">🎯</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="scope-icon"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
                 <span class="scope-title">Target Document:</span>
                 <select id="select-chat-scope" class="select-chat-scope">
-                  <option value="">🌐 All Indexed Documents (Corpus)</option>
+                  <option value="">All Indexed Documents (Corpus)</option>
                 </select>
               </div>
               <div id="chat-scope-pill" class="chat-scope-pill">
@@ -190,6 +190,28 @@
                       <h4>Extract Schema.org</h4>
                       <p>Open JSON-LD Explorer to extract verified entities, universal tables, and validated citations.</p>
                     </div>
+                  </div>
+                </div>
+
+                <!-- Chat Starter Prompts -->
+                <div class="chat-starters-wrap">
+                  <div class="chat-starters-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Suggested Inquiries
+                  </div>
+                  <div class="chat-starters-grid">
+                    <button type="button" class="prompt-chip" data-prompt="What is the core methodology and primary hypothesis of this document?">
+                      <span class="prompt-chip-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
+                      Core Methodology &amp; Hypothesis
+                    </button>
+                    <button type="button" class="prompt-chip" data-prompt="List all quantitative metrics, evaluation benchmarks, and numerical results.">
+                      <span class="prompt-chip-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></span>
+                      Quantitative Benchmarks &amp; Results
+                    </button>
+                    <button type="button" class="prompt-chip" data-prompt="Extract the key author affiliations, research institutes, and DOI references.">
+                      <span class="prompt-chip-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                      Authors, Affiliations &amp; DOI
+                    </button>
                   </div>
                 </div>
               </div>
@@ -230,13 +252,13 @@
                 </button>
                 <div class="export-dropdown-wrapper">
                   <select id="select-export-format" class="select-dropdown export-select" disabled title="Select export serialization format">
-                    <option value="jsonld">📥 Universal JSON-LD (.jsonld)</option>
-                    <option value="ttl">🐢 W3C Turtle RDF (.ttl)</option>
-                    <option value="bibtex">📚 BibTeX Citation (.bib)</option>
-                    <option value="ris">📑 RIS Reference (.ris)</option>
-                    <option value="csl">🧩 CSL-JSON (.csl.json)</option>
-                    <option value="cypher">🕸️ Neo4j Cypher Script (.cql)</option>
-                    <option value="graph">🧠 Deep KG Graph (.graph.jsonld)</option>
+                    <option value="jsonld">Universal JSON-LD (.jsonld)</option>
+                    <option value="ttl">W3C Turtle RDF (.ttl)</option>
+                    <option value="bibtex">BibTeX Citation (.bib)</option>
+                    <option value="ris">RIS Reference (.ris)</option>
+                    <option value="csl">CSL-JSON (.csl.json)</option>
+                    <option value="cypher">Neo4j Cypher Script (.cql)</option>
+                    <option value="graph">Deep KG Graph (.graph.jsonld)</option>
                   </select>
                   <button id="btn-download-export" class="btn btn-secondary" disabled title="Download formatted export file">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -324,12 +346,12 @@
               <!-- DOCUMENT HERO OVERVIEW CARD -->
               <div class="doc-hero-card">
                 <div class="doc-hero-meta-row">
-                  <span id="hero-badge-type" class="hero-meta-pill">🏷️ ScholarlyArticle</span>
-                  <span id="hero-badge-lang" class="hero-meta-pill">🌐 en</span>
-                  <span id="hero-badge-date" class="hero-meta-pill">📅 2024</span>
-                  <span id="hero-badge-doi" class="hero-meta-pill">🔗 DOI</span>
-                  <span id="hero-badge-authors" class="hero-meta-pill">👥 4 Authors</span>
-                  <span id="hero-badge-citations" class="hero-meta-pill">📚 15 Citations</span>
+                  <span id="hero-badge-type" class="hero-meta-pill">ScholarlyArticle</span>
+                  <span id="hero-badge-lang" class="hero-meta-pill">en</span>
+                  <span id="hero-badge-date" class="hero-meta-pill">2024</span>
+                  <span id="hero-badge-doi" class="hero-meta-pill">DOI</span>
+                  <span id="hero-badge-authors" class="hero-meta-pill">Authors</span>
+                  <span id="hero-badge-citations" class="hero-meta-pill">Citations</span>
                 </div>
                 <div id="metadata-completeness-alert" class="hidden"></div>
                 <h2 id="doc-hero-title" class="doc-hero-title">Document Title</h2>
@@ -355,14 +377,14 @@
               <!-- 13 SUB-TABS NAVIGATION -->
               <div class="subtabs-nav" role="tablist">
                 <button class="subtab-btn active" data-subtab="sub-author">Author &amp; Metadata</button>
-                <button class="subtab-btn" data-subtab="sub-kg">🧠 Knowledge Graph</button>
+                <button class="subtab-btn" data-subtab="sub-kg">Knowledge Graph</button>
                 <button class="subtab-btn" data-subtab="sub-entities">Entities</button>
                 <button class="subtab-btn" data-subtab="sub-metrics">Quantitative Metrics</button>
                 <button class="subtab-btn" data-subtab="sub-sections">Sections</button>
                 <button class="subtab-btn" data-subtab="sub-tables">Tables</button>
-                <button class="subtab-btn" data-subtab="sub-procedures">⚙️ Procedures</button>
-                <button class="subtab-btn" data-subtab="sub-formulas">📐 Math Formulas</button>
-                <button class="subtab-btn" data-subtab="sub-terms">🏷️ Terms &amp; Codes</button>
+                <button class="subtab-btn" data-subtab="sub-procedures">Procedures</button>
+                <button class="subtab-btn" data-subtab="sub-formulas">Math Formulas</button>
+                <button class="subtab-btn" data-subtab="sub-terms">Terms &amp; Codes</button>
                 <button class="subtab-btn" data-subtab="sub-refs">References</button>
                 <button class="subtab-btn" data-subtab="sub-scholar">Scholar Meta Tags</button>
                 <button class="subtab-btn" data-subtab="sub-htmlhead">HTML Head Bundle</button>
@@ -499,7 +521,7 @@
           </div>
 
           <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
-            <button type="button" id="btn-test-llm" class="btn btn-secondary btn-compact">⚡ Test LLM Connection</button>
+            <button type="button" id="btn-test-llm" class="btn btn-secondary btn-compact">Test LLM Connection</button>
             <span id="llm-test-result" style="font-size: 11px; color: var(--text-muted);"></span>
           </div>
         </div>
@@ -530,7 +552,7 @@
           </div>
 
           <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
-            <button type="button" id="btn-test-parser" class="btn btn-secondary btn-compact">⚡ Test Parser Service</button>
+            <button type="button" id="btn-test-parser" class="btn btn-secondary btn-compact">Test Parser Service</button>
             <span id="parser-test-result" style="font-size: 11px; color: var(--text-muted);"></span>
           </div>
         </div>

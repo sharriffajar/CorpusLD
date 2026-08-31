@@ -15,7 +15,7 @@ export function renderTablesTab(data) {
         const tDesc = escapeHtml(t.description || '-');
         html += `
           <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">📊 Table #${idx + 1}: ${tName} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
+            <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">Table ${idx + 1}: ${tName} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
             <p style="font-size: 12px; color: var(--text-secondary);">${tDesc}</p>
           </div>
         `;
@@ -27,7 +27,7 @@ export function renderTablesTab(data) {
   }
 
   if (!tables.length) {
-    el.innerHTML = '<p style="color: var(--text-muted);">No tables detected.</p>';
+    el.innerHTML = '<p style="color: var(--text-muted);">No tables detected in this document.</p>';
     return;
   }
 
@@ -37,11 +37,13 @@ export function renderTablesTab(data) {
     const tPage = escapeHtml(t.page_number || '?');
     html += `
       <div>
-        <h4 style="font-family: var(--font-brand); margin-bottom: 8px;">📊 Table #${idx + 1}: ${tCap} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
-        <table class="data-table">
-          <thead><tr>${(t.headers || []).map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>
-          <tbody>${(t.rows || []).map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
-        </table>
+        <h4 style="font-family: var(--font-brand); margin-bottom: 8px;">Table ${idx + 1}: ${tCap} <span style="font-size: 11px; color: var(--text-muted);">(Page ${tPage})</span></h4>
+        <div class="table-scroll-container">
+          <table class="data-table">
+            <thead><tr>${(t.headers || []).map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>
+            <tbody>${(t.rows || []).map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
+          </table>
+        </div>
       </div>
     `;
   });

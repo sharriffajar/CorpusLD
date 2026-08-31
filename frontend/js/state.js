@@ -123,13 +123,13 @@ export function updatePrivacyIndicator() {
   const isOffline = appState.settings.provider === 'ollama' && appState.settings.parser === 'pypdf';
   if (isOffline) {
     privacyBadge.className = 'privacy-pill privacy-local';
-    privacyBadgeText.textContent = '🔒 100% Local Offline Mode';
+    privacyBadgeText.textContent = '100% Local Offline Mode';
   } else if (appState.settings.parser === 'hybrid') {
     privacyBadge.className = 'privacy-pill privacy-cloud';
-    privacyBadgeText.textContent = `⚡ Hybrid Mode (${appState.settings.provider.toUpperCase()} + LlamaParse)`;
+    privacyBadgeText.textContent = `Hybrid Mode (${appState.settings.provider.toUpperCase()} + LlamaParse)`;
   } else {
     privacyBadge.className = 'privacy-pill privacy-cloud';
-    privacyBadgeText.textContent = `☁️ BYOK Mode (${appState.settings.provider.toUpperCase()})`;
+    privacyBadgeText.textContent = `BYOK Mode (${appState.settings.provider.toUpperCase()})`;
   }
   updateModelStatus('ready');
 }
@@ -143,13 +143,13 @@ export function updateModelStatus(state, info) {
   const activeModelName = provider === 'ollama' ? (appState.settings.ollamaModel || 'qwen2.5:3b') : (appState.settings.cloudModel || 'Cloud');
 
   if (state === 'running') {
-    modelStatusPill.className = 'badge badge-warning';
+    modelStatusPill.className = 'status-badge badge-warning';
     modelStatusText.textContent = info || `Model: Processing (${activeModelName})...`;
   } else if (state === 'error') {
-    modelStatusPill.className = 'badge badge-danger';
+    modelStatusPill.className = 'status-badge badge-danger';
     modelStatusText.textContent = info || 'Model: Error / Offline';
   } else {
-    modelStatusPill.className = 'badge badge-success';
+    modelStatusPill.className = 'status-badge badge-success';
     modelStatusText.textContent = `Model: Ready (${activeModelName})`;
   }
 }
@@ -182,7 +182,7 @@ export function updateIndexStatus(isIndexed) {
   if (isIndexed) {
     if (syncStateBadge) {
       syncStateBadge.className = 'sync-badge badge-success';
-      syncStateBadge.textContent = 'Ready 🟢';
+      syncStateBadge.textContent = 'Ready';
     }
     if (btnSyncKb) {
       btnSyncKb.className = 'btn btn-sync btn-sync-synced btn-block';
@@ -194,13 +194,13 @@ export function updateIndexStatus(isIndexed) {
   } else {
     if (syncStateBadge) {
       syncStateBadge.className = 'sync-badge badge-rose';
-      syncStateBadge.textContent = 'Needs Sync 🔴';
+      syncStateBadge.textContent = 'Needs Sync';
     }
     if (btnSyncKb) {
       btnSyncKb.className = 'btn btn-sync btn-sync-needed btn-block';
       btnSyncKb.disabled = false;
     }
-    if (btnSyncLabel) btnSyncLabel.textContent = '⚡ Sync Knowledge Base';
+    if (btnSyncLabel) btnSyncLabel.textContent = 'Sync Knowledge Base';
     if (chatInput) chatInput.disabled = true;
     if (btnSendChat) btnSendChat.disabled = true;
   }

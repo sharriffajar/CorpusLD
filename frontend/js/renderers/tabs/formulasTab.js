@@ -26,7 +26,7 @@ export function renderFormulasTab(data) {
     }
     html += `
       <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-        <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">📐 ${fName}${pg}</h4>
+        <h4 style="font-family: var(--font-brand); margin-bottom: 6px;">${fName}${pg}</h4>
         <pre style="background: #000000; padding: 10px 14px; border-radius: var(--radius-sm); color: #a7f3d0; font-family: var(--font-mono); font-size: 13px; overflow-x: auto;"><code>${expr}</code></pre>
         ${varsHtml}
       </div>

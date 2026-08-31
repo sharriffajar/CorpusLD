@@ -10,13 +10,13 @@ export function renderTermsTab(data) {
     return;
   }
 
-  let html = '<table class="data-table"><thead><tr><th>Term / Code</th><th>Definition / Expansion</th><th>Category</th></tr></thead><tbody>';
+  let html = '<div class="table-scroll-container"><table class="data-table"><thead><tr><th>Term / Code</th><th>Definition / Expansion</th><th>Category</th></tr></thead><tbody>';
   terms.forEach(t => {
     const tName = escapeHtml(t.name || '-');
     const tDesc = escapeHtml(t.description || '-');
     const tCat = escapeHtml(t.term_code || t.inDefinedTermSet || 'DefinedTerm');
     html += `<tr><td><strong>${tName}</strong></td><td>${tDesc}</td><td><code>${tCat}</code></td></tr>`;
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   el.innerHTML = html;
 }

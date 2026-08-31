@@ -50,10 +50,10 @@ export function updateChatScopeUI() {
   const scopeVal = selectChatScope ? selectChatScope.value : '';
   if (scopeVal) {
     if (chatScopePill) chatScopePill.className = 'scope-pill scope-doc';
-    if (chatScopePillText) chatScopePillText.textContent = `🎯 Doc: ${scopeVal}`;
+    if (chatScopePillText) chatScopePillText.textContent = `Doc: ${scopeVal}`;
   } else {
     if (chatScopePill) chatScopePill.className = 'scope-pill scope-all';
-    if (chatScopePillText) chatScopePillText.textContent = '🌐 Full Corpus (All Documents)';
+    if (chatScopePillText) chatScopePillText.textContent = 'Scope: All Documents';
   }
 }
 
@@ -266,7 +266,7 @@ export function initDocumentsModule() {
       if (btnSyncLabel) btnSyncLabel.textContent = 'Syncing Vector DB...';
       if (syncStateBadge) {
         syncStateBadge.className = 'sync-badge badge-warning';
-        syncStateBadge.textContent = 'Syncing... ⏳';
+        syncStateBadge.textContent = 'Syncing...';
       }
       if (syncSpinner) syncSpinner.classList.remove('hidden');
       if (syncStatusText) syncStatusText.textContent = 'Parsing & Indexing Vector DB...';
@@ -279,14 +279,14 @@ export function initDocumentsModule() {
         });
         if (data.success) {
           updateIndexStatus(true);
-          if (syncStatusText) syncStatusText.textContent = '✅ Vector DB Ready!';
+          if (syncStatusText) syncStatusText.textContent = 'Vector DB Ready';
           setTimeout(() => {
             if (syncStatusText && syncStatusText.textContent.includes('Ready')) syncStatusText.textContent = '';
           }, 4000);
         }
       } catch (e) {
         alert('Sync failed: ' + e);
-        if (syncStatusText) syncStatusText.textContent = '❌ Sync Failed';
+        if (syncStatusText) syncStatusText.textContent = 'Sync Failed';
         updateIndexStatus(false);
       } finally {
         if (syncSpinner) syncSpinner.classList.add('hidden');
@@ -317,12 +317,12 @@ export function initDocumentsModule() {
         });
 
         if (data.success) {
-          alert(`🎉 Live Sync Success!\n${data.message}`);
+          alert(`Live Sync Success.\n${data.message}`);
         } else {
-          alert(`⚠️ Sync Notice:\n${data.message || JSON.stringify(data)}`);
+          alert(`Sync Notice:\n${data.message || JSON.stringify(data)}`);
         }
       } catch (e) {
-        alert(`❌ Sync failed: ${e}`);
+        alert(`Sync failed: ${e}`);
       } finally {
         btnSyncGraphdb.disabled = false;
         btnSyncGraphdb.innerHTML = origText;

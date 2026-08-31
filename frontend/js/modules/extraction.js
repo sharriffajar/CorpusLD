@@ -9,13 +9,13 @@ let extractionAbortController = null;
 export function startExtractionTimer() {
   const stepperTimer = document.getElementById('stepper-timer');
   extractionSeconds = 0;
-  if (stepperTimer) stepperTimer.textContent = '⏱️ 00:00';
+  if (stepperTimer) stepperTimer.textContent = '00:00';
   clearInterval(extractionTimerInterval);
   extractionTimerInterval = setInterval(() => {
     extractionSeconds++;
     const mins = String(Math.floor(extractionSeconds / 60)).padStart(2, '0');
     const secs = String(extractionSeconds % 60).padStart(2, '0');
-    if (stepperTimer) stepperTimer.textContent = `⏱️ ${mins}:${secs}`;
+    if (stepperTimer) stepperTimer.textContent = `${mins}:${secs}`;
   }, 1000);
 }
 
@@ -92,16 +92,16 @@ export function handleExtractionEvent(event) {
       setStepperStep(5, 'done', 'Completed');
     }
   } else if (event.type === 'complete') {
-    appendTerminalLog('🎉 Extraction 100% Complete!');
+    appendTerminalLog('Extraction 100% Complete.');
     if (terminalPulse) terminalPulse.className = 'terminal-pulse done';
-    if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: ✅ Complete (100%)';
+    if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: Complete (100%)';
     for (let i = 1; i <= 5; i++) setStepperStep(i, 'done', 'Completed');
     renderJsonLdData(event.result);
     updateModelStatus('ready');
   } else if (event.type === 'error') {
-    appendTerminalLog(`⚠️ Error: ${event.error}`);
+    appendTerminalLog(`Error: ${event.error}`);
     if (terminalPulse) terminalPulse.className = 'terminal-pulse error';
-    if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: ⚠️ Stopped / Error Occurred';
+    if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: Stopped (Error)';
     updateModelStatus('error', 'Model: Error Occurred');
   }
 }
@@ -161,13 +161,13 @@ export function initExtractionModule() {
         );
       } catch (e) {
         if (e.name === 'AbortError') {
-          appendTerminalLog('⏹️ Extraction canceled by user.');
+          appendTerminalLog('Extraction canceled by user.');
           if (terminalPulse) terminalPulse.className = 'terminal-pulse stopped';
-          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: ⏹️ Canceled';
+          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: Canceled';
         } else {
-          appendTerminalLog(`❌ An error occurred / Extraction stopped: ${e}`);
+          appendTerminalLog(`Error occurred during extraction: ${e}`);
           if (terminalPulse) terminalPulse.className = 'terminal-pulse error';
-          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: ❌ Stopped (Error / Interrupted)';
+          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: Stopped (Error / Interrupted)';
         }
       } finally {
         stopExtractionTimer();
@@ -178,12 +178,12 @@ export function initExtractionModule() {
 
         if (terminalPulse?.classList.contains('running')) {
           terminalPulse.className = 'terminal-pulse stopped';
-          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: ⏹️ Stopped';
-          btnRunExtraction.innerHTML = '<span>⚡ Extract JSON-LD (Agentic RAG)</span>';
+          if (terminalStatusText) terminalStatusText.textContent = 'Agentic Execution: Stopped';
+          btnRunExtraction.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> <span>Extract JSON-LD (Agentic RAG)</span>';
         } else if (terminalPulse?.classList.contains('done')) {
-          btnRunExtraction.innerHTML = '<span>⚡ Re-extract JSON-LD</span>';
+          btnRunExtraction.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Re-extract JSON-LD</span>';
         } else {
-          btnRunExtraction.innerHTML = '<span>⚡ Retry Extraction</span>';
+          btnRunExtraction.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> <span>Retry Extraction</span>';
         }
       }
     });

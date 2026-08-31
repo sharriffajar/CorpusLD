@@ -9,7 +9,7 @@ export function renderSectionsTab(data) {
     sections = data.hasPart.filter(p => p['@type'] === 'CreativeWork' || !p['@type']);
   }
   if (!sections.length) {
-    el.innerHTML = '<p style="color: var(--text-muted);">No sections detected.</p>';
+    el.innerHTML = '<p style="color: var(--text-muted);">No sections detected in this document.</p>';
     return;
   }
 
@@ -20,7 +20,11 @@ export function renderSectionsTab(data) {
     const sDesc = escapeHtml(s.description || s.summary || '-');
     html += `
       <div style="background: var(--bg-surface-elevated); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-        <h4 style="font-family: var(--font-brand); color: #ffffff;">📌 ${sName} <span style="font-size: 11px; color: var(--text-accent); font-weight: normal;">${pageInfo}</span></h4>
+        <h4 style="font-family: var(--font-brand); color: #ffffff; display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-primary);"></span>
+          <span>${sName}</span>
+          <span style="font-size: 11px; color: var(--text-accent); font-weight: normal;">${pageInfo}</span>
+        </h4>
         <p style="font-size: 12px; color: var(--text-secondary); margin: 6px 0;"><strong>Summary:</strong> ${sDesc}</p>
       </div>
     `;
