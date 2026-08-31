@@ -945,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroDate.textContent = `📅 ${data.datePublished}`;
       } else {
         heroDate.className = 'hero-meta-pill pill-missing';
-        heroDate.textContent = `⚠️ Date: Not Identified in PDF`;
+        heroDate.textContent = `⚠️ Tanggal: Tidak Terdeteksi di PDF`;
       }
     }
 
@@ -956,7 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroDoi.textContent = `🔗 ${cleanDoi}`;
       } else {
         heroDoi.className = 'hero-meta-pill pill-warning';
-        heroDoi.textContent = `⚠️ DOI: Unindexed`;
+        heroDoi.textContent = `⚠️ DOI: Belum Terdaftar`;
       }
     }
 
@@ -964,10 +964,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroAuthors) {
       if (hasAuthor) {
         heroAuthors.className = 'hero-meta-pill pill-valid';
-        heroAuthors.textContent = `👥 ${data.author.length} Authors`;
+        heroAuthors.textContent = `👥 ${data.author.length} Penulis`;
       } else {
         heroAuthors.className = 'hero-meta-pill pill-missing';
-        heroAuthors.textContent = `⚠️ Author: 0 Detected`;
+        heroAuthors.textContent = `⚠️ Penulis: 0 Terdeteksi`;
       }
     }
 
@@ -975,29 +975,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroCitations) {
       const citCount = data.citation?.length || data.references_or_sources?.length || 0;
       heroCitations.className = 'hero-meta-pill pill-valid';
-      heroCitations.textContent = `📚 ${citCount} Citations`;
+      heroCitations.textContent = `📚 ${citCount} Sitasi`;
     }
 
-    // High-Contrast Mandatory Metadata Completeness Alert Banner
+    // High-Contrast Mandatory Metadata Completeness Alert Banner (Bahasa Indonesia)
     const completenessAlert = document.getElementById('metadata-completeness-alert');
     if (completenessAlert) {
       const missingList = [];
       if (!hasDate) {
         missingList.push({
-          name: 'Publication Date (datePublished)',
-          reason: 'Date not found in document text. Google Scholar & Schema.org require datePublished for citation metrics.'
+          name: 'Tanggal Publikasi (datePublished)',
+          reason: 'Tanggal tidak ditemukan pada teks dokumen PDF. Kolom ini diperlukan untuk metrik sitasi Google Scholar dan tahun sitasi BibTeX.'
         });
       }
       if (!hasAuthor) {
         missingList.push({
-          name: 'Author Attribution (author)',
-          reason: 'No author names could be deterministically isolated from the cover page.'
+          name: 'Atribusi Penulis (author)',
+          reason: 'Nama penulis tidak dapat diidentifikasi secara otomatis dari halaman cover.'
         });
       }
       if (!hasDoi) {
         missingList.push({
-          name: 'DOI Identifier',
-          reason: 'Document does not state a registered DOI identifier in the header.'
+          name: 'Nomor DOI (identifier)',
+          reason: 'Dokumen tidak mencantumkan nomor DOI terdaftar pada header dokumen.'
         });
       }
 
@@ -1006,10 +1006,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let alertHtml = `
           <div class="alert-header">
             <span>⚠️</span>
-            <strong>Mandatory Academic Metadata Notice</strong>
+            <strong>Pemberitahuan Metadata Akademik Wajib</strong>
           </div>
           <div class="alert-body">
-            The following metadata fields were not identified in the PDF text and are highlighted for your attention:
+            Atribut metadata berikut tidak ditemukan pada teks PDF dan ditandai untuk perhatian Anda:
             <div class="missing-tags-wrap">
         `;
         missingList.forEach(item => {
@@ -1030,21 +1030,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Rich Result & Knowledge Graph Adversarial Validator
     const valReport = rawPayload.validation || {};
     const schemaChecks = valReport.checks || [
-      { status: data['@type'] ? 'PASS' : 'WARN', title: 'Schema.org Standard @type', desc: `Type: ${data['@type'] || 'Article'}` },
-      { status: data.name ? 'PASS' : 'WARN', title: 'Headline / Document Title', desc: data.name ? 'Title defined' : 'Title missing' },
-      { status: hasDate ? 'PASS' : 'WARN', title: 'Publication Date', desc: hasDate ? `Date: ${data.datePublished}` : 'Missing datePublished' },
-      { status: hasAuthor ? 'PASS' : 'WARN', title: 'Author Attribution', desc: hasAuthor ? `${data.author.length} Verified authors` : 'Author not detected' },
-      { status: data.sections && data.sections.length > 0 ? 'PASS' : 'WARN', title: 'Structured Sections', desc: `${data.sections?.length || 0} Sections identified` },
-      { status: data.tables && data.tables.length > 0 ? 'PASS' : 'WARN', title: 'Quantitative Tables', desc: `${data.tables?.length || 0} Tables formatted` },
-      { status: data.references_or_sources && data.references_or_sources.length > 0 ? 'PASS' : 'WARN', title: 'Strict Citations', desc: `${data.references_or_sources?.length || 0} Cited references` }
+      { status: data['@type'] ? 'PASS' : 'WARN', title: 'Schema.org Standard @type', desc: `Tipe: ${data['@type'] || 'Article'}` },
+      { status: data.name ? 'PASS' : 'WARN', title: 'Judul Dokumen (Headline)', desc: data.name ? 'Judul terdefinisi' : 'Judul tidak ditemukan' },
+      { status: hasDate ? 'PASS' : 'WARN', title: 'Tanggal Publikasi', desc: hasDate ? `Tanggal: ${data.datePublished}` : 'datePublished kosong' },
+      { status: hasAuthor ? 'PASS' : 'WARN', title: 'Atribusi Penulis', desc: hasAuthor ? `${data.author.length} Penulis terverifikasi` : 'Penulis tidak terdeteksi' },
+      { status: data.sections && data.sections.length > 0 ? 'PASS' : 'WARN', title: 'Struktur Seksi Bab', desc: `${data.sections?.length || 0} Bab teridentifikasi` },
+      { status: data.tables && data.tables.length > 0 ? 'PASS' : 'WARN', title: 'Tabel Kuantitatif', desc: `${data.tables?.length || 0} Tabel terformat` },
+      { status: data.references_or_sources && data.references_or_sources.length > 0 ? 'PASS' : 'WARN', title: 'Sitasi Bibliografi', desc: `${data.references_or_sources?.length || 0} Referensi sitasi` }
     ];
 
     const kgChecks = valReport.kg_checks || [
-      { status: 'PASS', title: 'Antonym Semantics Check', details: 'Free of antonym semantic contradictions in knowledge graph relations.' },
-      { status: 'PASS', title: 'Negation Conflict Check', details: 'No conflicting negation claims detected internally.' },
-      { status: 'PASS', title: 'Numerical & Range Consistency', details: `${data.properties_and_metrics?.length || 0} quantitative metrics validated with page references.` },
-      { status: 'PASS', title: 'Source Grounding & Page Binding', details: 'All sections and citations are grounded to document source pages.' },
-      { status: 'PASS', title: 'Graph Topology & Density', details: 'Graph topology is ontologically connected.' }
+      { status: 'PASS', title: 'Antonym Semantics Check', details: 'Bebas dari kontradiksi semantik antonim pada relasi graph.' },
+      { status: 'PASS', title: 'Negation Conflict Check', details: 'Tidak ditemukan klaim negasi yang berkonflik secara internal.' },
+      { status: 'PASS', title: 'Numerical & Range Consistency', details: `${data.properties_and_metrics?.length || 0} metrik kuantitatif tervalidasi dengan referensi halaman.` },
+      { status: 'PASS', title: 'Source Grounding & Page Binding', details: 'Seluruh bab dan sitasi terikat dengan nomor halaman sumber dokumen.' },
+      { status: 'PASS', title: 'Graph Topology & Density', details: 'Topologi graph terhubung secara ontologis.' }
     ];
 
     const combinedScore = valReport.score !== undefined ? valReport.score : (hasDate ? 100 : 92);
@@ -1055,13 +1055,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeEl = document.getElementById('rich-badge');
     if (combinedScore >= 85 && resolution === 'accepted') {
       badgeEl.className = 'badge-tag badge-ready';
-      badgeEl.textContent = '🌟 GOOGLE RICH RESULT & KG VERIFIED (SOUND)';
+      badgeEl.textContent = '🌟 GOOGLE RICH RESULT & KG TERVERIFIKASI';
     } else if (combinedScore >= 60) {
       badgeEl.className = 'badge-tag badge-good';
-      badgeEl.textContent = '🟢 VERIFIED WITH NOTICES';
+      badgeEl.textContent = '🟢 TERVERIFIKASI DENGAN CATATAN';
     } else {
       badgeEl.className = 'badge-tag badge-review';
-      badgeEl.textContent = '⚠️ NEEDS ADVERSARIAL RESOLUTION';
+      badgeEl.textContent = '⚠️ MEMERLUKAN RESOLUSI ADVERSARIAL';
     }
 
     const checksGrid = document.getElementById('validator-checks');
@@ -1123,39 +1123,39 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="metadata-fields-grid">
         <div class="metadata-field-card field-valid">
           <div class="field-label">
-            <span>📄 Document Title (<code>name</code>)</span>
-            <span class="badge-status-valid">✅ Defined</span>
+            <span>📄 Judul Dokumen (<code>name</code>)</span>
+            <span class="badge-status-valid">✅ Terdefinisi</span>
           </div>
           <div class="field-value"><strong>${escapeHtml(data.name || '-')}</strong></div>
         </div>
 
         <div class="metadata-field-card ${hasDate ? 'field-valid' : 'field-missing'}">
           <div class="field-label">
-            <span>📅 Publication Date (<code>datePublished</code>)</span>
+            <span>📅 Tanggal Publikasi (<code>datePublished</code>)</span>
             <span class="${hasDate ? 'badge-status-valid' : 'badge-status-missing'}">
-              ${hasDate ? '✅ Verified' : '⚠️ Missing in PDF'}
+              ${hasDate ? '✅ Terverifikasi' : '⚠️ Tidak Ditemukan di PDF'}
             </span>
           </div>
           <div class="field-value ${hasDate ? '' : 'text-missing'}">
-            ${hasDate ? `<code>${escapeHtml(data.datePublished)}</code>` : '<em>Publication date was not found in document text. It is omitted from citation tags unless added manually.</em>'}
+            ${hasDate ? `<code>${escapeHtml(data.datePublished)}</code>` : '<em>Tanggal publikasi tidak tertulis di dalam dokumen. Kolom ini dikosongkan pada tag sitasi kecuali diisi manual.</em>'}
           </div>
         </div>
 
         <div class="metadata-field-card ${hasDoi ? 'field-valid' : 'field-warning'}">
           <div class="field-label">
-            <span>🔗 DOI Identifier (<code>identifier</code>)</span>
+            <span>🔗 Identitas DOI (<code>identifier</code>)</span>
             <span class="${hasDoi ? 'badge-status-valid' : 'badge-status-warning'}">
-              ${hasDoi ? '✅ Indexed' : '⚠️ No DOI Found'}
+              ${hasDoi ? '✅ Terindeks' : '⚠️ DOI Tidak Ditemukan'}
             </span>
           </div>
           <div class="field-value">
-            ${hasDoi ? `<code>${escapeHtml(cleanDoi)}</code>` : '<span style="color: var(--text-muted);">Unregistered or not written on cover</span>'}
+            ${hasDoi ? `<code>${escapeHtml(cleanDoi)}</code>` : '<span style="color: var(--text-muted);">Belum terdaftar atau tidak tercantum pada cover</span>'}
           </div>
         </div>
 
         <div class="metadata-field-card field-valid">
           <div class="field-label">
-            <span>🌐 Language &amp; Type</span>
+            <span>🌐 Bahasa &amp; Tipe Dokumen</span>
             <span class="badge-status-valid">✅ ${escapeHtml(data.inLanguage || 'en')}</span>
           </div>
           <div class="field-value">
@@ -1165,11 +1165,11 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 16px 0;">
-      <h4>Official Author List:</h4>
+      <h4>Daftar Penulis Resmi:</h4>
     `;
 
     if (authors.length) {
-      html += '<table class="data-table"><thead><tr><th>Name</th><th>Identifier (ORCID / ID)</th><th>Affiliation</th></tr></thead><tbody>';
+      html += '<table class="data-table"><thead><tr><th>Nama Penulis</th><th>Identifikasi (ORCID / ID)</th><th>Afiliasi Institusi</th></tr></thead><tbody>';
       authors.forEach(a => {
         const aName = escapeHtml(a.name || '-');
         const aId = a.identifier ? `<span class="badge-status-valid">${escapeHtml(a.identifier)}</span>` : '<span style="color: var(--text-dim);">-</span>';
@@ -1187,46 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       html += '</tbody></table>';
     } else {
-      html += '<p style="color: #f87171; font-weight: 600;">⚠️ No author information detected from document cover.</p>';
-    }
-    el.innerHTML = html;
-  }
-    renderKgTab(data);
-    renderEntitiesTab(data);
-    renderMetricsTab(data);
-    renderSectionsTab(data);
-    renderTablesTab(data);
-    renderProceduresTab(data);
-    renderFormulasTab(data);
-    renderTermsTab(data);
-    renderRefsTab(data);
-    renderScholarTab(data);
-    renderLogsTab(telemetry);
-    renderRawTab(data);
-
-    if (btnCopyScholarTags) btnCopyScholarTags.disabled = false;
-  }
-
-  function renderAuthorTab(data) {
-    const el = document.getElementById('author-content');
-    const authors = data.author || [];
-    let html = `
-      <p><strong>Language (<code>inLanguage</code>):</strong> <code>${escapeHtml(data.inLanguage || 'en')}</code></p>
-      <p><strong>Date Published (<code>datePublished</code>):</strong> <code>${escapeHtml(data.datePublished || 'null (Not identified in document)')}</code></p>
-      <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
-      <h4>Official Author List:</h4>
-    `;
-    if (authors.length) {
-      html += '<table class="data-table"><thead><tr><th>Name</th><th>Identifier / ID</th><th>Affiliation</th></tr></thead><tbody>';
-      authors.forEach(a => {
-        const aName = escapeHtml(a.name || '-');
-        const aId = escapeHtml(a.identifier || '-');
-        const aAff = escapeHtml(typeof a.affiliation === 'object' ? (a.affiliation?.name || '-') : (a.affiliation || '-'));
-        html += `<tr><td><strong>${aName}</strong></td><td>${aId}</td><td>${aAff}</td></tr>`;
-      });
-      html += '</tbody></table>';
-    } else {
-      html += '<p style="color: var(--text-muted);">No author information detected.</p>';
+      html += '<p style="color: #f87171; font-weight: 600;">⚠️ Informasi penulis tidak terdeteksi dari halaman cover dokumen.</p>';
     }
     el.innerHTML = html;
   }
