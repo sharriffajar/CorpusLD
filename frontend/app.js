@@ -896,33 +896,144 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = rawPayload.schema_json_ld || rawPayload;
     const telemetry = rawPayload.telemetry || {};
 
+    // Extract clean DOI if present
+    let cleanDoi = '';
+    const doiVal = data.identifier;
+    if (Array.isArray(doiVal)) {
+      for (const it of doiVal) {
+        if (typeof it === 'object' && String(it.propertyID).toUpperCase() === 'DOI' && it.value) {
+          cleanDoi = String(it.value).trim();
+          break;
+        }
+      }
+    } else if (typeof doiVal === 'object' && doiVal?.value) {
+      cleanDoi = String(doiVal.value).trim();
+    } else if (typeof doiVal === 'string') {
+      cleanDoi = doiVal.replace('https://doi.org/', '').trim();
+    }
+    if (!cleanDoi && data.sameAs && String(data.sameAs).includes('10.')) {
+      const m = String(data.sameAs).match(/10\.\d{4,9}\/[^\s"\]\[}<>]+/);
+      if (m) cleanDoi = m[0];
+    }
+
+    const hasDate = Boolean(data.datePublished && String(data.datePublished).trim() !== '' && String(data.datePublished).toLowerCase() !== 'null');
+    const hasAuthor = Boolean(data.author && Array.isArray(data.author) && data.author.length > 0);
+    const hasDoi = Boolean(cleanDoi);
+
     // Hero title & description
     document.getElementById('doc-hero-title').textContent = data.name || appState.selectedDoc;
     document.getElementById('doc-hero-desc').textContent = data.description || '-';
 
-    // Hero metadata pills
+    // Hero metadata pills with High-Contrast Status Highlighting
     const typeStr = Array.isArray(data['@type']) ? data['@type'].join(', ') : (data['@type'] || 'ScholarlyArticle');
     const heroType = document.getElementById('hero-badge-type');
-    if (heroType) heroType.textContent = `🏷️ ${typeStr}`;
+    if (heroType) {
+      heroType.className = 'hero-meta-pill pill-valid';
+      heroType.textContent = `🏷️ ${typeStr}`;
+    }
 
     const heroLang = document.getElementById('hero-badge-lang');
-    if (heroLang) heroLang.textContent = `🌐 ${data.inLanguage || 'en'}`;
+    if (heroLang) {
+      heroLang.className = 'hero-meta-pill pill-valid';
+      heroLang.textContent = `🌐 ${data.inLanguage || 'en'}`;
+    }
 
     const heroDate = document.getElementById('hero-badge-date');
-    if (heroDate) heroDate.textContent = data.datePublished ? `📅 ${data.datePublished}` : '📅 Date: null';
+    if (heroDate) {
+      if (hasDate) {
+        heroDate.className = 'hero-meta-pill pill-valid';
+        heroDate.textContent = `📅 ${data.datePublished}`;
+      } else {
+        heroDate.className = 'hero-meta-pill pill-missing';
+        heroDate.textContent = `⚠️ Date: Not Identified in PDF`;
+      }
+    }
+
+    const heroDoi = document.getElementById('hero-badge-doi');
+    if (heroDoi) {
+      if (hasDoi) {
+        heroDoi.className = 'hero-meta-pill pill-valid';
+        heroDoi.textContent = `🔗 ${cleanDoi}`;
+      } else {
+        heroDoi.className = 'hero-meta-pill pill-warning';
+        heroDoi.textContent = `⚠️ DOI: Unindexed`;
+      }
+    }
 
     const heroAuthors = document.getElementById('hero-badge-authors');
-    if (heroAuthors) heroAuthors.textContent = `👥 ${data.author?.length || 0} Authors`;
+    if (heroAuthors) {
+      if (hasAuthor) {
+        heroAuthors.className = 'hero-meta-pill pill-valid';
+        heroAuthors.textContent = `👥 ${data.author.length} Authors`;
+      } else {
+        heroAuthors.className = 'hero-meta-pill pill-missing';
+        heroAuthors.textContent = `⚠️ Author: 0 Detected`;
+      }
+    }
 
     const heroCitations = document.getElementById('hero-badge-citations');
-    if (heroCitations) heroCitations.textContent = `📚 ${data.citation?.length || data.references_or_sources?.length || 0} Citations`;
+    if (heroCitations) {
+      const citCount = data.citation?.length || data.references_or_sources?.length || 0;
+      heroCitations.className = 'hero-meta-pill pill-valid';
+      heroCitations.textContent = `📚 ${citCount} Citations`;
+    }
+
+    // High-Contrast Mandatory Metadata Completeness Alert Banner
+    const completenessAlert = document.getElementById('metadata-completeness-alert');
+    if (completenessAlert) {
+      const missingList = [];
+      if (!hasDate) {
+        missingList.push({
+          name: 'Publication Date (datePublished)',
+          reason: 'Date not found in document text. Google Scholar & Schema.org require datePublished for citation metrics.'
+        });
+      }
+      if (!hasAuthor) {
+        missingList.push({
+          name: 'Author Attribution (author)',
+          reason: 'No author names could be deterministically isolated from the cover page.'
+        });
+      }
+      if (!hasDoi) {
+        missingList.push({
+          name: 'DOI Identifier',
+          reason: 'Document does not state a registered DOI identifier in the header.'
+        });
+      }
+
+      if (missingList.length > 0) {
+        completenessAlert.className = 'metadata-missing-alert';
+        let alertHtml = `
+          <div class="alert-header">
+            <span>⚠️</span>
+            <strong>Mandatory Academic Metadata Notice</strong>
+          </div>
+          <div class="alert-body">
+            The following metadata fields were not identified in the PDF text and are highlighted for your attention:
+            <div class="missing-tags-wrap">
+        `;
+        missingList.forEach(item => {
+          alertHtml += `<span class="missing-tag-pill">⚠️ <strong>${escapeHtml(item.name)}</strong>: ${escapeHtml(item.reason)}</span>`;
+        });
+        alertHtml += `
+            </div>
+          </div>
+        `;
+        completenessAlert.innerHTML = alertHtml;
+        completenessAlert.classList.remove('hidden');
+      } else {
+        completenessAlert.classList.add('hidden');
+        completenessAlert.innerHTML = '';
+      }
+    }
 
     // Rich Result & Knowledge Graph Adversarial Validator
     const valReport = rawPayload.validation || {};
     const schemaChecks = valReport.checks || [
       { status: data['@type'] ? 'PASS' : 'WARN', title: 'Schema.org Standard @type', desc: `Type: ${data['@type'] || 'Article'}` },
       { status: data.name ? 'PASS' : 'WARN', title: 'Headline / Document Title', desc: data.name ? 'Title defined' : 'Title missing' },
-      { status: data.author && data.author.length > 0 ? 'PASS' : 'WARN', title: 'Author Attribution', desc: data.author?.length ? `${data.author.length} Verified authors` : 'Author not detected' },
+      { status: hasDate ? 'PASS' : 'WARN', title: 'Publication Date', desc: hasDate ? `Date: ${data.datePublished}` : 'Missing datePublished' },
+      { status: hasAuthor ? 'PASS' : 'WARN', title: 'Author Attribution', desc: hasAuthor ? `${data.author.length} Verified authors` : 'Author not detected' },
       { status: data.sections && data.sections.length > 0 ? 'PASS' : 'WARN', title: 'Structured Sections', desc: `${data.sections?.length || 0} Sections identified` },
       { status: data.tables && data.tables.length > 0 ? 'PASS' : 'WARN', title: 'Quantitative Tables', desc: `${data.tables?.length || 0} Tables formatted` },
       { status: data.references_or_sources && data.references_or_sources.length > 0 ? 'PASS' : 'WARN', title: 'Strict Citations', desc: `${data.references_or_sources?.length || 0} Cited references` }
@@ -936,8 +1047,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { status: 'PASS', title: 'Graph Topology & Density', details: 'Graph topology is ontologically connected.' }
     ];
 
-    const combinedScore = valReport.score !== undefined ? valReport.score : 100;
-    const resolution = valReport.resolution || 'accepted';
+    const combinedScore = valReport.score !== undefined ? valReport.score : (hasDate ? 100 : 92);
+    const resolution = valReport.resolution || (combinedScore >= 85 ? 'accepted' : 'needs_review');
 
     document.getElementById('rich-score-val').textContent = combinedScore;
 
@@ -984,7 +1095,102 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Populate Subtabs
-    renderAuthorTab(data);
+    renderAuthorTab(data, { hasDate, hasDoi, cleanDoi });
+    renderKgTab(data);
+    renderEntitiesTab(data);
+    renderMetricsTab(data);
+    renderSectionsTab(data);
+    renderTablesTab(data);
+    renderProceduresTab(data);
+    renderFormulasTab(data);
+    renderTermsTab(data);
+    renderRefsTab(data);
+    renderScholarTab(data);
+    renderLogsTab(telemetry);
+    renderRawTab(data);
+
+    if (btnCopyScholarTags) btnCopyScholarTags.disabled = false;
+  }
+
+  function renderAuthorTab(data, flags = {}) {
+    const el = document.getElementById('author-content');
+    const authors = data.author || [];
+    const hasDate = flags.hasDate !== undefined ? flags.hasDate : Boolean(data.datePublished);
+    const hasDoi = flags.hasDoi !== undefined ? flags.hasDoi : Boolean(flags.cleanDoi);
+    const cleanDoi = flags.cleanDoi || (data.sameAs && String(data.sameAs).includes('10.') ? data.sameAs : '-');
+
+    let html = `
+      <div class="metadata-fields-grid">
+        <div class="metadata-field-card field-valid">
+          <div class="field-label">
+            <span>📄 Document Title (<code>name</code>)</span>
+            <span class="badge-status-valid">✅ Defined</span>
+          </div>
+          <div class="field-value"><strong>${escapeHtml(data.name || '-')}</strong></div>
+        </div>
+
+        <div class="metadata-field-card ${hasDate ? 'field-valid' : 'field-missing'}">
+          <div class="field-label">
+            <span>📅 Publication Date (<code>datePublished</code>)</span>
+            <span class="${hasDate ? 'badge-status-valid' : 'badge-status-missing'}">
+              ${hasDate ? '✅ Verified' : '⚠️ Missing in PDF'}
+            </span>
+          </div>
+          <div class="field-value ${hasDate ? '' : 'text-missing'}">
+            ${hasDate ? `<code>${escapeHtml(data.datePublished)}</code>` : '<em>Publication date was not found in document text. It is omitted from citation tags unless added manually.</em>'}
+          </div>
+        </div>
+
+        <div class="metadata-field-card ${hasDoi ? 'field-valid' : 'field-warning'}">
+          <div class="field-label">
+            <span>🔗 DOI Identifier (<code>identifier</code>)</span>
+            <span class="${hasDoi ? 'badge-status-valid' : 'badge-status-warning'}">
+              ${hasDoi ? '✅ Indexed' : '⚠️ No DOI Found'}
+            </span>
+          </div>
+          <div class="field-value">
+            ${hasDoi ? `<code>${escapeHtml(cleanDoi)}</code>` : '<span style="color: var(--text-muted);">Unregistered or not written on cover</span>'}
+          </div>
+        </div>
+
+        <div class="metadata-field-card field-valid">
+          <div class="field-label">
+            <span>🌐 Language &amp; Type</span>
+            <span class="badge-status-valid">✅ ${escapeHtml(data.inLanguage || 'en')}</span>
+          </div>
+          <div class="field-value">
+            <code>${escapeHtml(Array.isArray(data['@type']) ? data['@type'].join(', ') : (data['@type'] || 'ScholarlyArticle'))}</code>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 16px 0;">
+      <h4>Official Author List:</h4>
+    `;
+
+    if (authors.length) {
+      html += '<table class="data-table"><thead><tr><th>Name</th><th>Identifier (ORCID / ID)</th><th>Affiliation</th></tr></thead><tbody>';
+      authors.forEach(a => {
+        const aName = escapeHtml(a.name || '-');
+        const aId = a.identifier ? `<span class="badge-status-valid">${escapeHtml(a.identifier)}</span>` : '<span style="color: var(--text-dim);">-</span>';
+        let affName = '-';
+        let affRor = '';
+        if (typeof a.affiliation === 'object' && a.affiliation) {
+          affName = escapeHtml(a.affiliation.name || '-');
+          if (a.affiliation.sameAs) {
+            affRor = ` <a href="${escapeHtml(a.affiliation.sameAs)}" target="_blank" style="color: var(--accent-emerald); font-size: 10px;">[ROR]</a>`;
+          }
+        } else if (typeof a.affiliation === 'string') {
+          affName = escapeHtml(a.affiliation);
+        }
+        html += `<tr><td><strong>${aName}</strong></td><td>${aId}</td><td>${affName}${affRor}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html += '<p style="color: #f87171; font-weight: 600;">⚠️ No author information detected from document cover.</p>';
+    }
+    el.innerHTML = html;
+  }
     renderKgTab(data);
     renderEntitiesTab(data);
     renderMetricsTab(data);
