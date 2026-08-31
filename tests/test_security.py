@@ -125,3 +125,17 @@ def test_exports_safe_filename_validation():
     assert exc.value.status_code == 400
 
 
+def test_security_headers_middleware():
+    from fastapi.testclient import TestClient
+    from server import app
+
+    client = TestClient(app)
+    resp = client.get("/api/health")
+    assert resp.status_code == 200
+    assert resp.headers.get("X-Content-Type-Options") == "nosniff"
+    assert resp.headers.get("X-Frame-Options") == "SAMEORIGIN"
+    assert resp.headers.get("X-XSS-Protection") == "1; mode=block"
+    assert resp.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+
+
+

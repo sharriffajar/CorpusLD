@@ -124,6 +124,19 @@ app.add_middleware(
 )
 
 
+# ---------------------------------------------------------
+# HTTP SECURITY HEADERS MIDDLEWARE (OWASP A05 Hardening)
+# ---------------------------------------------------------
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
 import secrets
 
 # ---------------------------------------------------------
