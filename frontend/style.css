@@ -1541,6 +1541,7 @@ html, body {
   border-left: 2px solid var(--accent-primary);
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
