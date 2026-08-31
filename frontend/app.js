@@ -112,6 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingUnstructuredKey = document.getElementById('setting-unstructured-key');
   const groupUnstructuredKey = document.getElementById('group-unstructured-key');
 
+  const btnTestLlm = document.getElementById('btn-test-llm');
+  const llmTestResult = document.getElementById('llm-test-result');
+  const btnTestParser = document.getElementById('btn-test-parser');
+  const parserTestResult = document.getElementById('parser-test-result');
+
   // Enterprise GraphDB Settings Elements
   const settingGraphdbType = document.getElementById('setting-graphdb-type');
   const groupNeo4jFields = document.getElementById('group-neo4j-fields');
@@ -1699,8 +1704,99 @@ document.addEventListener('DOMContentLoaded', () => {
     btnDownloadJsonld.addEventListener('click', triggerDocumentExport);
   }
 
-  if (settingGraphdbType) {
-    settingGraphdbType.addEventListener('change', toggleSettingsVisibility);
+  if (btnTestLlm) {
+    btnTestLlm.addEventListener('click', async () => {
+      btnTestLlm.disabled = true;
+      if (llmTestResult) {
+        llmTestResult.style.color = 'var(--text-muted)';
+        llmTestResult.textContent = 'Testing connection... ⏳';
+      }
+      try {
+        const provider = settingProvider ? settingProvider.value : 'ollama';
+        const model = provider === 'ollama' ? (settingOllamaModel ? settingOllamaModel.value : 'qwen2.5:3b') : (settingCloudModel ? settingCloudModel.value.trim() : '');
+        const apiKey = settingApiKey ? settingApiKey.value.trim() : '';
+        const baseUrl = settingBaseUrl ? settingBaseUrl.value.trim() : '';
+
+        const res = await fetch('/api/diagnostics/llm/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: provider,
+            model: model,
+            api_key: apiKey,
+            base_url: baseUrl
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          if (llmTestResult) {
+            llmTestResult.style.color = '#34d399';
+            llmTestResult.textContent = `✅ ${data.message}`;
+          }
+        } else {
+          if (llmTestResult) {
+            llmTestResult.style.color = '#f87171';
+            llmTestResult.textContent = `❌ ${data.message || 'Connection failed'}`;
+          }
+        }
+      } catch (e) {
+        if (llmTestResult) {
+          llmTestResult.style.color = '#f87171';
+          llmTestResult.textContent = `❌ Error: ${e}`;
+        }
+      } finally {
+        btnTestLlm.disabled = false;
+      }
+    });
+  }
+
+  if (btnTestParser) {
+    btnTestParser.addEventListener('click', async () => {
+      btnTestParser.disabled = true;
+      if (parserTestResult) {
+        parserTestResult.style.color = 'var(--text-muted)';
+        parserTestResult.textContent = 'Testing parser service... ⏳';
+      }
+      try {
+        const parser = settingParser ? settingParser.value : 'pypdf';
+        const llamaparseKey = settingLlamaparseKey ? settingLlamaparseKey.value.trim() : '';
+        const unstructuredKey = settingUnstructuredKey ? settingUnstructuredKey.value.trim() : '';
+
+        const res = await fetch('/api/diagnostics/parser/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            parser: parser,
+            llamaparse_key: llamaparseKey,
+            unstructured_key: unstructuredKey
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          if (parserTestResult) {
+            parserTestResult.style.color = '#34d399';
+            parserTestResult.textContent = `✅ ${data.message}`;
+          }
+        } else if (data.status === 'warning') {
+          if (parserTestResult) {
+            parserTestResult.style.color = '#fbbf24';
+            parserTestResult.textContent = `⚠️ ${data.message}`;
+          }
+        } else {
+          if (parserTestResult) {
+            parserTestResult.style.color = '#f87171';
+            parserTestResult.textContent = `❌ ${data.message || 'Parser test failed'}`;
+          }
+        }
+      } catch (e) {
+        if (parserTestResult) {
+          parserTestResult.style.color = '#f87171';
+          parserTestResult.textContent = `❌ Error: ${e}`;
+        }
+      } finally {
+        btnTestParser.disabled = false;
+      }
+    });
   }
 
   if (btnTestGraphdb) {

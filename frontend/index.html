@@ -475,6 +475,11 @@
             <label for="setting-api-key">API Key (Optional for local servers like LM Studio):</label>
             <input type="password" id="setting-api-key" class="form-control" placeholder="sk-... / gsk_... / key">
           </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
+            <button type="button" id="btn-test-llm" class="btn btn-secondary btn-compact">⚡ Test LLM Connection</button>
+            <span id="llm-test-result" style="font-size: 11px; color: var(--text-muted);"></span>
+          </div>
         </div>
 
         <!-- SECTION 2: PARSER ENGINE -->
@@ -500,6 +505,11 @@
           <div id="group-unstructured-key" class="form-group hidden">
             <label for="setting-unstructured-key">Unstructured API Key:</label>
             <input type="password" id="setting-unstructured-key" class="form-control" placeholder="API Key...">
+          </div>
+
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 10px;">
+            <button type="button" id="btn-test-parser" class="btn btn-secondary btn-compact">⚡ Test Parser Service</button>
+            <span id="parser-test-result" style="font-size: 11px; color: var(--text-muted);"></span>
           </div>
         </div>
 
