@@ -80,6 +80,8 @@ from .metadata import (
     correct_metric_units,
 )
 from .references import (
+    clean_bibliographic_reference_string,
+    clean_and_unpack_citations,
     extract_references_regex_fallback,
     reconcile_references,
 )

@@ -8,6 +8,62 @@ from typing import List, Optional, Union, Dict, Any, Callable
 from .text_utils import *
 
 
+def clean_bibliographic_reference_string(ref: str) -> str:
+    """
+    Membersihkan artefak OCR, LaTeX diacritics terpisah, dan spasi tanda baca pada string referensi bibliografi.
+    Contoh:
+      - 'Y . Gao' -> 'Y. Gao'
+      - 'Vrande ˇci´c' -> 'Vrandečić'
+      - 'Kr ¨otzsch' -> 'Krötzsch'
+      - 'Communications ,' -> 'Communications,'
+      - 'pp. 1 – 9' -> 'pp. 1–9'
+    """
+    if not ref or not isinstance(ref, str):
+        return ""
+
+    s = ref.strip()
+
+    # 1. Normalisasi diakritik terpisah (common OCR / LaTeX split diacritic patterns)
+    diacritic_replacements = [
+        (r'ˇc', 'č'), (r'ˇC', 'Č'), (r'´c', 'ć'), (r'´C', 'Ć'),
+        (r'ˇs', 'š'), (r'ˇS', 'Š'), (r'ˇz', 'ž'), (r'ˇZ', 'Ž'),
+        (r'¨o', 'ö'), (r'¨O', 'Ö'), (r'¨u', 'ü'), (r'¨U', 'Ü'),
+        (r'¨a', 'ä'), (r'¨A', 'Ä'), (r'´e', 'é'), (r'´E', 'É'),
+        (r'´a', 'á'), (r'´A', 'Á'), (r'´ı', 'í'), (r'´i', 'í'),
+        (r'´o', 'ó'), (r'´u', 'ú'), (r'ˇr', 'ř'), (r'ˇd', 'ď'),
+        (r'ˇt', 'ť'), (r'ˇn', 'ň'), (r'˚a', 'å'), (r'˚A', 'Å'),
+    ]
+    for pat, repl in diacritic_replacements:
+        s = re.sub(pat, repl, s)
+
+    # Specific known split diacritic patterns with space
+    s = re.sub(r'Vrande\s+č\s*ić', 'Vrandečić', s, flags=re.IGNORECASE)
+    s = re.sub(r'Vrande\s+ˇci´c', 'Vrandečić', s, flags=re.IGNORECASE)
+    s = re.sub(r'Kr\s+¨otzsch', 'Krötzsch', s, flags=re.IGNORECASE)
+    s = re.sub(r'Kr\s+ötzsch', 'Krötzsch', s, flags=re.IGNORECASE)
+    s = re.sub(r'Kr\s*¨\s*otzsch', 'Krötzsch', s, flags=re.IGNORECASE)
+
+    # 2. Perbaiki spasi inisial nama: "Y . Gao" -> "Y. Gao", "R . Mutz" -> "R. Mutz", "R. V . Guha" -> "R. V. Guha"
+    s = re.sub(r'\b([A-Z])\s+\.\s*', r'\1. ', s)
+    s = re.sub(r'\b([A-Z]\.)\s+([A-Z])\s+\.\s*', r'\1 \2. ', s)
+
+    # 3. Hapus spasi sebelum tanda baca: "Communications ," -> "Communications,"
+    s = re.sub(r'\s+([\,\.\:\;\?\!])', r'\1', s)
+
+    # 4. Normalisasi spasi di dalam kutipan: “ Title ” -> “Title”
+    s = re.sub(r'“\s+', '“', s)
+    s = re.sub(r'\s+”', '”', s)
+    s = re.sub(r'"\s+([^"]+?)\s+"', r'"\1"', s)
+
+    # 5. Normalisasi rentang nomor halaman: "pp. 1 – 9" -> "pp. 1–9", "pp. 1 - 9" -> "pp. 1–9"
+    s = re.sub(r'(\bpp?\.\s*\d+)\s*[\-\–]\s*(\d+)', r'\1–\2', s)
+
+    # 6. Bersihkan spasi ganda
+    s = re.sub(r'\s{2,}', ' ', s).strip()
+
+    return s
+
+
 def clean_and_unpack_citations(raw_list: List[str]) -> List[str]:
     """
     Membersihkan dan memecah daftar sitasi yang mungkin tergabung (inline concatenated)
@@ -51,7 +107,7 @@ def clean_and_unpack_citations(raw_list: List[str]) -> List[str]:
     # Filter dan bersihkan setiap entri
     final_citations = []
     for entry in unpacked:
-        s = ' '.join(entry.split()).strip()
+        s = clean_bibliographic_reference_string(entry)
         # Potong jika ada seksi biografi di tengah entri
         m_bio = bio_cutoff_re.search(s)
         if m_bio:
@@ -68,6 +124,8 @@ def clean_and_unpack_citations(raw_list: List[str]) -> List[str]:
         s = re.sub(r'[\s\,\.\;\:\-]+$', '', s).strip()
         if s.endswith('.') is False and len(s) > 15:
             s += '.'
+
+        s = clean_bibliographic_reference_string(s)
 
         if len(s) >= 15 and not bio_prose_re.match(s):
             # Cegah duplikasi

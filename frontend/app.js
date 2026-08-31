@@ -1612,12 +1612,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(refs)) {
       refs.forEach(r => {
         if (typeof r === 'string' && r.trim().length > 10) {
-          lines.push(`<meta name="citation_reference" content="${escapeHtml(r.trim())}">`);
+          const cleanedR = cleanBibReference(r);
+          if (cleanedR) {
+            lines.push(`<meta name="citation_reference" content="${escapeHtml(cleanedR)}">`);
+          }
         }
       });
     }
 
     return lines.join('\n');
+  }
+
+  function cleanBibReference(ref) {
+    if (!ref || typeof ref !== 'string') return '';
+    let s = ref.trim();
+    const diacritics = [
+      [/ˇc/g, 'č'], [/ˇC/g, 'Č'], [/´c/g, 'ć'], [/´C/g, 'Ć'],
+      [/ˇs/g, 'š'], [/ˇS/g, 'Š'], [/ˇz/g, 'ž'], [/ˇZ/g, 'Ž'],
+      [/¨o/g, 'ö'], [/¨O/g, 'Ö'], [/¨u/g, 'ü'], [/¨U/g, 'Ü'],
+      [/¨a/g, 'ä'], [/¨A/g, 'Ä'], [/´e/g, 'é'], [/´E/g, 'É'],
+      [/´a/g, 'á'], [/´A/g, 'Á'], [/´ı/g, 'í'], [/´i/g, 'í'],
+      [/´o/g, 'ó'], [/´u/g, 'ú'], [/ˇr/g, 'ř'], [/ˇd/g, 'ď'],
+      [/ˇt/g, 'ť'], [/ˇn/g, 'ň'], [/˚a/g, 'å'], [/˚A/g, 'Å']
+    ];
+    diacritics.forEach(([p, r]) => { s = s.replace(p, r); });
+    s = s.replace(/Vrande\s+[čˇ]c?i[´c]/gi, 'Vrandečić')
+         .replace(/Vrande\s+ˇci´c/gi, 'Vrandečić')
+         .replace(/Kr\s*¨\s*otzsch/gi, 'Krötzsch')
+         .replace(/Kr\s+ötzsch/gi, 'Krötzsch');
+    s = s.replace(/\b([A-Z])\s+\.\s*/g, '$1. ');
+    s = s.replace(/\b([A-Z]\.)\s+([A-Z])\s+\.\s*/g, '$1 $2. ');
+    s = s.replace(/\s+([\,\.\:\;\?\!])/g, '$1');
+    s = s.replace(/“\s+/g, '“').replace(/\s+”/g, '”');
+    s = s.replace(/(\bpp?\.\s*\d+)\s*[\-\–]\s*(\d+)/g, '$1–$2');
+    s = s.replace(/\s{2,}/g, ' ').trim();
+    return s;
   }
 
   function generateHtmlHeadBundle(data) {

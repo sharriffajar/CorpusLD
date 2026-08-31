@@ -10,6 +10,7 @@ from typing import List, Optional, Union, Dict, Any, Callable
 
 from .schemas import *
 from .text_utils import *
+from .references import clean_bibliographic_reference_string
 
 
 def _extract_clean_doi_str(data: Dict[str, Any]) -> str:
@@ -202,7 +203,9 @@ def generate_google_scholar_meta_tags(
     if isinstance(citations, list):
         for ref in citations:
             if isinstance(ref, str) and len(ref.strip()) > 10:
-                lines.append(f'<meta name="citation_reference" content="{html.escape(ref.strip())}">')
+                cleaned_ref = clean_bibliographic_reference_string(ref)
+                if cleaned_ref:
+                    lines.append(f'<meta name="citation_reference" content="{html.escape(cleaned_ref)}">')
 
     return "\n".join(lines)
 
